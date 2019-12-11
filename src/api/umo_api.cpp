@@ -63,21 +63,21 @@ long long umo_create_expression(umo_model *m, umo_operator op, int nb_operands, 
 void umo_create_constraint(umo_model *m, long long expr, const char **err) {
   UNWRAP_EXCEPTIONS(
     Model *model = (Model *) m;
-    model->createConstraint(expr);
+    model->createConstraint(ExpressionId::fromRaw(expr));
   );
 }
 
 void umo_create_objective(umo_model *m, long long expr, umo_objective_direction dir, const char **err) {
   UNWRAP_EXCEPTIONS(
     Model *model = (Model *) m;
-    model->createObjective(expr, dir);
+    model->createObjective(ExpressionId::fromRaw(expr), dir);
   );
 }
 
 double umo_get_float_value(umo_model *m, long long expr, const char **err) {
   UNWRAP_EXCEPTIONS(
     Model *model = (Model *) m;
-    return model->getFloatValue(expr);
+    return model->getFloatValue(ExpressionId::fromRaw(expr));
   );
   return NAN;
 }
@@ -85,7 +85,7 @@ double umo_get_float_value(umo_model *m, long long expr, const char **err) {
 void umo_set_float_value(umo_model *m, long long expr, double value, const char **err) {
   UNWRAP_EXCEPTIONS(
     Model *model = (Model *) m;
-    model->setFloatValue(expr, value);
+    model->setFloatValue(ExpressionId::fromRaw(expr), value);
   );
 }
 
