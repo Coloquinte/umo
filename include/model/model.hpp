@@ -16,8 +16,8 @@ class Model {
     struct ExpressionData;
 
   public:
-    std::uint32_t createConstant(double value);
-    std::uint32_t createExpression(umo_operator op, long long *beginOp, long long *endOp);
+    ExpressionId createConstant(double value);
+    ExpressionId createExpression(umo_operator op, long long *beginOp, long long *endOp);
 
     void createConstraint(ExpressionId expr);
     void createObjective(ExpressionId expr, umo_objective_direction dir);
@@ -38,10 +38,19 @@ class Model {
     std::uint32_t nbObjectives() const { return objectives_.size(); }
 
   private:
+    void checkExpression(ExpressionId expr) const;
+
+  private:
     std::vector<ExpressionData> expressions_;
     std::vector<ExpressionId> operands_;
+
+    // Constraints
     std::unordered_set<ExpressionId> constraints_;
-    std::vector<ExpressionId> objectives_;
+
+    // Objectives
+    std::vector<std::pair<ExpressionId, umo_objective_direction> > objectives_;
+
+    // Constant values to variable
     std::unordered_map<double, std::uint32_t> constants_;
 
     std::vector<double> values_;
@@ -57,6 +66,8 @@ struct Model::ExpressionData {
     std::uint32_t endOperands;
     umo_operator op;
     umo_type type;
+    ExpressionData(umo_operator op, umo_type type, std::uint32_t beginOperands, std::uint32_t endOperands)
+        : beginOperands(beginOperands), endOperands(endOperands), op(op), type(type) {}
 };
 }
 

@@ -7,33 +7,44 @@
 namespace umoi {
 class ExpressionId {
   public:
+    // Construct from variable, "not" bit and "minus" bit
     ExpressionId(std::uint32_t var, bool isNot, bool isOpp) {
         v = var << 2;
         if (isNot) v |= 0x01;
         if (isOpp) v |= 0x02;
     }
+
+    // Test "not" bit
     bool isNot() const {
         return v & 0x01;
     }
-    bool isOpp() const {
+
+    // Test "minus" bit
+    bool isMinus() const {
         return v & 0x02;
     }
-    std::uint32_t ind() const {
+
+    // Index of the variable
+    std::uint32_t var() const {
         return v >> 2;
     }
+
+    // Raw integer representation
     std::uint32_t raw() const {
         return v;
     }
+
+    // Construct from raw integer representation
     static ExpressionId fromRaw(std::uint32_t raw) {
         return ExpressionId(raw);
     }
 
-    bool operator==(const ExpressionId &o) { return v == o.v; }
-    bool operator!=(const ExpressionId &o) { return v != o.v; }
-    bool operator<=(const ExpressionId &o) { return v <= o.v; }
-    bool operator>=(const ExpressionId &o) { return v >= o.v; }
-    bool operator<(const ExpressionId &o) { return v < o.v; }
-    bool operator>(const ExpressionId &o) { return v > o.v; }
+    bool operator==(const ExpressionId &o) const { return v == o.v; }
+    bool operator!=(const ExpressionId &o) const { return v != o.v; }
+    bool operator<=(const ExpressionId &o) const { return v <= o.v; }
+    bool operator>=(const ExpressionId &o) const { return v >= o.v; }
+    bool operator<(const ExpressionId &o) const { return v < o.v; }
+    bool operator>(const ExpressionId &o) const { return v > o.v; }
 
   private:
     explicit ExpressionId(std::uint32_t raw) {

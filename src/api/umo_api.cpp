@@ -47,7 +47,7 @@ void umo_destroy_model(umo_model *m, const char **err) {
 long long umo_create_constant(umo_model *m, double value, const char **err) {
   UNWRAP_EXCEPTIONS(
     Model *model = (Model *) m;
-    return model->createConstant(value);
+    return model->createConstant(value).raw();
   );
   return -1ll;
 }
@@ -55,7 +55,7 @@ long long umo_create_constant(umo_model *m, double value, const char **err) {
 long long umo_create_expression(umo_model *m, umo_operator op, int nb_operands, long long *operands, const char **err) {
   UNWRAP_EXCEPTIONS(
     Model *model = (Model *) m;
-    return model->createExpression(op, operands, operands + nb_operands);
+    return model->createExpression(op, operands, operands + nb_operands).raw();
   );
   return -1ll;
 }
