@@ -2,7 +2,7 @@
 cmake_minimum_required(VERSION 2.8)
 PROJECT(UMO)
 
-SET(CMAKE_CXX_FLAGS "-g -Wall -Werror -std=c++14")
+SET(CMAKE_CXX_FLAGS "-g -Wall -std=c++14")
 
 INCLUDE_DIRECTORIES(
     ${UMO_SOURCE_DIR}/include
@@ -14,4 +14,7 @@ SET(SOURCES
 )
 
 add_library(libumo ${SOURCES})
+
+enable_testing()
+add_subdirectory(test)
 

@@ -39,6 +39,7 @@ class Model {
 
   private:
     void checkExpression(ExpressionId expr) const;
+    umo_type getExpressionType(ExpressionId expr) const;
 
   private:
     std::vector<ExpressionData> expressions_;

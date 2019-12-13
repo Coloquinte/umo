@@ -93,5 +93,19 @@ void Model::setStringParameter(const std::string &param, const std::string &valu
     stringParams_.emplace(param, value);
 }
 
+void Model::checkExpression(ExpressionId expr) const {
+    if (expr.var() >= expressions_.size())
+        throw runtime_error("Expression out of bounds");
+    umo_type type = expressions_[expr.var()].type;
+    if (expr.isNot() && type != UMO_TYPE_BOOL)
+        throw runtime_error("The NOT bit is set but the variable is not of boolean type");
+}
+
+umo_type Model::getExpressionType(ExpressionId expr) const {
+    umo_type type = expressions_[expr.var()].type;
+    if (expr.isMinus() && type == UMO_TYPE_BOOL)
+        return UMO_TYPE_INT;
+    return type;
+}
 
 
