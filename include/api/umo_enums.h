@@ -25,6 +25,7 @@ enum umo_solution_status {
 };
 
 enum umo_operator {
+    UMO_OP_INVALID,
     // Decisions and constants
     UMO_OP_CONSTANT,
     UMO_OP_DEC_BOOL,
@@ -38,8 +39,8 @@ enum umo_operator {
     // Arithmetic operators
     UMO_OP_SUM,
     UMO_OP_PROD,
-    UMO_OP_OPPOSITE,
-    UMO_OP_MINUS,
+    UMO_OP_MINUS_UNARY,
+    UMO_OP_MINUS_BINARY,
     UMO_OP_INV,
     UMO_OP_DIV,
     UMO_OP_IDIV,
@@ -61,7 +62,7 @@ enum umo_operator {
     UMO_OP_LOGB,
     UMO_OP_EXP,
     UMO_OP_LOG,
-    UMO_OP_FACT,
+    UMO_OP_FACTORIAL,
     // Rounding operators
     UMO_OP_ROUND,
     UMO_OP_FLOOR,

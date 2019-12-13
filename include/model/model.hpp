@@ -42,7 +42,6 @@ class Model {
 
   private:
     std::vector<ExpressionData> expressions_;
-    std::vector<ExpressionId> operands_;
 
     // Constraints
     std::unordered_set<ExpressionId> constraints_;
@@ -62,12 +61,11 @@ class Model {
 };
 
 struct Model::ExpressionData {
-    std::uint32_t beginOperands;
-    std::uint32_t endOperands;
     umo_operator op;
     umo_type type;
-    ExpressionData(umo_operator op, umo_type type, std::uint32_t beginOperands, std::uint32_t endOperands)
-        : beginOperands(beginOperands), endOperands(endOperands), op(op), type(type) {}
+    std::vector<ExpressionId> operands;
+    ExpressionData(umo_operator op, umo_type type)
+        : op(op), type(type) {}
 };
 }
 
