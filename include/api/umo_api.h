@@ -38,6 +38,7 @@ umo_solution_status umo_get_solution_status(umo_model *, const char **err);
 void umo_solve(umo_model *, const char **err);
 
 // TODO: basic introspection
+// * access types
 // * access expression tree
 // * access objective bounds
 

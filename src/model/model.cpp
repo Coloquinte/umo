@@ -38,13 +38,22 @@ ExpressionId Model::createConstant(double value) {
     if (itp.second) {
         // New constant inserted
         expressions_.emplace_back(UMO_OP_CONSTANT, computeType(value));
+        values_.push_back(value);
     }
     return ExpressionId(itp.first->second, false, false);
 }
 
 ExpressionId Model::createExpression(umo_operator op, long long *beginOp, long long *endOp) {
+    computed_ = false;
     std::uint32_t var = expressions_.size();
+    ExpressionData expression(op, UMO_TYPE_FLOAT);
+    expression.operands.reserve(endOp - beginOp);
+    for (long long *it = beginOp; it != endOp; ++it) {
+        expression.operands.push_back(ExpressionId::fromRaw(*it));
+    }
     // TODO: check that the operator is compatible
+    expressions_.push_back(expression);
+    values_.push_back(0.0);
     return ExpressionId(var, false, false);
 }
 
@@ -64,6 +73,9 @@ double Model::getFloatValue(ExpressionId expr) const {
 }
 
 void Model::setFloatValue(ExpressionId expr, double value) {
+    umo_operator varOp = expressions_[expr.var()].op;
+    if (varOp != UMO_OP_DEC_BOOL && varOp != UMO_OP_DEC_INT && varOp != UMO_OP_DEC_FLOAT)
+        throw runtime_error("Only decisions can be set");
     umo_type varType = expressions_[expr.var()].type;
     if (!isTypeCompatible(varType, value))
         throw runtime_error("Setting a value of the wrong type");
