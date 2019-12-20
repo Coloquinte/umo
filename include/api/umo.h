@@ -1,6 +1,6 @@
 
-#ifndef __UMO_API_H__
-#define __UMO_API_H__
+#ifndef __UMO_H__
+#define __UMO_H__
 
 #include "umo_enums.h"
 

@@ -85,6 +85,10 @@ enum umo_operator {
     // Direct support for linear models
     UMO_OP_LIN,
     UMO_OP_LINCOMP,
+
+
+    // End indicator
+    UMO_OP_END
 };
 
 #ifdef __cplusplus

@@ -9,7 +9,7 @@ INCLUDE_DIRECTORIES(
 )
 
 SET(SOURCES
-  src/api/umo_api.cpp
+  src/api/c_api.cpp
   src/model/model.cpp
 )
 

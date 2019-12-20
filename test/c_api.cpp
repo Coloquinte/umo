@@ -1,9 +1,9 @@
-#define BOOST_TEST_DYN_LINK           // A ajouter dans le cas d'une liaison dynamique à Boost Test
-#define BOOST_TEST_MODULE MyTest      // Nom du module de test
+#define BOOST_TEST_DYN_LINK
+#define BOOST_TEST_MODULE C_API
 
 #include <boost/test/unit_test.hpp>
 
-#include "api/umo_api.h"
+#include "api/umo.h"
 
 BOOST_AUTO_TEST_CASE(Creation) {
     const char *err = NULL;
