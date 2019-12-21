@@ -36,8 +36,8 @@ long long makeTernaryOp(umo_model *model, umo_operator op, long long op1, long l
     return umo_create_expression(model, op, 3, operands, &err);
 }
 
-template<typename ResultExpression>
-ResultExpression unaryOp(umo_operator op, const ResultExpression &op1) {
+template<typename OperandExpression, typename ResultExpression>
+ResultExpression unaryOp(umo_operator op, const OperandExpression &op1) {
     bool v = makeUnaryOp(op1.rawPtr(), op, op1.rawId());
     return ResultExpression(op1.rawPtr(), v);
 }
@@ -193,7 +193,7 @@ FloatExpression operator-(const FloatExpression &op1, double op2) {
 }
 
 FloatExpression operator-(const FloatExpression &op1) {
-    return unaryOp(UMO_OP_MINUS_UNARY, op1);
+    return unaryOp<FloatExpression, FloatExpression>(UMO_OP_MINUS_UNARY, op1);
 }
 
 FloatExpression operator*(const FloatExpression &op1, const FloatExpression &op2) {
@@ -317,7 +317,7 @@ IntExpression operator-(const IntExpression &op1, long long op2) {
 }
 
 IntExpression operator-(const IntExpression &op1) {
-    return unaryOp(UMO_OP_MINUS_UNARY, op1);
+    return unaryOp<IntExpression, IntExpression>(UMO_OP_MINUS_UNARY, op1);
 }
 
 IntExpression operator*(const IntExpression &op1, const IntExpression &op2) {
@@ -393,11 +393,11 @@ BoolExpression operator^(const BoolExpression &op1, bool op2) {
 }
 
 BoolExpression operator!(const BoolExpression &op1) {
-    return unaryOp(UMO_OP_NOT, op1);
+    return unaryOp<BoolExpression, BoolExpression>(UMO_OP_NOT, op1);
 }
 
 FloatExpression abs(const FloatExpression &op1) {
-    return unaryOp(UMO_OP_ABS, op1);
+    return unaryOp<FloatExpression, FloatExpression>(UMO_OP_ABS, op1);
 }
 
 FloatExpression min(const FloatExpression &op1, const FloatExpression &op2) {
@@ -425,7 +425,7 @@ FloatExpression max(const FloatExpression &op1, double op2) {
 }
 
 IntExpression abs(const IntExpression &op1) {
-    return unaryOp(UMO_OP_ABS, op1);
+    return unaryOp<IntExpression, IntExpression>(UMO_OP_ABS, op1);
 }
 
 IntExpression min(const IntExpression &op1, const IntExpression &op2) {
@@ -452,25 +452,119 @@ IntExpression max(const IntExpression &op1, long long op2) {
     return binaryOp<IntExpression>(UMO_OP_MAX, op1, op2);
 }
 
-FloatExpression cos   (const FloatExpression &op1) { return unaryOp(UMO_OP_COS,   op1); }
-FloatExpression sin   (const FloatExpression &op1) { return unaryOp(UMO_OP_SIN,   op1); }
-FloatExpression tan   (const FloatExpression &op1) { return unaryOp(UMO_OP_TAN,   op1); }
-FloatExpression cosh  (const FloatExpression &op1) { return unaryOp(UMO_OP_COSH,  op1); }
-FloatExpression sinh  (const FloatExpression &op1) { return unaryOp(UMO_OP_SINH,  op1); }
-FloatExpression tanh  (const FloatExpression &op1) { return unaryOp(UMO_OP_TANH,  op1); }
-FloatExpression acos  (const FloatExpression &op1) { return unaryOp(UMO_OP_ACOS,  op1); }
-FloatExpression asin  (const FloatExpression &op1) { return unaryOp(UMO_OP_ASIN,  op1); }
-FloatExpression atan  (const FloatExpression &op1) { return unaryOp(UMO_OP_ATAN,  op1); }
-FloatExpression acosh (const FloatExpression &op1) { return unaryOp(UMO_OP_ACOSH, op1); }
-FloatExpression asinh (const FloatExpression &op1) { return unaryOp(UMO_OP_ASINH, op1); }
-FloatExpression atanh (const FloatExpression &op1) { return unaryOp(UMO_OP_ATANH, op1); }
+FloatExpression exp(const FloatExpression &op1) {
+    return unaryOp<FloatExpression, FloatExpression>(UMO_OP_EXP, op1);
+}
 
+FloatExpression log(const FloatExpression &op1) {
+    return unaryOp<FloatExpression, FloatExpression>(UMO_OP_LOG, op1);
+}
 
+FloatExpression log(const FloatExpression &op1, const FloatExpression &op2) {
+    return binaryOp<FloatExpression>(UMO_OP_LOGB, op1, op2);
+}
 
+FloatExpression log(double op1, const FloatExpression &op2) {
+    return binaryOp<FloatExpression>(UMO_OP_LOGB, op1, op2);
+}
 
+FloatExpression log(const FloatExpression &op1, double op2) {
+    return binaryOp<FloatExpression>(UMO_OP_LOGB, op1, op2);
+}
 
+FloatExpression pow(const FloatExpression &op1, const FloatExpression &op2) {
+    return binaryOp<FloatExpression>(UMO_OP_POW, op1, op2);
+}
 
+FloatExpression pow(double op1, const FloatExpression &op2) {
+    return binaryOp<FloatExpression>(UMO_OP_POW, op1, op2);
+}
 
+FloatExpression pow(const FloatExpression &op1, double op2) {
+    return binaryOp<FloatExpression>(UMO_OP_POW, op1, op2);
+}
 
+FloatExpression sqrt(const FloatExpression &op1) {
+    return unaryOp<FloatExpression, FloatExpression>(UMO_OP_SQRT, op1);
+}
 
+FloatExpression square(const FloatExpression &op1) {
+    return unaryOp<FloatExpression, FloatExpression>(UMO_OP_SQUARE, op1);
+}
+
+IntExpression square(const IntExpression &op1) {
+    return unaryOp<IntExpression, IntExpression>(UMO_OP_SQUARE, op1);
+}
+
+IntExpression factorial(const IntExpression &op1) {
+    return unaryOp<IntExpression, IntExpression>(UMO_OP_FACTORIAL, op1);
+}
+
+IntExpression round(const FloatExpression &op1) {
+    return unaryOp<FloatExpression, IntExpression>(UMO_OP_ROUND, op1);
+}
+
+IntExpression floor(const FloatExpression &op1) {
+    return unaryOp<FloatExpression, IntExpression>(UMO_OP_FLOOR, op1);
+}
+
+IntExpression ceil(const FloatExpression &op1) {
+    return unaryOp<FloatExpression, IntExpression>(UMO_OP_CEIL, op1);
+}
+
+IntExpression sign(const FloatExpression &op1) {
+    return unaryOp<FloatExpression, IntExpression>(UMO_OP_SIGN, op1);
+}
+
+FloatExpression frac(const FloatExpression &op1) {
+    return unaryOp<FloatExpression, FloatExpression>(UMO_OP_FRAC, op1);
+}
+
+FloatExpression cos   (const FloatExpression &op1) {
+    return unaryOp<FloatExpression, FloatExpression>(UMO_OP_COS,   op1);
+}
+
+FloatExpression sin   (const FloatExpression &op1) {
+    return unaryOp<FloatExpression, FloatExpression>(UMO_OP_SIN,   op1);
+}
+
+FloatExpression tan   (const FloatExpression &op1) {
+    return unaryOp<FloatExpression, FloatExpression>(UMO_OP_TAN,   op1);
+}
+
+FloatExpression cosh  (const FloatExpression &op1) {
+    return unaryOp<FloatExpression, FloatExpression>(UMO_OP_COSH,  op1);
+}
+
+FloatExpression sinh  (const FloatExpression &op1) {
+    return unaryOp<FloatExpression, FloatExpression>(UMO_OP_SINH,  op1);
+}
+
+FloatExpression tanh  (const FloatExpression &op1) {
+    return unaryOp<FloatExpression, FloatExpression>(UMO_OP_TANH,  op1);
+}
+
+FloatExpression acos  (const FloatExpression &op1) {
+    return unaryOp<FloatExpression, FloatExpression>(UMO_OP_ACOS,  op1);
+}
+
+FloatExpression asin  (const FloatExpression &op1) {
+    return unaryOp<FloatExpression, FloatExpression>(UMO_OP_ASIN,  op1);
+}
+
+FloatExpression atan  (const FloatExpression &op1) {
+    return unaryOp<FloatExpression, FloatExpression>(UMO_OP_ATAN,  op1);
+}
+
+FloatExpression acosh (const FloatExpression &op1) {
+    return unaryOp<FloatExpression, FloatExpression>(UMO_OP_ACOSH, op1);
+}
+
+FloatExpression asinh (const FloatExpression &op1) {
+    return unaryOp<FloatExpression, FloatExpression>(UMO_OP_ASINH, op1);
+}
+
+FloatExpression atanh (const FloatExpression &op1) {
+    return unaryOp<FloatExpression, FloatExpression>(UMO_OP_ATANH, op1);
+}
 
