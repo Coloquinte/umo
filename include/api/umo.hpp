@@ -1,0 +1,189 @@
+
+#ifndef UMO_HPP
+#define UMO_HPP
+
+extern "C" {
+struct umo_model;
+}
+
+namespace umo {
+
+class Model;
+class FloatExpression;
+class IntExpression;
+class BoolExpression;
+
+class Model {
+  public:
+    Model();
+    Model(Model&&);
+    Model &operator=(Model&&);
+    ~Model();
+
+    FloatExpression constant(double);
+    IntExpression constant(long long);
+    BoolExpression constant(bool);
+
+    FloatExpression floatVar(double lb, double ub);
+    IntExpression intVar(long long lb, long long ub);
+    BoolExpression boolVar();
+
+  private:
+    // TODO: switch everything to a shared pointer
+    struct umo_model *ptr_;
+};
+
+class Expression {
+  public:
+    umo_model *rawPtr() const { return model; }
+    long long rawId() const { return v; }
+
+    Expression(umo_model *model, long long v)
+        : model(model), v(v) {}
+
+  protected:
+    umo_model *model;
+    long long v;
+};
+
+class FloatExpression : public Expression {
+  public:
+    double getValue();
+
+    FloatExpression(umo_model *model, long long v)
+        : Expression(model, v) {}
+};
+
+class IntExpression : public FloatExpression {
+  public:
+    long long getValue();
+
+    IntExpression(umo_model *model, long long v)
+        : FloatExpression(model, v) {}
+};
+
+class BoolExpression : public IntExpression {
+  public:
+    bool getValue();
+
+    BoolExpression(umo_model *model, long long v)
+        : IntExpression(model, v) {}
+};
+
+void constraint(const BoolExpression &);
+void minimize(const FloatExpression &);
+void maximize(const FloatExpression &);
+
+FloatExpression operator+(const FloatExpression&, const FloatExpression&);
+FloatExpression operator+(double, const FloatExpression&);
+FloatExpression operator+(const FloatExpression&, double);
+FloatExpression operator-(const FloatExpression&, const FloatExpression&);
+FloatExpression operator-(double, const FloatExpression&);
+FloatExpression operator-(const FloatExpression&, double);
+FloatExpression operator-(const FloatExpression&);
+FloatExpression operator*(const FloatExpression&, const FloatExpression&);
+FloatExpression operator*(double, const FloatExpression&);
+FloatExpression operator*(const FloatExpression&, double);
+FloatExpression operator/(const FloatExpression&, const FloatExpression&);
+FloatExpression operator/(double, const FloatExpression&);
+FloatExpression operator/(const FloatExpression&, double);
+BoolExpression operator==(const FloatExpression&, const FloatExpression&);
+BoolExpression operator==(double, const FloatExpression&);
+BoolExpression operator==(const FloatExpression&, double);
+BoolExpression operator!=(const FloatExpression&, const FloatExpression&);
+BoolExpression operator!=(double, const FloatExpression&);
+BoolExpression operator!=(const FloatExpression&, double);
+BoolExpression operator<=(const FloatExpression&, const FloatExpression&);
+BoolExpression operator<=(double, const FloatExpression&);
+BoolExpression operator<=(const FloatExpression&, double);
+BoolExpression operator>=(const FloatExpression&, const FloatExpression&);
+BoolExpression operator>=(double, const FloatExpression&);
+BoolExpression operator>=(const FloatExpression&, double);
+BoolExpression operator<(const FloatExpression&, const FloatExpression&);
+BoolExpression operator<(double, const FloatExpression&);
+BoolExpression operator<(const FloatExpression&, double);
+BoolExpression operator>(const FloatExpression&, const FloatExpression&);
+BoolExpression operator>(double, const FloatExpression&);
+BoolExpression operator>(const FloatExpression&, double);
+
+IntExpression operator+(const IntExpression&, const IntExpression&);
+IntExpression operator+(long long, const IntExpression&);
+IntExpression operator+(const IntExpression&, long long);
+IntExpression operator-(const IntExpression&, const IntExpression&);
+IntExpression operator-(long long, const IntExpression&);
+IntExpression operator-(const IntExpression&, long long);
+IntExpression operator-(const IntExpression&);
+IntExpression operator*(const IntExpression&, const IntExpression&);
+IntExpression operator*(long long, const IntExpression&);
+IntExpression operator*(const IntExpression&, long long);
+IntExpression operator/(const IntExpression&, const IntExpression&);
+IntExpression operator/(long long, const IntExpression&);
+IntExpression operator/(const IntExpression&, long long);
+IntExpression operator%(const IntExpression&, const IntExpression&);
+IntExpression operator%(long long, const IntExpression&);
+IntExpression operator%(const IntExpression&, long long);
+
+BoolExpression operator&&(const BoolExpression&, const BoolExpression&);
+BoolExpression operator&&(bool, const BoolExpression&);
+BoolExpression operator&&(const BoolExpression&, bool);
+BoolExpression operator||(const BoolExpression&, const BoolExpression&);
+BoolExpression operator||(bool, const BoolExpression&);
+BoolExpression operator||(const BoolExpression&, bool);
+BoolExpression operator^(const BoolExpression&, const BoolExpression&);
+BoolExpression operator^(bool, const BoolExpression&);
+BoolExpression operator^(const BoolExpression&, bool);
+BoolExpression operator!(const BoolExpression&);
+
+FloatExpression abs(const FloatExpression &);
+FloatExpression min(const FloatExpression &, const FloatExpression &);
+FloatExpression min(double, const FloatExpression &);
+FloatExpression min(const FloatExpression &, double);
+FloatExpression max(const FloatExpression &, const FloatExpression &);
+FloatExpression max(double, const FloatExpression &);
+FloatExpression max(const FloatExpression &, double);
+
+IntExpression abs(const IntExpression &);
+IntExpression min(const IntExpression &, const IntExpression &);
+IntExpression min(long long, const IntExpression &);
+IntExpression min(const IntExpression &, long long);
+IntExpression max(const IntExpression &, const IntExpression &);
+IntExpression max(long long, const IntExpression &);
+IntExpression max(const IntExpression &, long long);
+
+FloatExpression exp(const FloatExpression &);
+FloatExpression log(const FloatExpression &);
+FloatExpression log(const FloatExpression &, const FloatExpression &);
+FloatExpression log(double, const FloatExpression &);
+FloatExpression log(const FloatExpression &, double);
+FloatExpression pow(const FloatExpression &, const FloatExpression &);
+FloatExpression pow(double, const FloatExpression &);
+FloatExpression pow(const FloatExpression &, double);
+FloatExpression sqrt(const FloatExpression &);
+FloatExpression square(const FloatExpression &);
+
+IntExpression square(const IntExpression &);
+IntExpression factorial(const IntExpression &);
+
+IntExpression round(const FloatExpression &);
+IntExpression floor(const FloatExpression &);
+IntExpression ceil(const FloatExpression &);
+IntExpression sign(const FloatExpression &);
+FloatExpression frac(const FloatExpression &);
+
+FloatExpression cos(const FloatExpression &);
+FloatExpression sin(const FloatExpression &);
+FloatExpression tan(const FloatExpression &);
+FloatExpression cosh(const FloatExpression &);
+FloatExpression sinh(const FloatExpression &);
+FloatExpression tanh(const FloatExpression &);
+FloatExpression acos(const FloatExpression &);
+FloatExpression asin(const FloatExpression &);
+FloatExpression atan(const FloatExpression &);
+FloatExpression acosh(const FloatExpression &);
+FloatExpression asinh(const FloatExpression &);
+FloatExpression atanh(const FloatExpression &);
+
+}
+
+#endif
+

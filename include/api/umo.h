@@ -22,7 +22,7 @@ long long umo_create_expression(umo_model *, umo_operator op, int nb_operands, l
 
 // Assign constraints and objectives
 void umo_create_constraint(umo_model *, long long expr, const char **err);
-void umo_create_objective(umo_model *, long long expr, const char **err);
+void umo_create_objective(umo_model *, long long expr, umo_objective_direction dir, const char **err);
 
 // Model parameters
 double umo_get_float_parameter(umo_model *, const char *param, const char **err);
