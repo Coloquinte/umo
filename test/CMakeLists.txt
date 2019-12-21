@@ -1,11 +1,14 @@
 
 FIND_PACKAGE(Boost REQUIRED COMPONENTS unit_test_framework)
 
-SET(TEST_SOURCES
-    c_api.cpp
+SET(TESTS
+    c_api
+    cpp_api
 )
 
-add_executable(unit_tests ${TEST_SOURCES})
-target_link_libraries(unit_tests ${Boost_LIBRARIES} libumo)
-add_test(UnitTest unit_tests)
+FOREACH(TEST IN LISTS TESTS)
+    add_executable(${TEST}_test ${TEST}.cpp)
+    target_link_libraries(${TEST}_test ${Boost_LIBRARIES} libumo)
+    add_test(${TEST} ${TEST}_test)
+ENDFOREACH(TEST)
 

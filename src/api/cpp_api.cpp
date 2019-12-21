@@ -7,7 +7,8 @@
 #include <cmath>
 
 using namespace std;
-using namespace umo;
+
+namespace umo {
 
 long long makeConstant(umo_model *model, double val) {
     const char *err = NULL;
@@ -566,5 +567,7 @@ FloatExpression asinh (const FloatExpression &op1) {
 
 FloatExpression atanh (const FloatExpression &op1) {
     return unaryOp<FloatExpression, FloatExpression>(UMO_OP_ATANH, op1);
+}
+
 }
 
