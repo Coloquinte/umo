@@ -36,70 +36,70 @@ long long makeTernaryOp(umo_model *model, umo_operator op, long long op1, long l
     return umo_create_expression(model, op, 3, operands, &err);
 }
 
-FloatExpression unaryOp(umo_operator op, const FloatExpression &op1) {
+template<typename ResultExpression>
+ResultExpression unaryOp(umo_operator op, const ResultExpression &op1) {
     bool v = makeUnaryOp(op1.rawPtr(), op, op1.rawId());
-    return FloatExpression(op1.rawPtr(), v);
+    return ResultExpression(op1.rawPtr(), v);
 }
 
-FloatExpression binaryOp(umo_operator op, const FloatExpression &op1, const FloatExpression &op2) {
+template<typename ResultExpression>
+ResultExpression binaryOp(umo_operator op, const FloatExpression &op1, const FloatExpression &op2) {
     long long v = makeBinaryOp(op1.rawPtr(), op, op1.rawId(), op2.rawId());
-    return FloatExpression(op1.rawPtr(), v);
+    return ResultExpression(op1.rawPtr(), v);
 }
 
-FloatExpression binaryOp(umo_operator op, double op1Val, const FloatExpression &op2) {
+template<typename ResultExpression>
+ResultExpression binaryOp(umo_operator op, double op1Val, const FloatExpression &op2) {
     long long op1 = makeConstant(op2.rawPtr(), op1Val);
     long long v = makeBinaryOp(op2.rawPtr(), op, op1, op2.rawId());
-    return FloatExpression(op2.rawPtr(), v);
+    return ResultExpression(op2.rawPtr(), v);
 }
 
-FloatExpression binaryOp(umo_operator op, const FloatExpression &op1, double op2Val) {
+template<typename ResultExpression>
+ResultExpression binaryOp(umo_operator op, const FloatExpression &op1, double op2Val) {
     long long op2 = makeConstant(op1.rawPtr(), op2Val);
     long long v = makeBinaryOp(op1.rawPtr(), op, op1.rawId(), op2);
-    return FloatExpression(op1.rawPtr(), v);
+    return ResultExpression(op1.rawPtr(), v);
 }
 
-IntExpression unaryOp(umo_operator op, const IntExpression &op1) {
-    bool v = makeUnaryOp(op1.rawPtr(), op, op1.rawId());
-    return IntExpression(op1.rawPtr(), v);
-}
-
-IntExpression binaryOp(umo_operator op, const IntExpression &op1, const IntExpression &op2) {
+template<typename ResultExpression>
+ResultExpression binaryOp(umo_operator op, const IntExpression &op1, const IntExpression &op2) {
     long long v = makeBinaryOp(op1.rawPtr(), op, op1.rawId(), op2.rawId());
-    return IntExpression(op1.rawPtr(), v);
+    return ResultExpression(op1.rawPtr(), v);
 }
 
-IntExpression binaryOp(umo_operator op, long long op1Val, const IntExpression &op2) {
+template<typename ResultExpression>
+ResultExpression binaryOp(umo_operator op, long long op1Val, const IntExpression &op2) {
     long long op1 = makeConstant(op2.rawPtr(), (double) op1Val);
     long long v = makeBinaryOp(op2.rawPtr(), op, op1, op2.rawId());
-    return IntExpression(op2.rawPtr(), v);
+    return ResultExpression(op2.rawPtr(), v);
 }
 
-IntExpression binaryOp(umo_operator op, const IntExpression &op1, long long op2Val) {
+template<typename ResultExpression>
+ResultExpression binaryOp(umo_operator op, const IntExpression &op1, long long op2Val) {
     long long op2 = makeConstant(op1.rawPtr(), (double) op2Val);
     long long v = makeBinaryOp(op1.rawPtr(), op, op1.rawId(), op2);
-    return IntExpression(op1.rawPtr(), v);
+    return ResultExpression(op1.rawPtr(), v);
 }
 
-BoolExpression unaryOp(umo_operator op, const BoolExpression &op1) {
-    bool v = makeUnaryOp(op1.rawPtr(), op, op1.rawId());
-    return BoolExpression(op1.rawPtr(), v);
-}
-
-BoolExpression binaryOp(umo_operator op, const BoolExpression &op1, const BoolExpression &op2) {
+template<typename ResultExpression>
+ResultExpression binaryOp(umo_operator op, const BoolExpression &op1, const BoolExpression &op2) {
     bool v = makeBinaryOp(op1.rawPtr(), op, op1.rawId(), op2.rawId());
-    return BoolExpression(op1.rawPtr(), v);
+    return ResultExpression(op1.rawPtr(), v);
 }
 
-BoolExpression binaryOp(umo_operator op, bool op1Val, const BoolExpression &op2) {
+template<typename ResultExpression>
+ResultExpression binaryOp(umo_operator op, bool op1Val, const BoolExpression &op2) {
     bool op1 = makeConstant(op2.rawPtr(), (double) op1Val);
     bool v = makeBinaryOp(op2.rawPtr(), op, op1, op2.rawId());
-    return BoolExpression(op2.rawPtr(), v);
+    return ResultExpression(op2.rawPtr(), v);
 }
 
-BoolExpression binaryOp(umo_operator op, const BoolExpression &op1, bool op2Val) {
+template<typename ResultExpression>
+ResultExpression binaryOp(umo_operator op, const BoolExpression &op1, bool op2Val) {
     bool op2 = makeConstant(op1.rawPtr(), (double) op2Val);
     bool v = makeBinaryOp(op1.rawPtr(), op, op1.rawId(), op2);
-    return BoolExpression(op1.rawPtr(), v);
+    return ResultExpression(op1.rawPtr(), v);
 }
 
 Model::Model() {
@@ -139,13 +139,13 @@ BoolExpression Model::constant(bool val) {
 FloatExpression Model::floatVar(double lb, double ub) {
     FloatExpression lbe = constant(lb);
     FloatExpression ube = constant(ub);
-    return binaryOp(UMO_OP_DEC_FLOAT, lbe, ube);
+    return binaryOp<FloatExpression>(UMO_OP_DEC_FLOAT, lbe, ube);
 }
 
 IntExpression Model::intVar(long long lb, long long ub) {
     IntExpression lbe = constant(lb);
     IntExpression ube = constant(ub);
-    return binaryOp(UMO_OP_DEC_INT, lbe, ube);
+    return binaryOp<IntExpression>(UMO_OP_DEC_INT, lbe, ube);
 }
 
 BoolExpression Model::boolVar() {
@@ -169,27 +169,27 @@ void maximize(const FloatExpression &o) {
 }
 
 FloatExpression operator+(const FloatExpression &op1, const FloatExpression &op2) {
-    return binaryOp(UMO_OP_SUM, op1, op2);
+    return binaryOp<FloatExpression>(UMO_OP_SUM, op1, op2);
 }
 
 FloatExpression operator+(double op1, const FloatExpression &op2) {
-    return binaryOp(UMO_OP_SUM, op1, op2);
+    return binaryOp<FloatExpression>(UMO_OP_SUM, op1, op2);
 }
 
 FloatExpression operator+(const FloatExpression &op1, double op2) {
-    return binaryOp(UMO_OP_SUM, op1, op2);
+    return binaryOp<FloatExpression>(UMO_OP_SUM, op1, op2);
 }
 
 FloatExpression operator-(const FloatExpression &op1, const FloatExpression &op2) {
-    return binaryOp(UMO_OP_MINUS_BINARY, op1, op2);
+    return binaryOp<FloatExpression>(UMO_OP_MINUS_BINARY, op1, op2);
 }
 
 FloatExpression operator-(double op1, const FloatExpression &op2) {
-    return binaryOp(UMO_OP_MINUS_BINARY, op1, op2);
+    return binaryOp<FloatExpression>(UMO_OP_MINUS_BINARY, op1, op2);
 }
 
 FloatExpression operator-(const FloatExpression &op1, double op2) {
-    return binaryOp(UMO_OP_MINUS_BINARY, op1, op2);
+    return binaryOp<FloatExpression>(UMO_OP_MINUS_BINARY, op1, op2);
 }
 
 FloatExpression operator-(const FloatExpression &op1) {
@@ -197,51 +197,123 @@ FloatExpression operator-(const FloatExpression &op1) {
 }
 
 FloatExpression operator*(const FloatExpression &op1, const FloatExpression &op2) {
-    return binaryOp(UMO_OP_PROD, op1, op2);
+    return binaryOp<FloatExpression>(UMO_OP_PROD, op1, op2);
 }
 
 FloatExpression operator*(double op1, const FloatExpression &op2) {
-    return binaryOp(UMO_OP_PROD, op1, op2);
+    return binaryOp<FloatExpression>(UMO_OP_PROD, op1, op2);
 }
 
 FloatExpression operator*(const FloatExpression &op1, double op2) {
-    return binaryOp(UMO_OP_PROD, op1, op2);
+    return binaryOp<FloatExpression>(UMO_OP_PROD, op1, op2);
 }
 
 FloatExpression operator/(const FloatExpression &op1, const FloatExpression &op2) {
-    return binaryOp(UMO_OP_DIV, op1, op2);
+    return binaryOp<FloatExpression>(UMO_OP_DIV, op1, op2);
 }
 
 FloatExpression operator/(double op1, const FloatExpression &op2) {
-    return binaryOp(UMO_OP_DIV, op1, op2);
+    return binaryOp<FloatExpression>(UMO_OP_DIV, op1, op2);
 }
 
 FloatExpression operator/(const FloatExpression &op1, double op2) {
-    return binaryOp(UMO_OP_DIV, op1, op2);
+    return binaryOp<FloatExpression>(UMO_OP_DIV, op1, op2);
+}
+
+BoolExpression operator==(const FloatExpression &op1, const FloatExpression &op2) {
+    return binaryOp<BoolExpression>(UMO_OP_CMP_EQ, op1, op2);
+}
+
+BoolExpression operator==(double op1, const FloatExpression &op2) {
+    return binaryOp<BoolExpression>(UMO_OP_CMP_EQ, op1, op2);
+}
+
+BoolExpression operator==(const FloatExpression &op1, double op2) {
+    return binaryOp<BoolExpression>(UMO_OP_CMP_EQ, op1, op2);
+}
+
+BoolExpression operator!=(const FloatExpression &op1, const FloatExpression &op2) {
+    return binaryOp<BoolExpression>(UMO_OP_CMP_NEQ, op1, op2);
+}
+
+BoolExpression operator!=(double op1, const FloatExpression &op2) {
+    return binaryOp<BoolExpression>(UMO_OP_CMP_NEQ, op1, op2);
+}
+
+BoolExpression operator!=(const FloatExpression &op1, double op2) {
+    return binaryOp<BoolExpression>(UMO_OP_CMP_NEQ, op1, op2);
+}
+
+BoolExpression operator<=(const FloatExpression &op1, const FloatExpression &op2) {
+    return binaryOp<BoolExpression>(UMO_OP_CMP_LEQ, op1, op2);
+}
+
+BoolExpression operator<=(double op1, const FloatExpression &op2) {
+    return binaryOp<BoolExpression>(UMO_OP_CMP_LEQ, op1, op2);
+}
+
+BoolExpression operator<=(const FloatExpression &op1, double op2) {
+    return binaryOp<BoolExpression>(UMO_OP_CMP_LEQ, op1, op2);
+}
+
+BoolExpression operator>=(const FloatExpression &op1, const FloatExpression &op2) {
+    return binaryOp<BoolExpression>(UMO_OP_CMP_GEQ, op1, op2);
+}
+
+BoolExpression operator>=(double op1, const FloatExpression &op2) {
+    return binaryOp<BoolExpression>(UMO_OP_CMP_GEQ, op1, op2);
+}
+
+BoolExpression operator>=(const FloatExpression &op1, double op2) {
+    return binaryOp<BoolExpression>(UMO_OP_CMP_GEQ, op1, op2);
+}
+
+BoolExpression operator<(const FloatExpression &op1, const FloatExpression &op2) {
+    return binaryOp<BoolExpression>(UMO_OP_CMP_LT, op1, op2);
+}
+
+BoolExpression operator<(double op1, const FloatExpression &op2) {
+    return binaryOp<BoolExpression>(UMO_OP_CMP_LT, op1, op2);
+}
+
+BoolExpression operator<(const FloatExpression &op1, double op2) {
+    return binaryOp<BoolExpression>(UMO_OP_CMP_LT, op1, op2);
+}
+
+BoolExpression operator>(const FloatExpression &op1, const FloatExpression &op2) {
+    return binaryOp<BoolExpression>(UMO_OP_CMP_GT, op1, op2);
+}
+
+BoolExpression operator>(double op1, const FloatExpression &op2) {
+    return binaryOp<BoolExpression>(UMO_OP_CMP_GT, op1, op2);
+}
+
+BoolExpression operator>(const FloatExpression &op1, double op2) {
+    return binaryOp<BoolExpression>(UMO_OP_CMP_GT, op1, op2);
 }
 
 IntExpression operator+(const IntExpression &op1, const IntExpression &op2) {
-    return binaryOp(UMO_OP_SUM, op1, op2);
+    return binaryOp<IntExpression>(UMO_OP_SUM, op1, op2);
 }
 
 IntExpression operator+(long long op1, const IntExpression &op2) {
-    return binaryOp(UMO_OP_SUM, op1, op2);
+    return binaryOp<IntExpression>(UMO_OP_SUM, op1, op2);
 }
 
 IntExpression operator+(const IntExpression &op1, long long op2) {
-    return binaryOp(UMO_OP_SUM, op1, op2);
+    return binaryOp<IntExpression>(UMO_OP_SUM, op1, op2);
 }
 
 IntExpression operator-(const IntExpression &op1, const IntExpression &op2) {
-    return binaryOp(UMO_OP_MINUS_BINARY, op1, op2);
+    return binaryOp<IntExpression>(UMO_OP_MINUS_BINARY, op1, op2);
 }
 
 IntExpression operator-(long long op1, const IntExpression &op2) {
-    return binaryOp(UMO_OP_MINUS_BINARY, op1, op2);
+    return binaryOp<IntExpression>(UMO_OP_MINUS_BINARY, op1, op2);
 }
 
 IntExpression operator-(const IntExpression &op1, long long op2) {
-    return binaryOp(UMO_OP_MINUS_BINARY, op1, op2);
+    return binaryOp<IntExpression>(UMO_OP_MINUS_BINARY, op1, op2);
 }
 
 IntExpression operator-(const IntExpression &op1) {
@@ -249,80 +321,152 @@ IntExpression operator-(const IntExpression &op1) {
 }
 
 IntExpression operator*(const IntExpression &op1, const IntExpression &op2) {
-    return binaryOp(UMO_OP_PROD, op1, op2);
+    return binaryOp<IntExpression>(UMO_OP_PROD, op1, op2);
 }
 
 IntExpression operator*(long long op1, const IntExpression &op2) {
-    return binaryOp(UMO_OP_PROD, op1, op2);
+    return binaryOp<IntExpression>(UMO_OP_PROD, op1, op2);
 }
 
 IntExpression operator*(const IntExpression &op1, long long op2) {
-    return binaryOp(UMO_OP_PROD, op1, op2);
+    return binaryOp<IntExpression>(UMO_OP_PROD, op1, op2);
 }
 
 IntExpression operator/(const IntExpression &op1, const IntExpression &op2) {
-    return binaryOp(UMO_OP_IDIV, op1, op2);
+    return binaryOp<IntExpression>(UMO_OP_IDIV, op1, op2);
 }
 
 IntExpression operator/(long long op1, const IntExpression &op2) {
-    return binaryOp(UMO_OP_IDIV, op1, op2);
+    return binaryOp<IntExpression>(UMO_OP_IDIV, op1, op2);
 }
 
 IntExpression operator/(const IntExpression &op1, long long op2) {
-    return binaryOp(UMO_OP_IDIV, op1, op2);
+    return binaryOp<IntExpression>(UMO_OP_IDIV, op1, op2);
 }
 
 IntExpression operator%(const IntExpression &op1, const IntExpression &op2) {
-    return binaryOp(UMO_OP_MOD, op1, op2);
+    return binaryOp<IntExpression>(UMO_OP_MOD, op1, op2);
 }
 
 IntExpression operator%(long long op1, const IntExpression &op2) {
-    return binaryOp(UMO_OP_MOD, op1, op2);
+    return binaryOp<IntExpression>(UMO_OP_MOD, op1, op2);
 }
 
 IntExpression operator%(const IntExpression &op1, long long op2) {
-    return binaryOp(UMO_OP_MOD, op1, op2);
+    return binaryOp<IntExpression>(UMO_OP_MOD, op1, op2);
 }
 
 BoolExpression operator&&(const BoolExpression &op1, const BoolExpression &op2) {
-    return binaryOp(UMO_OP_AND, op1, op2);
+    return binaryOp<BoolExpression>(UMO_OP_AND, op1, op2);
 }
 
 BoolExpression operator&&(bool op1, const BoolExpression &op2) {
-    return binaryOp(UMO_OP_AND, op1, op2);
+    return binaryOp<BoolExpression>(UMO_OP_AND, op1, op2);
 }
 
 BoolExpression operator&&(const BoolExpression &op1, bool op2) {
-    return binaryOp(UMO_OP_AND, op1, op2);
+    return binaryOp<BoolExpression>(UMO_OP_AND, op1, op2);
 }
 
 BoolExpression operator||(const BoolExpression &op1, const BoolExpression &op2) {
-    return binaryOp(UMO_OP_OR, op1, op2);
+    return binaryOp<BoolExpression>(UMO_OP_OR, op1, op2);
 }
 
 BoolExpression operator||(bool op1, const BoolExpression &op2) {
-    return binaryOp(UMO_OP_OR, op1, op2);
+    return binaryOp<BoolExpression>(UMO_OP_OR, op1, op2);
 }
 
 BoolExpression operator||(const BoolExpression &op1, bool op2) {
-    return binaryOp(UMO_OP_OR, op1, op2);
+    return binaryOp<BoolExpression>(UMO_OP_OR, op1, op2);
 }
 
 BoolExpression operator^(const BoolExpression &op1, const BoolExpression &op2) {
-    return binaryOp(UMO_OP_XOR, op1, op2);
+    return binaryOp<BoolExpression>(UMO_OP_XOR, op1, op2);
 }
 
 BoolExpression operator^(bool op1, const BoolExpression &op2) {
-    return binaryOp(UMO_OP_XOR, op1, op2);
+    return binaryOp<BoolExpression>(UMO_OP_XOR, op1, op2);
 }
 
 BoolExpression operator^(const BoolExpression &op1, bool op2) {
-    return binaryOp(UMO_OP_XOR, op1, op2);
+    return binaryOp<BoolExpression>(UMO_OP_XOR, op1, op2);
 }
 
 BoolExpression operator!(const BoolExpression &op1) {
     return unaryOp(UMO_OP_NOT, op1);
 }
+
+FloatExpression abs(const FloatExpression &op1) {
+    return unaryOp(UMO_OP_ABS, op1);
+}
+
+FloatExpression min(const FloatExpression &op1, const FloatExpression &op2) {
+    return binaryOp<FloatExpression>(UMO_OP_MIN, op1, op2);
+}
+
+FloatExpression min(double op1, const FloatExpression &op2) {
+    return binaryOp<FloatExpression>(UMO_OP_MIN, op1, op2);
+}
+
+FloatExpression min(const FloatExpression &op1, double op2) {
+    return binaryOp<FloatExpression>(UMO_OP_MIN, op1, op2);
+}
+
+FloatExpression max(const FloatExpression &op1, const FloatExpression &op2) {
+    return binaryOp<FloatExpression>(UMO_OP_MAX, op1, op2);
+}
+
+FloatExpression max(double op1, const FloatExpression &op2) {
+    return binaryOp<FloatExpression>(UMO_OP_MAX, op1, op2);
+}
+
+FloatExpression max(const FloatExpression &op1, double op2) {
+    return binaryOp<FloatExpression>(UMO_OP_MAX, op1, op2);
+}
+
+IntExpression abs(const IntExpression &op1) {
+    return unaryOp(UMO_OP_ABS, op1);
+}
+
+IntExpression min(const IntExpression &op1, const IntExpression &op2) {
+    return binaryOp<IntExpression>(UMO_OP_MIN, op1, op2);
+}
+
+IntExpression min(long long op1, const IntExpression &op2) {
+    return binaryOp<IntExpression>(UMO_OP_MIN, op1, op2);
+}
+
+IntExpression min(const IntExpression &op1, long long op2) {
+    return binaryOp<IntExpression>(UMO_OP_MIN, op1, op2);
+}
+
+IntExpression max(const IntExpression &op1, const IntExpression &op2) {
+    return binaryOp<IntExpression>(UMO_OP_MAX, op1, op2);
+}
+
+IntExpression max(long long op1, const IntExpression &op2) {
+    return binaryOp<IntExpression>(UMO_OP_MAX, op1, op2);
+}
+
+IntExpression max(const IntExpression &op1, long long op2) {
+    return binaryOp<IntExpression>(UMO_OP_MAX, op1, op2);
+}
+
+FloatExpression cos   (const FloatExpression &op1) { return unaryOp(UMO_OP_COS,   op1); }
+FloatExpression sin   (const FloatExpression &op1) { return unaryOp(UMO_OP_SIN,   op1); }
+FloatExpression tan   (const FloatExpression &op1) { return unaryOp(UMO_OP_TAN,   op1); }
+FloatExpression cosh  (const FloatExpression &op1) { return unaryOp(UMO_OP_COSH,  op1); }
+FloatExpression sinh  (const FloatExpression &op1) { return unaryOp(UMO_OP_SINH,  op1); }
+FloatExpression tanh  (const FloatExpression &op1) { return unaryOp(UMO_OP_TANH,  op1); }
+FloatExpression acos  (const FloatExpression &op1) { return unaryOp(UMO_OP_ACOS,  op1); }
+FloatExpression asin  (const FloatExpression &op1) { return unaryOp(UMO_OP_ASIN,  op1); }
+FloatExpression atan  (const FloatExpression &op1) { return unaryOp(UMO_OP_ATAN,  op1); }
+FloatExpression acosh (const FloatExpression &op1) { return unaryOp(UMO_OP_ACOSH, op1); }
+FloatExpression asinh (const FloatExpression &op1) { return unaryOp(UMO_OP_ASINH, op1); }
+FloatExpression atanh (const FloatExpression &op1) { return unaryOp(UMO_OP_ATANH, op1); }
+
+
+
 
 
 
