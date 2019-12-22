@@ -3,38 +3,65 @@
 #include "api/umo.h"
 
 #include <stdexcept>
-#include <cstring>
-#include <cmath>
+#include <cstdlib>
+#include <cassert>
 
 using namespace std;
 
+// TODO: make it correct if runtime_error's constructor throws
+#define UNWRAP_EXCEPTIONS(code) \
+    do {\
+        const char *err = NULL;\
+        code\
+        if(err != NULL) {\
+            std::runtime_error exc(err);\
+            free((char*) err);\
+            throw exc;\
+        }\
+    } while(0)
+ 
 namespace umo {
 
 long long makeConstant(umo_model *model, double val) {
-    const char *err = NULL;
-    return umo_create_constant(model, val, &err);
+    long long tmp;
+  UNWRAP_EXCEPTIONS(
+    tmp = umo_create_constant(model, val, &err);
+  );
+    return tmp;
 }
 
 long long makeNoaryOp(umo_model *model, umo_operator op) {
-    const char *err = NULL;
-    return umo_create_expression(model, op, 0, NULL, &err);
+    long long tmp;
+  UNWRAP_EXCEPTIONS(
+    tmp = umo_create_expression(model, op, 0, NULL, &err);
+  );
+    return tmp;
 }
 
 long long makeUnaryOp(umo_model *model, umo_operator op, long long op1) {
-    const char *err = NULL;
-    return umo_create_expression(model, op, 1, &op1, &err);
+    long long tmp;
+  UNWRAP_EXCEPTIONS(
+    tmp = umo_create_expression(model, op, 1, &op1, &err);
+  );
+    return tmp;
 }
 
 long long makeBinaryOp(umo_model *model, umo_operator op, long long op1, long long op2) {
     long long operands[2] = {op1, op2};
-    const char *err = NULL;
-    return umo_create_expression(model, op, 2, operands, &err);
+    long long tmp;
+  UNWRAP_EXCEPTIONS(
+    tmp = umo_create_expression(model, op, 2, operands, &err);
+  );
+    return tmp;
 }
 
 long long makeTernaryOp(umo_model *model, umo_operator op, long long op1, long long op2, long long op3) {
     long long operands[3] = {op1, op2, op3};
-    const char *err = NULL;
-    return umo_create_expression(model, op, 3, operands, &err);
+    long long tmp;
+  UNWRAP_EXCEPTIONS(
+    tmp = umo_create_expression(model, op, 3, operands, &err);
+  );
+    return tmp;
 }
 
 template<typename OperandExpression, typename ResultExpression>
@@ -104,8 +131,9 @@ ResultExpression binaryOp(umo_operator op, const BoolExpression &op1, bool op2Va
 }
 
 Model::Model() {
-    const char *err = NULL;
+  UNWRAP_EXCEPTIONS(
     ptr_ = umo_create_model(&err);
+  );
 }
 
 Model::Model(Model &&o) {
@@ -120,6 +148,7 @@ Model &Model::operator=(Model &&o) {
 Model::~Model() {
     const char *err = NULL;
     umo_destroy_model(ptr_, &err);
+    assert(err == NULL); // Destructor should never throw
 }
 
 FloatExpression Model::constant(double val) {
@@ -155,73 +184,97 @@ BoolExpression Model::boolVar() {
 }
 
 void Model::solve() {
-    const char *err = NULL;
+  UNWRAP_EXCEPTIONS(
     umo_solve(ptr_, &err);
+  );
 }
 
 double Model::getFloatParam(const std::string &param) {
-    const char *err = NULL;
-    return umo_get_float_parameter(ptr_, param.c_str(), &err);
+    double tmp;
+  UNWRAP_EXCEPTIONS(
+    tmp = umo_get_float_parameter(ptr_, param.c_str(), &err);
+  );
+    return tmp;
 }
 
 void Model::setFloatParam(const std::string &param, double val) {
-    const char *err = NULL;
+  UNWRAP_EXCEPTIONS(
     umo_set_float_parameter(ptr_, param.c_str(), val, &err);
+  );
 }
 
 std::string Model::getStringParam(const std::string &param) {
-    const char *err = NULL;
-    return umo_get_string_parameter(ptr_, param.c_str(), &err);
+    const char *tmp;
+  UNWRAP_EXCEPTIONS(
+    tmp = umo_get_string_parameter(ptr_, param.c_str(), &err);
+  );
+    return tmp;
 }
 
 void Model::setStringParam(const std::string &param, const std::string &val) {
-    const char *err = NULL;
+  UNWRAP_EXCEPTIONS(
     umo_set_string_parameter(ptr_, param.c_str(), val.c_str(), &err);
+  );
 }
 
 double FloatExpression::getValue() {
-    const char *err = NULL;
-    return umo_get_float_value(model, v, &err);
+    double tmp;
+  UNWRAP_EXCEPTIONS(
+    tmp = umo_get_float_value(model, v, &err);
+  );
+    return tmp;
 }
 
 long long IntExpression::getValue() {
-    const char *err = NULL;
-    return (long long) umo_get_float_value(model, v, &err);
+    double tmp;
+  UNWRAP_EXCEPTIONS(
+    tmp = umo_get_float_value(model, v, &err);
+  );
+    return (long long) tmp;
 }
 
 bool BoolExpression::getValue() {
-    const char *err = NULL;
-    return (bool) umo_get_float_value(model, v, &err);
+    double tmp;
+  UNWRAP_EXCEPTIONS(
+    tmp = umo_get_float_value(model, v, &err);
+  );
+    return (bool) tmp;
 }
 
 void FloatExpression::setValue(double val) {
-    const char *err = NULL;
-    return umo_set_float_value(model, v, val, &err);
+  UNWRAP_EXCEPTIONS(
+    umo_set_float_value(model, v, val, &err);
+  );
 }
 
 void IntExpression::setValue(long long val) {
-    const char *err = NULL;
-    return umo_set_float_value(model, v, (double) val, &err);
+  UNWRAP_EXCEPTIONS(
+    umo_set_float_value(model, v, (double) val, &err);
+  );
 }
 
 void BoolExpression::setValue(bool val) {
-    const char *err = NULL;
-    return umo_set_float_value(model, v, (double) val, &err);
+  UNWRAP_EXCEPTIONS(
+    umo_set_float_value(model, v, (double) val, &err);
+  );
 }
 
 void constraint(const BoolExpression &c) {
-    const char *err = NULL;
+  UNWRAP_EXCEPTIONS(
     umo_create_constraint(c.rawPtr(), c.rawId(), &err);
+  );
 }
 
 void minimize(const FloatExpression &o) {
-    const char *err = NULL;
+  UNWRAP_EXCEPTIONS(
     umo_create_objective(o.rawPtr(), o.rawId(), UMO_OBJ_MINIMIZE, &err);
+  );
 }
 
 void maximize(const FloatExpression &o) {
-    const char *err = NULL;
+  UNWRAP_EXCEPTIONS(
     umo_create_objective(o.rawPtr(), o.rawId(), UMO_OBJ_MAXIMIZE, &err);
+  );
 }
 
 FloatExpression operator+(const FloatExpression &op1, const FloatExpression &op2) {

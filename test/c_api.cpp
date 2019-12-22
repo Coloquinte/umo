@@ -6,6 +6,7 @@
 #include "api/umo.h"
 
 #include <string>
+#include <cmath>
 
 BOOST_AUTO_TEST_CASE(Creation) {
     const char *err = NULL;
@@ -71,6 +72,19 @@ BOOST_AUTO_TEST_CASE(Params) {
     umo_set_string_parameter(model, "testStringParam", "testValue", &err);
     const char *resString = umo_get_string_parameter(model, "testStringParam", &err);
     BOOST_CHECK_EQUAL(std::string(resString), "testValue");
+    umo_destroy_model(model, &err);
+    BOOST_CHECK(!err);
+}
+
+BOOST_AUTO_TEST_CASE(Error) {
+    const char *err = NULL;
+    umo_model *model = umo_create_model(&err);
+    BOOST_CHECK(!err);
+    long long c = umo_create_constant(model, NAN, &err);
+    BOOST_CHECK(err != NULL);
+    BOOST_CHECK_EQUAL(c, -1);
+    free((char*) err);
+    err = NULL;
     umo_destroy_model(model, &err);
     BOOST_CHECK(!err);
 }

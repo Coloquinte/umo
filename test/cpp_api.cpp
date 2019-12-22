@@ -5,6 +5,8 @@
 
 #include "api/umo.hpp"
 
+#include <cmath>
+
 using namespace umo;
 
 BOOST_AUTO_TEST_CASE(SimpleModel) {
@@ -194,4 +196,12 @@ BOOST_AUTO_TEST_CASE(Params) {
     model.setStringParam("testStringParam", "testValue");
     std::string resString = model.getStringParam("testStringParam");
     BOOST_CHECK_EQUAL(resString, "testValue");
+}
+
+BOOST_AUTO_TEST_CASE(Exception) {
+    Model model;
+    BOOST_CHECK_THROW(
+        model.constant(NAN),
+        std::runtime_error
+    );
 }
