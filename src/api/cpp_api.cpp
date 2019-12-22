@@ -154,6 +154,61 @@ BoolExpression Model::boolVar() {
     return BoolExpression(ptr_, v);
 }
 
+void Model::solve() {
+    const char *err = NULL;
+    umo_solve(ptr_, &err);
+}
+
+double Model::getFloatParam(const std::string &param) {
+    const char *err = NULL;
+    return umo_get_float_parameter(ptr_, param.c_str(), &err);
+}
+
+void Model::setFloatParam(const std::string &param, double val) {
+    const char *err = NULL;
+    umo_set_float_parameter(ptr_, param.c_str(), val, &err);
+}
+
+std::string Model::getStringParam(const std::string &param) {
+    const char *err = NULL;
+    return umo_get_string_parameter(ptr_, param.c_str(), &err);
+}
+
+void Model::setStringParam(const std::string &param, const std::string &val) {
+    const char *err = NULL;
+    umo_set_string_parameter(ptr_, param.c_str(), val.c_str(), &err);
+}
+
+double FloatExpression::getValue() {
+    const char *err = NULL;
+    return umo_get_float_value(model, v, &err);
+}
+
+long long IntExpression::getValue() {
+    const char *err = NULL;
+    return (long long) umo_get_float_value(model, v, &err);
+}
+
+bool BoolExpression::getValue() {
+    const char *err = NULL;
+    return (bool) umo_get_float_value(model, v, &err);
+}
+
+void FloatExpression::setValue(double val) {
+    const char *err = NULL;
+    return umo_set_float_value(model, v, val, &err);
+}
+
+void IntExpression::setValue(long long val) {
+    const char *err = NULL;
+    return umo_set_float_value(model, v, (double) val, &err);
+}
+
+void BoolExpression::setValue(bool val) {
+    const char *err = NULL;
+    return umo_set_float_value(model, v, (double) val, &err);
+}
+
 void constraint(const BoolExpression &c) {
     const char *err = NULL;
     umo_create_constraint(c.rawPtr(), c.rawId(), &err);

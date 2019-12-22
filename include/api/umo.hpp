@@ -2,6 +2,8 @@
 #ifndef UMO_HPP
 #define UMO_HPP
 
+#include <string>
+
 extern "C" {
 struct umo_model;
 }
@@ -28,6 +30,13 @@ class Model {
     IntExpression intVar(long long lb, long long ub);
     BoolExpression boolVar();
 
+    void solve();
+
+    double getFloatParam(const std::string &param);
+    void setFloatParam(const std::string &param, double val);
+    std::string getStringParam(const std::string &param);
+    void setStringParam(const std::string &param, const std::string &val);
+
   private:
     // TODO: switch everything to a shared pointer
     struct umo_model *ptr_;
@@ -49,6 +58,7 @@ class Expression {
 class FloatExpression : public Expression {
   public:
     double getValue();
+    void setValue(double val);
 
     FloatExpression(umo_model *model, long long v)
         : Expression(model, v) {}
@@ -57,6 +67,7 @@ class FloatExpression : public Expression {
 class IntExpression : public FloatExpression {
   public:
     long long getValue();
+    void setValue(long long val);
 
     IntExpression(umo_model *model, long long v)
         : FloatExpression(model, v) {}
@@ -65,6 +76,7 @@ class IntExpression : public FloatExpression {
 class BoolExpression : public IntExpression {
   public:
     bool getValue();
+    void setValue(bool val);
 
     BoolExpression(umo_model *model, long long v)
         : IntExpression(model, v) {}

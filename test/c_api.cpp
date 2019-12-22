@@ -5,6 +5,8 @@
 
 #include "api/umo.h"
 
+#include <string>
+
 BOOST_AUTO_TEST_CASE(Creation) {
     const char *err = NULL;
     umo_model *model = umo_create_model(&err);
@@ -56,6 +58,19 @@ BOOST_AUTO_TEST_CASE(Decision) {
     long long float_dec = umo_create_expression(model, UMO_OP_DEC_FLOAT, 2, float_ops, &err);
     umo_set_float_value(model, float_dec, -0.5, &err);
     BOOST_CHECK(!err);
+    umo_destroy_model(model, &err);
+    BOOST_CHECK(!err);
+}
+
+BOOST_AUTO_TEST_CASE(Params) {
+    const char *err = NULL;
+    umo_model *model = umo_create_model(&err);
+    umo_set_float_parameter(model, "testFloatParam", 1.0, &err);
+    double resFloat = umo_get_float_parameter(model, "testFloatParam", &err);
+    BOOST_CHECK_EQUAL(resFloat, 1.0);
+    umo_set_string_parameter(model, "testStringParam", "testValue", &err);
+    const char *resString = umo_get_string_parameter(model, "testStringParam", &err);
+    BOOST_CHECK_EQUAL(std::string(resString), "testValue");
     umo_destroy_model(model, &err);
     BOOST_CHECK(!err);
 }
