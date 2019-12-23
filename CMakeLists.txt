@@ -12,6 +12,7 @@ SET(SOURCES
   src/api/c_api.cpp
   src/api/cpp_api.cpp
   src/model/model.cpp
+  src/model/operator.cpp
 )
 
 add_library(libumo ${SOURCES})
