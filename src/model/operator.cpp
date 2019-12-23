@@ -6,7 +6,7 @@
 #include "model/operators/compare.hpp"
 #include "model/operators/unary_float.hpp"
 #include "model/operators/unary_int.hpp"
-#include "model/operators/unary.hpp"
+#include "model/operators/misc.hpp"
 
 #include <stdexcept>
 #include <ostream>
@@ -107,6 +107,18 @@ const Operator &Operator::get(umo_operator op) {
             return Square::instance;
         case UMO_OP_MINUS_UNARY:
             return UnaryMinus::instance;
+        case UMO_OP_POW:
+            return Pow::instance;
+        case UMO_OP_LOGB:
+            return Logb::instance;
+        case UMO_OP_MINUS_BINARY:
+            return BinaryMinus::instance;
+        case UMO_OP_DIV:
+            return Div::instance;
+        case UMO_OP_IDIV:
+            return Idiv::instance;
+        case UMO_OP_MOD:
+            return Mod::instance;
         default:
             throw std::runtime_error("Operator is not implemented.");
     }
