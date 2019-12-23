@@ -5,6 +5,8 @@
 #include "model/operators/nary.hpp"
 #include "model/operators/compare.hpp"
 #include "model/operators/unary_float.hpp"
+#include "model/operators/unary_int.hpp"
+#include "model/operators/unary.hpp"
 
 #include <stdexcept>
 #include <ostream>
@@ -91,6 +93,20 @@ const Operator &Operator::get(umo_operator op) {
             return Asinh::instance;
         case UMO_OP_ATANH:
             return Atanh::instance;
+        case UMO_OP_ROUND:
+            return Round::instance;
+        case UMO_OP_FLOOR:
+            return Floor::instance;
+        case UMO_OP_CEIL:
+            return Ceil::instance;
+        case UMO_OP_SIGN:
+            return Sign::instance;
+        case UMO_OP_ABS:
+            return Abs::instance;
+        case UMO_OP_SQUARE:
+            return Square::instance;
+        case UMO_OP_MINUS_UNARY:
+            return UnaryMinus::instance;
         default:
             throw std::runtime_error("Operator is not implemented.");
     }
