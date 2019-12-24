@@ -3,6 +3,7 @@
 #define UMO_OPERATORS_LOGICAL_HPP
 
 #include "model/operator.hpp"
+#include "model/operators/concepts.hpp"
 
 #include <stdexcept>
 #include <cassert>
@@ -10,31 +11,20 @@
 namespace umoi {
 namespace operators {
 
-class LogicalOperator : public Operator {
-    umo_type resultType(int nbOperands, umo_type *operandTypes, umo_operator *operandOps) const override {
-        return UMO_TYPE_BOOL;
-    }
-};
-
-class Not : public LogicalOperator {
+class Not : public UnaryOp, public OutBoolOp, public InBoolOp {
   public:
     std::string toString() const override {
         return "not";
     }
 
-    bool validOperandCount(int nbOperands) const override {
-        return nbOperands == 1;
-    }
-
     double compute(int nbOperands, double *operands) const override {
-        assert (nbOperands == 1);
         return !operands[0];
     }
 
     static Not instance;
 };
 
-class And : public LogicalOperator {
+class And : public NaryOp, public OutBoolOp, public InBoolOp {
   public:
     std::string toString() const override {
         return "and";
@@ -51,7 +41,7 @@ class And : public LogicalOperator {
     static And instance;
 };
 
-class Or : public LogicalOperator {
+class Or : public NaryOp, public OutBoolOp, public InBoolOp {
   public:
     std::string toString() const override {
         return "or";
@@ -68,7 +58,7 @@ class Or : public LogicalOperator {
     static Or instance;
 };
 
-class Xor : public LogicalOperator {
+class Xor : public NaryOp, public OutBoolOp, public InBoolOp {
   public:
     std::string toString() const override {
         return "xor";

@@ -3,77 +3,53 @@
 #define UMO_OPERATORS_UNARYFLOAT_HPP
 
 #include "model/operator.hpp"
+#include "model/operators/concepts.hpp"
 
 #include <cmath>
 
 namespace umoi {
 namespace operators {
 
-class UnaryOperator : public Operator {
-    bool validOperandCount(int nbOperands) const override {
-        return nbOperands == 1;
-    }
-
-    umo_type resultType(int nbOperands, umo_type *operandTypes, umo_operator *operandOps) const override {
-        assert (nbOperands == 1);
-        return operandTypes[0] == UMO_TYPE_FLOAT ? UMO_TYPE_FLOAT : UMO_TYPE_INT;
-    }
-};
-
-class Abs : public UnaryOperator {
+class Abs : public UnaryOp, public OutInferIntOp {
   public:
     std::string toString() const override {
         return "abs";
     }
 
     double compute(int nbOperands, double *operands) const override {
-        assert (nbOperands == 1);
         return std::abs(operands[0]);
     }
 
     static Abs instance;
 };
 
-class Square : public UnaryOperator {
+class Square : public UnaryOp, public OutInferIntOp {
   public:
     std::string toString() const override {
         return "square";
     }
 
     double compute(int nbOperands, double *operands) const override {
-        assert (nbOperands == 1);
         return operands[0] * operands[0];
     }
 
     static Square instance;
 };
 
-class UnaryMinus : public UnaryOperator {
+class UnaryMinus : public UnaryOp, public OutInferIntOp {
   public:
     std::string toString() const override {
         return "uminus";
     }
 
     double compute(int nbOperands, double *operands) const override {
-        assert (nbOperands == 1);
         return -operands[0];
     }
 
     static UnaryMinus instance;
 };
 
-
-class UnaryFloatOperator : public Operator {
-    bool validOperandCount(int nbOperands) const override {
-        return nbOperands == 1;
-    }
-
-    umo_type resultType(int nbOperands, umo_type *operandTypes, umo_operator *operandOps) const override {
-        return UMO_TYPE_FLOAT;
-    }
-};
-
-class Exp : public UnaryFloatOperator {
+class Exp : public UnaryOp, public OutFloatOp {
   public:
     std::string toString() const override {
         return "exp";
@@ -87,7 +63,7 @@ class Exp : public UnaryFloatOperator {
     static Exp instance;
 };
 
-class Log : public UnaryFloatOperator {
+class Log : public UnaryOp, public OutFloatOp {
   public:
     std::string toString() const override {
         return "log";
@@ -101,7 +77,7 @@ class Log : public UnaryFloatOperator {
     static Log instance;
 };
 
-class Sqrt : public UnaryFloatOperator {
+class Sqrt : public UnaryOp, public OutFloatOp {
   public:
     std::string toString() const override {
         return "sqrt";
@@ -115,7 +91,7 @@ class Sqrt : public UnaryFloatOperator {
     static Sqrt instance;
 };
 
-class Inv : public UnaryFloatOperator {
+class Inv : public UnaryOp, public OutFloatOp {
   public:
     std::string toString() const override {
         return "inv";
@@ -129,7 +105,7 @@ class Inv : public UnaryFloatOperator {
     static Inv instance;
 };
 
-class Frac : public UnaryFloatOperator {
+class Frac : public UnaryOp, public OutFloatOp {
   public:
     std::string toString() const override {
         return "frac";
@@ -143,7 +119,7 @@ class Frac : public UnaryFloatOperator {
     static Frac instance;
 };
 
-class Cos : public UnaryFloatOperator {
+class Cos : public UnaryOp, public OutFloatOp {
   public:
     std::string toString() const override {
         return "cos";
@@ -158,7 +134,7 @@ class Cos : public UnaryFloatOperator {
 };
 
 
-class Sin : public UnaryFloatOperator {
+class Sin : public UnaryOp, public OutFloatOp {
   public:
     std::string toString() const override {
         return "sin";
@@ -173,7 +149,7 @@ class Sin : public UnaryFloatOperator {
 };
 
 
-class Tan : public UnaryFloatOperator {
+class Tan : public UnaryOp, public OutFloatOp {
   public:
     std::string toString() const override {
         return "tan";
@@ -188,7 +164,7 @@ class Tan : public UnaryFloatOperator {
 };
 
 
-class Acos : public UnaryFloatOperator {
+class Acos : public UnaryOp, public OutFloatOp {
   public:
     std::string toString() const override {
         return "acos";
@@ -203,7 +179,7 @@ class Acos : public UnaryFloatOperator {
 };
 
 
-class Asin : public UnaryFloatOperator {
+class Asin : public UnaryOp, public OutFloatOp {
   public:
     std::string toString() const override {
         return "asin";
@@ -218,7 +194,7 @@ class Asin : public UnaryFloatOperator {
 };
 
 
-class Atan : public UnaryFloatOperator {
+class Atan : public UnaryOp, public OutFloatOp {
   public:
     std::string toString() const override {
         return "atan";
@@ -232,7 +208,7 @@ class Atan : public UnaryFloatOperator {
     static Atan instance;
 };
 
-class Cosh : public UnaryFloatOperator {
+class Cosh : public UnaryOp, public OutFloatOp {
   public:
     std::string toString() const override {
         return "cosh";
@@ -247,7 +223,7 @@ class Cosh : public UnaryFloatOperator {
 };
 
 
-class Sinh : public UnaryFloatOperator {
+class Sinh : public UnaryOp, public OutFloatOp {
   public:
     std::string toString() const override {
         return "sinh";
@@ -262,7 +238,7 @@ class Sinh : public UnaryFloatOperator {
 };
 
 
-class Tanh : public UnaryFloatOperator {
+class Tanh : public UnaryOp, public OutFloatOp {
   public:
     std::string toString() const override {
         return "tanh";
@@ -277,7 +253,7 @@ class Tanh : public UnaryFloatOperator {
 };
 
 
-class Acosh : public UnaryFloatOperator {
+class Acosh : public UnaryOp, public OutFloatOp {
   public:
     std::string toString() const override {
         return "acosh";
@@ -292,7 +268,7 @@ class Acosh : public UnaryFloatOperator {
 };
 
 
-class Asinh : public UnaryFloatOperator {
+class Asinh : public UnaryOp, public OutFloatOp {
   public:
     std::string toString() const override {
         return "asinh";
@@ -307,7 +283,7 @@ class Asinh : public UnaryFloatOperator {
 };
 
 
-class Atanh : public UnaryFloatOperator {
+class Atanh : public UnaryOp, public OutFloatOp {
   public:
     std::string toString() const override {
         return "atanh";

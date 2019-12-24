@@ -4,6 +4,7 @@ FIND_PACKAGE(Boost REQUIRED COMPONENTS unit_test_framework)
 SET(TESTS
     c_api
     cpp_api
+    operators
 )
 
 FOREACH(TEST IN LISTS TESTS)

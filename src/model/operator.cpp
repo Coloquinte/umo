@@ -134,5 +134,53 @@ umo_type Operator::resultType(int nbOperands, umo_type *operandTypes, umo_operat
     return UMO_TYPE_FLOAT;
 }
 
+DecBool DecBool::instance;
+DecInt DecInt::instance;
+DecFloat DecFloat::instance;
+Not Not::instance;
+Or Or::instance;
+And And::instance;
+Xor Xor::instance;
+Sum Sum::instance;
+Product Product::instance;
+Min Min::instance;
+Max Max::instance;
+Eq Eq::instance;
+Neq Neq::instance;
+Leq Leq::instance;
+Geq Geq::instance;
+Lt Lt::instance;
+Gt Gt::instance;
+Exp Exp::instance;
+Log Log::instance;
+Sqrt Sqrt::instance;
+Inv Inv::instance;
+Frac Frac::instance;
+Cos Cos::instance;
+Sin Sin::instance;
+Tan Tan::instance;
+Acos Acos::instance;
+Asin Asin::instance;
+Atan Atan::instance;
+Cosh Cosh::instance;
+Sinh Sinh::instance;
+Tanh Tanh::instance;
+Acosh Acosh::instance;
+Asinh Asinh::instance;
+Atanh Atanh::instance;
+Round Round::instance;
+Floor Floor::instance;
+Ceil Ceil::instance;
+Sign Sign::instance;
+Abs Abs::instance;
+Square Square::instance;
+UnaryMinus UnaryMinus::instance;
+Pow Pow::instance;
+Logb Logb::instance;
+BinaryMinus BinaryMinus::instance;
+Div Div::instance;
+Idiv Idiv::instance;
+Mod Mod::instance;
+
 }
 

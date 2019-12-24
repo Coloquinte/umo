@@ -3,22 +3,15 @@
 #define UMO_OPERATORS_COMPARE_HPP
 
 #include "model/operator.hpp"
+#include "model/operators/concepts.hpp"
 
 #include <cassert>
 
 namespace umoi {
 namespace operators {
 
-class CompareOperator : public Operator {
+class CompareOperator : public BinaryOp, public OutBoolOp, public InFloatOp {
   public:
-    bool validOperandCount(int nbOperands) const override {
-        return nbOperands == 2;
-    }
-
-    umo_type resultType(int nbOperands, umo_type *operandTypes, umo_operator *operandOps) const override {
-        return UMO_TYPE_BOOL;
-    }
-
     bool compareEqual(double op1, double op2) const {
         double diff = std::abs(op1 - op2);
         if (diff <= absTol)

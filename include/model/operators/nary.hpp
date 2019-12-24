@@ -3,23 +3,14 @@
 #define UMO_OPERATORS_NARY_HPP
 
 #include "model/operator.hpp"
+#include "model/operators/concepts.hpp"
 
 #include <limits>
 
 namespace umoi {
 namespace operators {
 
-class NaryOperator : public Operator {
-    umo_type resultType(int nbOperands, umo_type *operandTypes, umo_operator *operandOps) const override {
-        for (int i = 0; i < nbOperands; ++i) {
-            if (operandTypes[i] == UMO_TYPE_FLOAT) return UMO_TYPE_FLOAT;
-        }
-        // TODO: min/max should have different behaviour for the zero operand case
-        return UMO_TYPE_INT;
-    }
-};
-
-class Sum : public NaryOperator {
+class Sum : public NaryOp, public OutInferIntOp, public InFloatOp {
   public:
     std::string toString() const override {
         return "sum";
@@ -36,7 +27,7 @@ class Sum : public NaryOperator {
     static Sum instance;
 };
 
-class Product : public NaryOperator {
+class Product : public NaryOp, public OutInferIntBoolOp, public InFloatOp {
   public:
     std::string toString() const override {
         return "product";
@@ -53,7 +44,7 @@ class Product : public NaryOperator {
     static Product instance;
 };
 
-class Min : public NaryOperator {
+class Min : public NaryOp, public OutInferIntBoolOp, public InFloatOp {
   public:
     std::string toString() const override {
         return "min";
@@ -70,7 +61,7 @@ class Min : public NaryOperator {
     static Min instance;
 };
 
-class Max : public NaryOperator {
+class Max : public NaryOp, public OutInferIntBoolOp, public InFloatOp {
   public:
     std::string toString() const override {
         return "max";

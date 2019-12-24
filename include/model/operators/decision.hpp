@@ -3,24 +3,17 @@
 #define UMO_OPERATORS_DECISION_HPP
 
 #include "model/operator.hpp"
+#include "model/operators/concepts.hpp"
 
 #include <stdexcept>
 
 namespace umoi {
 namespace operators {
 
-class DecBool : public Operator {
+class DecBool : public NoaryOp, public OutBoolOp {
   public:
     std::string toString() const override {
         return "bool";
-    }
-
-    bool validOperandCount(int nbOperands) const override {
-        return nbOperands == 0;
-    }
-
-    umo_type resultType(int nbOperands, umo_type *operandTypes, umo_operator *operandOps) const override {
-        return UMO_TYPE_BOOL;
     }
 
     double compute(int nbOperands, double *operands) const override {
@@ -30,28 +23,10 @@ class DecBool : public Operator {
     static DecBool instance;
 };
 
-class DecInt : public Operator {
+class DecInt : public BinaryOp, public OutIntOp, public InIntOp, public ConstantInputOp {
   public:
     std::string toString() const override {
         return "int";
-    }
-
-    bool validOperandCount(int nbOperands) const override {
-        return nbOperands == 2;
-    }
-
-    bool validOperandTypes(int nbOperands, umo_type *operandTypes) const override {
-        return operandTypes[0] != UMO_TYPE_FLOAT
-            && operandTypes[1] != UMO_TYPE_FLOAT;
-    }
-
-    bool validOperandOps(int nbOperands, umo_operator *operandOps) const override {
-        return operandOps[0] == UMO_OP_CONSTANT
-            && operandOps[1] == UMO_OP_CONSTANT;
-    }
-
-    umo_type resultType(int nbOperands, umo_type *operandTypes, umo_operator *operandOps) const override {
-        return UMO_TYPE_INT;
     }
 
     double compute(int nbOperands, double *operands) const override {
@@ -61,23 +36,10 @@ class DecInt : public Operator {
     static DecInt instance;
 };
 
-class DecFloat : public Operator {
+class DecFloat : public BinaryOp, public OutIntOp, public InIntOp, public ConstantInputOp {
   public:
     std::string toString() const override {
         return "float";
-    }
-
-    bool validOperandCount(int nbOperands) const override {
-        return nbOperands == 2;
-    }
-
-    bool validOperandOps(int nbOperands, umo_operator *operandOps) const override {
-        return operandOps[0] == UMO_OP_CONSTANT
-            && operandOps[1] == UMO_OP_CONSTANT;
-    }
-
-    umo_type resultType(int nbOperands, umo_type *operandTypes, umo_operator *operandOps) const override {
-        return UMO_TYPE_FLOAT;
     }
 
     double compute(int nbOperands, double *operands) const override {

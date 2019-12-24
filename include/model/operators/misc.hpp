@@ -3,118 +3,72 @@
 #define UMO_OPERATORS_MISC_HPP
 
 #include "model/operator.hpp"
+#include "model/operators/concepts.hpp"
 
 #include <cmath>
 
 namespace umoi {
 namespace operators {
 
-class Pow : public Operator {
+class Pow : public BinaryOp, public OutFloatOp, public InFloatOp {
   public:
     std::string toString() const override {
         return "pow";
     }
 
-    bool validOperandCount(int nbOperands) const override {
-        return nbOperands == 2;
-    }
-
-    umo_type resultType(int nbOperands, umo_type *operandTypes, umo_operator *operandOps) const override {
-        return UMO_TYPE_FLOAT;
-    }
-
     double compute(int nbOperands, double *operands) const override {
-        assert (nbOperands == 2);
         return std::pow(operands[0], operands[1]);
     }
 
     static Pow instance;
 };
 
-class Logb : public Operator {
+class Logb : public BinaryOp, public OutFloatOp, public InFloatOp {
   public:
     std::string toString() const override {
         return "logb";
     }
 
-    bool validOperandCount(int nbOperands) const override {
-        return nbOperands == 2;
-    }
-
-    umo_type resultType(int nbOperands, umo_type *operandTypes, umo_operator *operandOps) const override {
-        return UMO_TYPE_FLOAT;
-    }
-
     double compute(int nbOperands, double *operands) const override {
-        assert (nbOperands == 2);
         return std::log(operands[0]) / std::log(operands[1]);
     }
 
     static Logb instance;
 };
 
-class BinaryMinus : public Operator {
+class BinaryMinus : public BinaryOp, public OutInferIntOp, public InFloatOp {
   public:
     std::string toString() const override {
         return "minus";
     }
 
-    bool validOperandCount(int nbOperands) const override {
-        return nbOperands == 2;
-    }
-
-    umo_type resultType(int nbOperands, umo_type *operandTypes, umo_operator *operandOps) const override {
-        if (operandTypes[0] == UMO_TYPE_FLOAT || operandTypes[1] == UMO_TYPE_FLOAT)
-            return UMO_TYPE_FLOAT;
-        return UMO_TYPE_INT;
-    }
-
     double compute(int nbOperands, double *operands) const override {
-        assert (nbOperands == 2);
         return operands[0] - operands[1];
     }
 
     static BinaryMinus instance;
 };
 
-class Div : public Operator {
+class Div : public BinaryOp, public OutFloatOp, public InFloatOp {
   public:
     std::string toString() const override {
         return "div";
     }
 
-    bool validOperandCount(int nbOperands) const override {
-        return nbOperands == 2;
-    }
-
-    umo_type resultType(int nbOperands, umo_type *operandTypes, umo_operator *operandOps) const override {
-        return UMO_TYPE_FLOAT;
-    }
-
     double compute(int nbOperands, double *operands) const override {
-        assert (nbOperands == 2);
         return operands[0] / operands[1];
     }
 
     static Div instance;
 };
 
-class Idiv : public Operator {
+class Idiv : public BinaryOp, public OutIntOp, public InIntOp {
   public:
     std::string toString() const override {
         return "idiv";
     }
 
-    bool validOperandCount(int nbOperands) const override {
-        return nbOperands == 2;
-    }
-
-    umo_type resultType(int nbOperands, umo_type *operandTypes, umo_operator *operandOps) const override {
-        return UMO_TYPE_INT;
-    }
-
     double compute(int nbOperands, double *operands) const override {
-        assert (nbOperands == 2);
         long long n = operands[0];
         long long d = operands[1];
         return n / d;
@@ -123,22 +77,13 @@ class Idiv : public Operator {
     static Idiv instance;
 };
 
-class Mod : public Operator {
+class Mod : public BinaryOp, public OutIntOp, public InIntOp {
   public:
     std::string toString() const override {
         return "mod";
     }
 
-    bool validOperandCount(int nbOperands) const override {
-        return nbOperands == 2;
-    }
-
-    umo_type resultType(int nbOperands, umo_type *operandTypes, umo_operator *operandOps) const override {
-        return UMO_TYPE_INT;
-    }
-
     double compute(int nbOperands, double *operands) const override {
-        assert (nbOperands == 2);
         long long n = operands[0];
         long long d = operands[1];
         return n % d;
