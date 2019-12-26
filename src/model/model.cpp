@@ -1,5 +1,6 @@
 
 #include "model/model.hpp"
+#include "model/operator.hpp"
 
 #include <cmath>
 #include <stdexcept>
@@ -46,14 +47,26 @@ ExpressionId Model::createConstant(double value) {
 ExpressionId Model::createExpression(umo_operator op, long long *beginOp, long long *endOp) {
     computed_ = false;
     std::uint32_t var = expressions_.size();
+    // Gathe operands with type info
     ExpressionData expression(op, UMO_TYPE_FLOAT);
     expression.operands.reserve(endOp - beginOp);
+    std::vector<umo_type> operandTypes;
+    operandTypes.reserve(endOp - beginOp);
+    std::vector<umo_operator> operandOps;
+    operandOps.reserve(endOp - beginOp);
     for (long long *it = beginOp; it != endOp; ++it) {
         ExpressionId operand = ExpressionId::fromRaw(*it);
-        checkExpression(operand);
+        checkExpressionId(operand);
         expression.operands.push_back(operand);
+        operandTypes.push_back(getExpressionIdType(operand));
+        operandOps.push_back(expressions_[operand.var()].op);
     }
-    // TODO: check that the operator is compatible
+    // Check operands
+    const Operator &ope = Operator::get(op);
+    if (!ope.validOperands(expression.operands.size(), operandTypes.data(), operandOps.data()))
+        throw std::runtime_error("Operand types are invalid.");
+    // Infer result type
+    expression.type = ope.resultType(expression.operands.size(), operandTypes.data(), operandOps.data());
     expressions_.push_back(expression);
     values_.push_back(0.0);
     return ExpressionId(var, false, false);
@@ -75,6 +88,7 @@ double Model::getFloatValue(ExpressionId expr) const {
 }
 
 void Model::setFloatValue(ExpressionId expr, double value) {
+    checkExpressionId(expr);
     umo_operator varOp = expressions_[expr.var()].op;
     if (varOp != UMO_OP_DEC_BOOL && varOp != UMO_OP_DEC_INT && varOp != UMO_OP_DEC_FLOAT)
         throw runtime_error("Only decisions can be set");
@@ -107,7 +121,7 @@ void Model::setStringParameter(const std::string &param, const std::string &valu
     stringParams_.emplace(param, value);
 }
 
-void Model::checkExpression(ExpressionId expr) const {
+void Model::checkExpressionId(ExpressionId expr) const {
     if (expr.var() >= expressions_.size())
         throw runtime_error("Expression is out of bounds");
     umo_type type = expressions_[expr.var()].type;
@@ -115,7 +129,7 @@ void Model::checkExpression(ExpressionId expr) const {
         throw runtime_error("The NOT bit is set but the variable is not of boolean type");
 }
 
-umo_type Model::getExpressionType(ExpressionId expr) const {
+umo_type Model::getExpressionIdType(ExpressionId expr) const {
     umo_type type = expressions_[expr.var()].type;
     if (expr.isMinus() && type == UMO_TYPE_BOOL)
         return UMO_TYPE_INT;

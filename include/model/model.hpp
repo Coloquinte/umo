@@ -38,8 +38,8 @@ class Model {
     std::uint32_t nbObjectives() const { return objectives_.size(); }
 
   private:
-    void checkExpression(ExpressionId expr) const;
-    umo_type getExpressionType(ExpressionId expr) const;
+    void checkExpressionId(ExpressionId expr) const;
+    umo_type getExpressionIdType(ExpressionId expr) const;
 
   private:
     std::vector<ExpressionData> expressions_;

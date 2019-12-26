@@ -36,7 +36,7 @@ class DecInt : public BinaryOp, public OutIntOp, public InIntOp, public Constant
     static DecInt instance;
 };
 
-class DecFloat : public BinaryOp, public OutIntOp, public InIntOp, public ConstantInputOp {
+class DecFloat : public BinaryOp, public OutFloatOp, public InFloatOp, public ConstantInputOp {
   public:
     std::string toString() const override {
         return "float";
