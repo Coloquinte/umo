@@ -66,7 +66,7 @@ long long makeTernaryOp(umo_model *model, umo_operator op, long long op1, long l
 
 template<typename OperandExpression, typename ResultExpression>
 ResultExpression unaryOp(umo_operator op, const OperandExpression &op1) {
-    bool v = makeUnaryOp(op1.rawPtr(), op, op1.rawId());
+    long long v = makeUnaryOp(op1.rawPtr(), op, op1.rawId());
     return ResultExpression(op1.rawPtr(), v);
 }
 
@@ -112,21 +112,21 @@ ResultExpression binaryOp(umo_operator op, const IntExpression &op1, long long o
 
 template<typename ResultExpression>
 ResultExpression binaryOp(umo_operator op, const BoolExpression &op1, const BoolExpression &op2) {
-    bool v = makeBinaryOp(op1.rawPtr(), op, op1.rawId(), op2.rawId());
+    long long v = makeBinaryOp(op1.rawPtr(), op, op1.rawId(), op2.rawId());
     return ResultExpression(op1.rawPtr(), v);
 }
 
 template<typename ResultExpression>
 ResultExpression binaryOp(umo_operator op, bool op1Val, const BoolExpression &op2) {
-    bool op1 = makeConstant(op2.rawPtr(), (double) op1Val);
-    bool v = makeBinaryOp(op2.rawPtr(), op, op1, op2.rawId());
+    long long op1 = makeConstant(op2.rawPtr(), (double) op1Val);
+    long long v = makeBinaryOp(op2.rawPtr(), op, op1, op2.rawId());
     return ResultExpression(op2.rawPtr(), v);
 }
 
 template<typename ResultExpression>
 ResultExpression binaryOp(umo_operator op, const BoolExpression &op1, bool op2Val) {
-    bool op2 = makeConstant(op1.rawPtr(), (double) op2Val);
-    bool v = makeBinaryOp(op1.rawPtr(), op, op1.rawId(), op2);
+    long long op2 = makeConstant(op1.rawPtr(), (double) op2Val);
+    long long v = makeBinaryOp(op1.rawPtr(), op, op1.rawId(), op2);
     return ResultExpression(op1.rawPtr(), v);
 }
 

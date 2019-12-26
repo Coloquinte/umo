@@ -49,7 +49,9 @@ ExpressionId Model::createExpression(umo_operator op, long long *beginOp, long l
     ExpressionData expression(op, UMO_TYPE_FLOAT);
     expression.operands.reserve(endOp - beginOp);
     for (long long *it = beginOp; it != endOp; ++it) {
-        expression.operands.push_back(ExpressionId::fromRaw(*it));
+        ExpressionId operand = ExpressionId::fromRaw(*it);
+        checkExpression(operand);
+        expression.operands.push_back(operand);
     }
     // TODO: check that the operator is compatible
     expressions_.push_back(expression);
