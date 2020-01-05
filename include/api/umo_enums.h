@@ -7,6 +7,7 @@ extern "C" {
 #endif
 
 enum umo_type {
+    UMO_TYPE_INVALID,
     UMO_TYPE_BOOL,
     UMO_TYPE_INT,
     UMO_TYPE_FLOAT

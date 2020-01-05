@@ -16,17 +16,15 @@ class Operator {
 
     // Check validity of operand types
     virtual bool validOperands(int nbOperands, umo_type *operandTypes, umo_operator *operandOps) const;
+    virtual bool validOperandCount(int nbOperands) const { return true; }
+    virtual bool validOperandTypes(int nbOperands, umo_type *operandTypes) const { return true; }
+    virtual bool validOperandOps(int nbOperands, umo_operator *operandOps) const { return true; }
 
     // Infer result type
     virtual umo_type resultType(int nbOperands, umo_type *operandTypes, umo_operator *operandOps) const;
 
     // Perform the computation
     virtual double compute(int nbOperands, double *operands) const =0;
-
-  protected:
-    virtual bool validOperandCount(int nbOperands) const { return true; }
-    virtual bool validOperandTypes(int nbOperands, umo_type *operandTypes) const { return true; }
-    virtual bool validOperandOps(int nbOperands, umo_operator *operandOps) const { return true; }
 };
 
 std::ostream& operator<<(std::ostream &os, umo_operator op);

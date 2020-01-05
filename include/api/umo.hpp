@@ -15,6 +15,13 @@ class FloatExpression;
 class IntExpression;
 class BoolExpression;
 
+enum class Status {
+    Infeasible,
+    Invalid,
+    Valid,
+    Optimal
+};
+
 class Model {
   public:
     Model();
@@ -29,6 +36,8 @@ class Model {
     FloatExpression floatVar(double lb, double ub);
     IntExpression intVar(long long lb, long long ub);
     BoolExpression boolVar();
+
+    Status getStatus();
 
     void solve();
 

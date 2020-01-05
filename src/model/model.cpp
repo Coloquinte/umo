@@ -48,26 +48,12 @@ ExpressionId Model::createExpression(umo_operator op, long long *beginOp, long l
     computed_ = false;
     std::uint32_t var = expressions_.size();
     // Gathe operands with type info
-    ExpressionData expression(op, UMO_TYPE_FLOAT);
-    expression.operands.reserve(endOp - beginOp);
-    std::vector<umo_type> operandTypes;
-    operandTypes.reserve(endOp - beginOp);
-    std::vector<umo_operator> operandOps;
-    operandOps.reserve(endOp - beginOp);
+    ExpressionData expr(op);
     for (long long *it = beginOp; it != endOp; ++it) {
-        ExpressionId operand = ExpressionId::fromRaw(*it);
-        checkExpressionId(operand);
-        expression.operands.push_back(operand);
-        operandTypes.push_back(getExpressionIdType(operand));
-        operandOps.push_back(expressions_[operand.var()].op);
+        expr.operands.push_back(ExpressionId::fromRaw(*it));
     }
-    // Check operands
-    const Operator &ope = Operator::get(op);
-    if (!ope.validOperands(expression.operands.size(), operandTypes.data(), operandOps.data()))
-        throw std::runtime_error("Operand types are invalid.");
-    // Infer result type
-    expression.type = ope.resultType(expression.operands.size(), operandTypes.data(), operandOps.data());
-    expressions_.push_back(expression);
+    expr.type = checkAndInferType(expr);
+    expressions_.push_back(expr);
     values_.push_back(0.0);
     return ExpressionId(var, false, false);
 }
@@ -136,4 +122,52 @@ umo_type Model::getExpressionIdType(ExpressionId expr) const {
     return type;
 }
 
+umo_type Model::checkAndInferType(const ExpressionData &expr) const {
+    for (ExpressionId id : expr.operands) {
+        checkExpressionId(id);
+    }
+    std::vector<umo_type> operandTypes = getOperandTypes(expr);
+    std::vector<umo_operator> operandOps = getOperandOps(expr);
+    const Operator &op = Operator::get(expr.op);
+    if (!op.validOperands(expr.operands.size(), operandTypes.data(), operandOps.data())) {
+        if (!op.validOperandCount(expr.operands.size()))
+            throw std::runtime_error("Invalid number of operands.");
+        if (!op.validOperandTypes(expr.operands.size(), operandTypes.data()))
+            throw std::runtime_error("Invalid operand types.");
+        if (!op.validOperandOps(expr.operands.size(), operandOps.data()))
+            throw std::runtime_error("Invalid operand operations.");
+        throw std::runtime_error("Invalid operands (unknown).");
+    }
+    return op.resultType(expr.operands.size(), operandTypes.data(), operandOps.data());
+}
+
+std::vector<umo_type> Model::getOperandTypes(const ExpressionData &expr) const {
+    std::vector<umo_type> operandTypes;
+    for (ExpressionId id : expr.operands) {
+        operandTypes.push_back(getExpressionIdType(id));
+    }
+    return operandTypes;
+}
+
+std::vector<umo_operator> Model::getOperandOps(const ExpressionData &expr) const {
+    std::vector<umo_operator> operandOps;
+    for (ExpressionId id : expr.operands) {
+        operandOps.push_back(expressions_[id.var()].op);
+    }
+    return operandOps;
+}
+
+void Model::checkConsistency() const {
+    for (size_t i = 0; i < expressions_.size(); ++i) {
+        const ExpressionData &expr = expressions_[i];
+        umo_type type = checkAndInferType(expr);
+        for (ExpressionId id : expr.operands) {
+            if (id.var() >= i) throw std::runtime_error("The expressions are not in sorted order");
+        }
+    }
+}
+
+void Model::compute() {
+
+}
 

@@ -41,6 +41,13 @@ class Model {
     void checkExpressionId(ExpressionId expr) const;
     umo_type getExpressionIdType(ExpressionId expr) const;
 
+    umo_type checkAndInferType(const ExpressionData &expr) const;
+    std::vector<umo_type> getOperandTypes(const ExpressionData &expr) const;
+    std::vector<umo_operator> getOperandOps(const ExpressionData &expr) const;
+
+    void checkConsistency() const;
+    void compute();
+
   private:
     std::vector<ExpressionData> expressions_;
 
@@ -65,6 +72,8 @@ struct Model::ExpressionData {
     umo_operator op;
     umo_type type;
     std::vector<ExpressionId> operands;
+    ExpressionData(umo_operator op)
+        : op(op) {}
     ExpressionData(umo_operator op, umo_type type)
         : op(op), type(type) {}
 };

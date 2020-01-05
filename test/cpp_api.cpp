@@ -1,5 +1,5 @@
 #define BOOST_TEST_DYN_LINK
-#define BOOST_TEST_MODULE C_API
+#define BOOST_TEST_MODULE CPP_API
 
 #include <boost/test/unit_test.hpp>
 

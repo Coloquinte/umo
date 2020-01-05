@@ -8,7 +8,7 @@
 
 using namespace std;
 
-// TODO: make it correct if runtime_error's constructor throws
+// TODO: make it correct if runtime_error's constructor throws (possible if OOM)
 #define UNWRAP_EXCEPTIONS(code) \
     do {\
         const char *err = NULL;\
@@ -181,6 +181,25 @@ IntExpression Model::intVar(long long lb, long long ub) {
 BoolExpression Model::boolVar() {
     long long v = makeNoaryOp(ptr_, UMO_OP_DEC_BOOL);
     return BoolExpression(ptr_, v);
+}
+
+Status Model::getStatus() {
+    umo_solution_status ret;
+  UNWRAP_EXCEPTIONS(
+    ret = umo_get_solution_status(ptr_, &err);
+  );
+    switch (ret) {
+        case UMO_STATUS_INFEASIBLE:
+            return Status::Infeasible;
+        case UMO_STATUS_INVALID:
+            return Status::Invalid;
+        case UMO_STATUS_VALID:
+            return Status::Valid;
+        case UMO_STATUS_OPTIMAL:
+            return Status::Optimal;
+        default:
+            throw std::runtime_error("Unknown status returned");
+    }
 }
 
 void Model::solve() {
