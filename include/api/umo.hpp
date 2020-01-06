@@ -40,6 +40,7 @@ class Model {
     Status getStatus();
 
     void solve();
+    void check();
 
     double getFloatParam(const std::string &param);
     void setFloatParam(const std::string &param, double val);

@@ -104,6 +104,13 @@ void umo_solve(umo_model *m, const char **err) {
   );
 }
 
+void umo_check(umo_model *m, const char **err) {
+  WRAP_EXCEPTIONS(
+    Model *model = (Model *) m;
+    model->check();
+  );
+}
+
 double umo_get_float_parameter(umo_model *m, const char *param, const char **err) {
   WRAP_EXCEPTIONS(
     Model *model = (Model *) m;

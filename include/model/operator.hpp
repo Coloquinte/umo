@@ -25,6 +25,9 @@ class Operator {
 
     // Perform the computation
     virtual double compute(int nbOperands, double *operands) const =0;
+
+    // Additional information
+    virtual bool isLeaf() const { return false; }
 };
 
 std::ostream& operator<<(std::ostream &os, umo_operator op);

@@ -113,6 +113,12 @@ class ConstantInputOp : virtual public Operator {
     }
 };
 
+class LeafOp : virtual public Operator {
+    bool isLeaf() const final override {
+        return true;
+    }
+};
+
 }
 }
 

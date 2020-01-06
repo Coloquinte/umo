@@ -18,6 +18,7 @@ BOOST_AUTO_TEST_CASE(SimpleModel) {
     maximize(fdec1 * fdec2);
     constraint(fdec1 <= idec);
     minimize(idec + bdec + fdec2);
+    model.check();
 }
 
 BOOST_AUTO_TEST_CASE(FloatOps) {
@@ -86,6 +87,11 @@ BOOST_AUTO_TEST_CASE(FloatOps) {
     b16.getValue();
     b17.getValue();
     b18.getValue();
+    fdec1.setValue(-2.5);
+    BOOST_CHECK_EQUAL(-2.5, fdec1.getValue());
+    fdec1.setValue(4.8);
+    BOOST_CHECK_EQUAL(4.8, fdec1.getValue());
+    model.check();
 }
 
 BOOST_AUTO_TEST_CASE(IntOps) {
@@ -160,6 +166,11 @@ BOOST_AUTO_TEST_CASE(IntOps) {
     b16.getValue();
     b17.getValue();
     b18.getValue();
+    idec1.setValue(-2);
+    BOOST_CHECK_EQUAL(-2, idec1.getValue());
+    idec1.setValue(4);
+    BOOST_CHECK_EQUAL(4, idec1.getValue());
+    model.check();
 }
 
 BOOST_AUTO_TEST_CASE(BoolOps) {
@@ -186,6 +197,11 @@ BOOST_AUTO_TEST_CASE(BoolOps) {
     b08.getValue();
     b09.getValue();
     b10.getValue();
+    bdec1.setValue(true);
+    BOOST_CHECK_EQUAL(true, bdec1.getValue());
+    bdec1.setValue(false);
+    BOOST_CHECK_EQUAL(false, bdec1.getValue());
+    model.check();
 }
 
 BOOST_AUTO_TEST_CASE(Params) {
@@ -196,6 +212,7 @@ BOOST_AUTO_TEST_CASE(Params) {
     model.setStringParam("testStringParam", "testValue");
     std::string resString = model.getStringParam("testStringParam");
     BOOST_CHECK_EQUAL(resString, "testValue");
+    model.check();
 }
 
 BOOST_AUTO_TEST_CASE(Exception) {
@@ -204,4 +221,6 @@ BOOST_AUTO_TEST_CASE(Exception) {
         model.constant(NAN),
         std::runtime_error
     );
+    model.check();
 }
+

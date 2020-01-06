@@ -36,6 +36,7 @@ void umo_set_float_value(umo_model *, long long expr, double value, const char *
 umo_solution_status umo_get_solution_status(umo_model *, const char **err);
 
 void umo_solve(umo_model *, const char **err);
+void umo_check(umo_model *, const char **err);
 
 // TODO: basic introspection
 // * access types

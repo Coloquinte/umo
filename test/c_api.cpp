@@ -13,6 +13,8 @@ BOOST_AUTO_TEST_CASE(Creation) {
     umo_model *model = umo_create_model(&err);
     BOOST_CHECK(model);
     BOOST_CHECK(!err);
+    umo_check(model, &err);
+    BOOST_CHECK(!err);
     umo_destroy_model(model, &err);
     BOOST_CHECK(!err);
 }
@@ -32,6 +34,8 @@ BOOST_AUTO_TEST_CASE(Constant) {
     BOOST_CHECK(!err);
     BOOST_CHECK_EQUAL(0.0, va);
     double vb = umo_get_float_value(model, b, &err);
+    BOOST_CHECK(!err);
+    umo_check(model, &err);
     BOOST_CHECK(!err);
     BOOST_CHECK_EQUAL(1.0, vb);
     umo_destroy_model(model, &err);
@@ -59,6 +63,8 @@ BOOST_AUTO_TEST_CASE(Decision) {
     long long float_dec = umo_create_expression(model, UMO_OP_DEC_FLOAT, 2, float_ops, &err);
     umo_set_float_value(model, float_dec, -0.5, &err);
     BOOST_CHECK(!err);
+    umo_check(model, &err);
+    BOOST_CHECK(!err);
     umo_destroy_model(model, &err);
     BOOST_CHECK(!err);
 }
@@ -72,6 +78,8 @@ BOOST_AUTO_TEST_CASE(Params) {
     umo_set_string_parameter(model, "testStringParam", "testValue", &err);
     const char *resString = umo_get_string_parameter(model, "testStringParam", &err);
     BOOST_CHECK_EQUAL(std::string(resString), "testValue");
+    umo_check(model, &err);
+    BOOST_CHECK(!err);
     umo_destroy_model(model, &err);
     BOOST_CHECK(!err);
 }
@@ -85,6 +93,8 @@ BOOST_AUTO_TEST_CASE(Error) {
     BOOST_CHECK_EQUAL(c, -1);
     free((char*) err);
     err = NULL;
+    umo_check(model, &err);
+    BOOST_CHECK(!err);
     umo_destroy_model(model, &err);
     BOOST_CHECK(!err);
 }

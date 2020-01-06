@@ -22,11 +22,12 @@ class Model {
     void createConstraint(ExpressionId expr);
     void createObjective(ExpressionId expr, umo_objective_direction dir);
 
-    double getFloatValue(ExpressionId expr) const;
+    double getFloatValue(ExpressionId expr);
     void setFloatValue(ExpressionId expr, double value);
-    umo_solution_status getStatus() const;
+    umo_solution_status getStatus();
 
     void solve();
+    void check() const;
 
     double getFloatParameter(const std::string &param) const;
     void setFloatParameter(const std::string &param, double value);
@@ -40,12 +41,13 @@ class Model {
   private:
     void checkExpressionId(ExpressionId expr) const;
     umo_type getExpressionIdType(ExpressionId expr) const;
+    umo_operator getExpressionIdOp(ExpressionId expr) const;
+    double getExpressionIdValue(ExpressionId expr) const;
 
     umo_type checkAndInferType(const ExpressionData &expr) const;
     std::vector<umo_type> getOperandTypes(const ExpressionData &expr) const;
     std::vector<umo_operator> getOperandOps(const ExpressionData &expr) const;
 
-    void checkConsistency() const;
     void compute();
 
   private:

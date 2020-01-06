@@ -71,6 +71,7 @@ class Idiv : public BinaryOp, public OutIntOp, public InIntOp {
     double compute(int nbOperands, double *operands) const override {
         long long n = operands[0];
         long long d = operands[1];
+        if (d == 0) return NAN;
         return n / d;
     }
 
@@ -86,6 +87,7 @@ class Mod : public BinaryOp, public OutIntOp, public InIntOp {
     double compute(int nbOperands, double *operands) const override {
         long long n = operands[0];
         long long d = operands[1];
+        if (d == 0) return NAN;
         return n % d;
     }
 

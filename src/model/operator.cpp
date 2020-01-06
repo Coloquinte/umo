@@ -25,6 +25,8 @@ const Operator &Operator::get(umo_operator op) {
     switch(op) {
         case UMO_OP_INVALID:
             throw std::runtime_error("Attempting to use the invalid operator");
+        case UMO_OP_CONSTANT:
+            return Constant::instance;
         case UMO_OP_DEC_BOOL:
             return DecBool::instance;
         case UMO_OP_DEC_INT:
@@ -134,6 +136,7 @@ umo_type Operator::resultType(int nbOperands, umo_type *operandTypes, umo_operat
     return UMO_TYPE_FLOAT;
 }
 
+Constant Constant::instance;
 DecBool DecBool::instance;
 DecInt DecInt::instance;
 DecFloat DecFloat::instance;

@@ -19,15 +19,19 @@ umo_type computeType(double value) {
     return UMO_TYPE_FLOAT;
 }
 
-bool isTypeCompatible(umo_type varType, double value) {
-    umo_type valueType = computeType(value);
-    if (varType == UMO_TYPE_BOOL && valueType != UMO_TYPE_BOOL) {
+bool isSubtype(umo_type subtype, umo_type type) {
+    if (type == UMO_TYPE_BOOL && subtype != UMO_TYPE_BOOL) {
         return false;
     }
-    if (varType == UMO_TYPE_INT && valueType == UMO_TYPE_FLOAT) {
+    if (type == UMO_TYPE_INT && subtype == UMO_TYPE_FLOAT) {
         return false;
     }
     return true;
+}
+
+bool isTypeCompatible(umo_type varType, double value) {
+    umo_type valueType = computeType(value);
+    return isSubtype(valueType, varType);
 }
 }
 
@@ -45,9 +49,13 @@ ExpressionId Model::createConstant(double value) {
 }
 
 ExpressionId Model::createExpression(umo_operator op, long long *beginOp, long long *endOp) {
+    if (op == UMO_OP_CONSTANT || op == UMO_OP_INVALID || op >= UMO_OP_END) {
+        throw std::runtime_error("Invalid expression type");
+    }
+
     computed_ = false;
     std::uint32_t var = expressions_.size();
-    // Gathe operands with type info
+    // Gather operands with type info
     ExpressionData expr(op);
     for (long long *it = beginOp; it != endOp; ++it) {
         expr.operands.push_back(ExpressionId::fromRaw(*it));
@@ -59,23 +67,24 @@ ExpressionId Model::createExpression(umo_operator op, long long *beginOp, long l
 }
 
 void Model::createConstraint(ExpressionId expr) {
+    computed_ = false;
     constraints_.insert(expr);
 }
 
 void Model::createObjective(ExpressionId expr, umo_objective_direction dir) {
+    computed_ = false;
     objectives_.emplace_back(expr, dir);
 }
 
-double Model::getFloatValue(ExpressionId expr) const {
-    double val = values_[expr.var()];
-    if (expr.isNot()) val = 1.0 - val;
-    if (expr.isMinus()) val = -val;
-    return val;
+double Model::getFloatValue(ExpressionId expr) {
+    if (!computed_) compute();
+    return getExpressionIdValue(expr);
 }
 
 void Model::setFloatValue(ExpressionId expr, double value) {
+    computed_ = false;
     checkExpressionId(expr);
-    umo_operator varOp = expressions_[expr.var()].op;
+    umo_operator varOp = getExpressionIdOp(expr);
     if (varOp != UMO_OP_DEC_BOOL && varOp != UMO_OP_DEC_INT && varOp != UMO_OP_DEC_FLOAT)
         throw runtime_error("Only decisions can be set");
     umo_type varType = expressions_[expr.var()].type;
@@ -84,7 +93,7 @@ void Model::setFloatValue(ExpressionId expr, double value) {
     values_[expr.var()] = value;
 }
 
-umo_solution_status Model::getStatus() const {
+umo_solution_status Model::getStatus() {
     return status_;
 }
 
@@ -122,6 +131,21 @@ umo_type Model::getExpressionIdType(ExpressionId expr) const {
     return type;
 }
 
+umo_operator Model::getExpressionIdOp(ExpressionId expr) const {
+    if (expr.isMinus())
+        return UMO_OP_MINUS_UNARY;
+    if (expr.isNot())
+        return UMO_OP_NOT;
+    return expressions_[expr.var()].op;
+}
+
+double Model::getExpressionIdValue(ExpressionId expr) const {
+    double val = values_[expr.var()];
+    if (expr.isNot()) val = 1.0 - val;
+    if (expr.isMinus()) val = -val;
+    return val;
+}
+
 umo_type Model::checkAndInferType(const ExpressionData &expr) const {
     for (ExpressionId id : expr.operands) {
         checkExpressionId(id);
@@ -157,10 +181,14 @@ std::vector<umo_operator> Model::getOperandOps(const ExpressionData &expr) const
     return operandOps;
 }
 
-void Model::checkConsistency() const {
+void Model::check() const {
+    if (expressions_.size() != values_.size()) {
+        throw std::runtime_error("Different number of expressions and values");
+    }
     for (size_t i = 0; i < expressions_.size(); ++i) {
         const ExpressionData &expr = expressions_[i];
-        umo_type type = checkAndInferType(expr);
+        umo_type type = expr.op == UMO_OP_CONSTANT ? computeType(values_[i]) : checkAndInferType(expr);
+        if (!isSubtype(type, expr.type)) throw std::runtime_error("The computed type is not compatible with the inferred type");
         for (ExpressionId id : expr.operands) {
             if (id.var() >= i) throw std::runtime_error("The expressions are not in sorted order");
         }
@@ -168,6 +196,16 @@ void Model::checkConsistency() const {
 }
 
 void Model::compute() {
-
+    for (size_t i = 0; i < expressions_.size(); ++i) {
+        const ExpressionData &expr = expressions_[i];
+        const Operator &op = Operator::get(expr.op);
+        if (op.isLeaf()) continue;
+        std::vector<double> operands;
+        for (ExpressionId id : expr.operands) {
+            operands.push_back(getExpressionIdValue(id));
+        }
+        values_[i] = op.compute(operands.size(), operands.data());
+    }
+    computed_ = true;
 }
 

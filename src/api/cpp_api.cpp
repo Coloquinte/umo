@@ -208,6 +208,12 @@ void Model::solve() {
   );
 }
 
+void Model::check() {
+  UNWRAP_EXCEPTIONS(
+    umo_check(ptr_, &err);
+  );
+}
+
 double Model::getFloatParam(const std::string &param) {
     double tmp;
   UNWRAP_EXCEPTIONS(
