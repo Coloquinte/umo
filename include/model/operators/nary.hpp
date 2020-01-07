@@ -10,7 +10,7 @@
 namespace umoi {
 namespace operators {
 
-class Sum : public NaryOp, public OutInferIntOp, public InFloatOp {
+class Sum final : public NaryOp, public OutInferIntOp, public InFloatOp {
   public:
     std::string toString() const override {
         return "sum";
@@ -27,7 +27,7 @@ class Sum : public NaryOp, public OutInferIntOp, public InFloatOp {
     static Sum instance;
 };
 
-class Product : public NaryOp, public OutInferIntBoolOp, public InFloatOp {
+class Product final : public NaryOp, public OutInferIntBoolOp, public InFloatOp {
   public:
     std::string toString() const override {
         return "product";
@@ -44,7 +44,7 @@ class Product : public NaryOp, public OutInferIntBoolOp, public InFloatOp {
     static Product instance;
 };
 
-class Min : public NaryOp, public OutInferIntBoolOp, public InFloatOp {
+class Min final : public NaryOp, public OutInferIntBoolOp, public InFloatOp {
   public:
     std::string toString() const override {
         return "min";
@@ -61,7 +61,7 @@ class Min : public NaryOp, public OutInferIntBoolOp, public InFloatOp {
     static Min instance;
 };
 
-class Max : public NaryOp, public OutInferIntBoolOp, public InFloatOp {
+class Max final : public NaryOp, public OutInferIntBoolOp, public InFloatOp {
   public:
     std::string toString() const override {
         return "max";

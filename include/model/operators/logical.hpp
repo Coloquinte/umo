@@ -11,7 +11,7 @@
 namespace umoi {
 namespace operators {
 
-class Not : public UnaryOp, public OutBoolOp, public InBoolOp {
+class Not final : public UnaryOp, public OutBoolOp, public InBoolOp {
   public:
     std::string toString() const override {
         return "not";
@@ -24,7 +24,7 @@ class Not : public UnaryOp, public OutBoolOp, public InBoolOp {
     static Not instance;
 };
 
-class And : public NaryOp, public OutBoolOp, public InBoolOp {
+class And final : public NaryOp, public OutBoolOp, public InBoolOp {
   public:
     std::string toString() const override {
         return "and";
@@ -41,7 +41,7 @@ class And : public NaryOp, public OutBoolOp, public InBoolOp {
     static And instance;
 };
 
-class Or : public NaryOp, public OutBoolOp, public InBoolOp {
+class Or final : public NaryOp, public OutBoolOp, public InBoolOp {
   public:
     std::string toString() const override {
         return "or";
@@ -58,7 +58,7 @@ class Or : public NaryOp, public OutBoolOp, public InBoolOp {
     static Or instance;
 };
 
-class Xor : public NaryOp, public OutBoolOp, public InBoolOp {
+class Xor final : public NaryOp, public OutBoolOp, public InBoolOp {
   public:
     std::string toString() const override {
         return "xor";

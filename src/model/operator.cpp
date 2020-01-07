@@ -7,6 +7,7 @@
 #include "model/operators/unary_float.hpp"
 #include "model/operators/unary_int.hpp"
 #include "model/operators/misc.hpp"
+#include "model/operators/linear.hpp"
 
 #include <stdexcept>
 #include <ostream>
@@ -121,6 +122,10 @@ const Operator &Operator::get(umo_operator op) {
             return Idiv::instance;
         case UMO_OP_MOD:
             return Mod::instance;
+        case UMO_OP_LINEAR:
+            return Linear::instance;
+        case UMO_OP_LINEARCOMP:
+            return LinearComp::instance;
         default:
             throw std::runtime_error("Operator is not implemented.");
     }
@@ -184,6 +189,8 @@ BinaryMinus BinaryMinus::instance;
 Div Div::instance;
 Idiv Idiv::instance;
 Mod Mod::instance;
+Linear Linear::instance;
+LinearComp LinearComp::instance;
 
 }
 

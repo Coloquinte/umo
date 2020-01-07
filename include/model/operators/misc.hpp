@@ -10,7 +10,7 @@
 namespace umoi {
 namespace operators {
 
-class Pow : public BinaryOp, public OutFloatOp, public InFloatOp {
+class Pow final : public BinaryOp, public OutFloatOp, public InFloatOp {
   public:
     std::string toString() const override {
         return "pow";
@@ -23,7 +23,7 @@ class Pow : public BinaryOp, public OutFloatOp, public InFloatOp {
     static Pow instance;
 };
 
-class Logb : public BinaryOp, public OutFloatOp, public InFloatOp {
+class Logb final : public BinaryOp, public OutFloatOp, public InFloatOp {
   public:
     std::string toString() const override {
         return "logb";
@@ -36,7 +36,7 @@ class Logb : public BinaryOp, public OutFloatOp, public InFloatOp {
     static Logb instance;
 };
 
-class BinaryMinus : public BinaryOp, public OutInferIntOp, public InFloatOp {
+class BinaryMinus final : public BinaryOp, public OutInferIntOp, public InFloatOp {
   public:
     std::string toString() const override {
         return "minus";
@@ -49,7 +49,7 @@ class BinaryMinus : public BinaryOp, public OutInferIntOp, public InFloatOp {
     static BinaryMinus instance;
 };
 
-class Div : public BinaryOp, public OutFloatOp, public InFloatOp {
+class Div final : public BinaryOp, public OutFloatOp, public InFloatOp {
   public:
     std::string toString() const override {
         return "div";
@@ -62,7 +62,7 @@ class Div : public BinaryOp, public OutFloatOp, public InFloatOp {
     static Div instance;
 };
 
-class Idiv : public BinaryOp, public OutIntOp, public InIntOp {
+class Idiv final : public BinaryOp, public OutIntOp, public InIntOp {
   public:
     std::string toString() const override {
         return "idiv";
@@ -78,7 +78,7 @@ class Idiv : public BinaryOp, public OutIntOp, public InIntOp {
     static Idiv instance;
 };
 
-class Mod : public BinaryOp, public OutIntOp, public InIntOp {
+class Mod final : public BinaryOp, public OutIntOp, public InIntOp {
   public:
     std::string toString() const override {
         return "mod";

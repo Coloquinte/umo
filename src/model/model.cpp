@@ -206,6 +206,7 @@ void Model::compute() {
         }
         values_[i] = op.compute(operands.size(), operands.data());
     }
+    // TODO: update status
     computed_ = true;
 }
 

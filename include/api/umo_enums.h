@@ -84,8 +84,8 @@ enum umo_operator {
     UMO_OP_ASINH,
     UMO_OP_ATANH,
     // Direct support for linear models
-    UMO_OP_LIN,
-    UMO_OP_LINCOMP,
+    UMO_OP_LINEAR,
+    UMO_OP_LINEARCOMP,
 
 
     // End indicator

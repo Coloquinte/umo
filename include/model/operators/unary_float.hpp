@@ -10,7 +10,7 @@
 namespace umoi {
 namespace operators {
 
-class Abs : public UnaryOp, public OutInferIntOp {
+class Abs final : public UnaryOp, public OutInferIntOp {
   public:
     std::string toString() const override {
         return "abs";
@@ -23,7 +23,7 @@ class Abs : public UnaryOp, public OutInferIntOp {
     static Abs instance;
 };
 
-class Square : public UnaryOp, public OutInferIntOp {
+class Square final : public UnaryOp, public OutInferIntOp {
   public:
     std::string toString() const override {
         return "square";
@@ -36,7 +36,7 @@ class Square : public UnaryOp, public OutInferIntOp {
     static Square instance;
 };
 
-class UnaryMinus : public UnaryOp, public OutInferIntOp {
+class UnaryMinus final : public UnaryOp, public OutInferIntOp {
   public:
     std::string toString() const override {
         return "uminus";
@@ -49,7 +49,7 @@ class UnaryMinus : public UnaryOp, public OutInferIntOp {
     static UnaryMinus instance;
 };
 
-class Exp : public UnaryOp, public OutFloatOp {
+class Exp final : public UnaryOp, public OutFloatOp {
   public:
     std::string toString() const override {
         return "exp";
@@ -63,7 +63,7 @@ class Exp : public UnaryOp, public OutFloatOp {
     static Exp instance;
 };
 
-class Log : public UnaryOp, public OutFloatOp {
+class Log final : public UnaryOp, public OutFloatOp {
   public:
     std::string toString() const override {
         return "log";
@@ -77,7 +77,7 @@ class Log : public UnaryOp, public OutFloatOp {
     static Log instance;
 };
 
-class Sqrt : public UnaryOp, public OutFloatOp {
+class Sqrt final : public UnaryOp, public OutFloatOp {
   public:
     std::string toString() const override {
         return "sqrt";
@@ -91,7 +91,7 @@ class Sqrt : public UnaryOp, public OutFloatOp {
     static Sqrt instance;
 };
 
-class Inv : public UnaryOp, public OutFloatOp {
+class Inv final : public UnaryOp, public OutFloatOp {
   public:
     std::string toString() const override {
         return "inv";
@@ -105,7 +105,7 @@ class Inv : public UnaryOp, public OutFloatOp {
     static Inv instance;
 };
 
-class Frac : public UnaryOp, public OutFloatOp {
+class Frac final : public UnaryOp, public OutFloatOp {
   public:
     std::string toString() const override {
         return "frac";
@@ -119,7 +119,7 @@ class Frac : public UnaryOp, public OutFloatOp {
     static Frac instance;
 };
 
-class Cos : public UnaryOp, public OutFloatOp {
+class Cos final : public UnaryOp, public OutFloatOp {
   public:
     std::string toString() const override {
         return "cos";
@@ -134,7 +134,7 @@ class Cos : public UnaryOp, public OutFloatOp {
 };
 
 
-class Sin : public UnaryOp, public OutFloatOp {
+class Sin final : public UnaryOp, public OutFloatOp {
   public:
     std::string toString() const override {
         return "sin";
@@ -149,7 +149,7 @@ class Sin : public UnaryOp, public OutFloatOp {
 };
 
 
-class Tan : public UnaryOp, public OutFloatOp {
+class Tan final : public UnaryOp, public OutFloatOp {
   public:
     std::string toString() const override {
         return "tan";
@@ -164,7 +164,7 @@ class Tan : public UnaryOp, public OutFloatOp {
 };
 
 
-class Acos : public UnaryOp, public OutFloatOp {
+class Acos final : public UnaryOp, public OutFloatOp {
   public:
     std::string toString() const override {
         return "acos";
@@ -179,7 +179,7 @@ class Acos : public UnaryOp, public OutFloatOp {
 };
 
 
-class Asin : public UnaryOp, public OutFloatOp {
+class Asin final : public UnaryOp, public OutFloatOp {
   public:
     std::string toString() const override {
         return "asin";
@@ -194,7 +194,7 @@ class Asin : public UnaryOp, public OutFloatOp {
 };
 
 
-class Atan : public UnaryOp, public OutFloatOp {
+class Atan final : public UnaryOp, public OutFloatOp {
   public:
     std::string toString() const override {
         return "atan";
@@ -208,7 +208,7 @@ class Atan : public UnaryOp, public OutFloatOp {
     static Atan instance;
 };
 
-class Cosh : public UnaryOp, public OutFloatOp {
+class Cosh final : public UnaryOp, public OutFloatOp {
   public:
     std::string toString() const override {
         return "cosh";
@@ -223,7 +223,7 @@ class Cosh : public UnaryOp, public OutFloatOp {
 };
 
 
-class Sinh : public UnaryOp, public OutFloatOp {
+class Sinh final : public UnaryOp, public OutFloatOp {
   public:
     std::string toString() const override {
         return "sinh";
@@ -238,7 +238,7 @@ class Sinh : public UnaryOp, public OutFloatOp {
 };
 
 
-class Tanh : public UnaryOp, public OutFloatOp {
+class Tanh final : public UnaryOp, public OutFloatOp {
   public:
     std::string toString() const override {
         return "tanh";
@@ -253,7 +253,7 @@ class Tanh : public UnaryOp, public OutFloatOp {
 };
 
 
-class Acosh : public UnaryOp, public OutFloatOp {
+class Acosh final : public UnaryOp, public OutFloatOp {
   public:
     std::string toString() const override {
         return "acosh";
@@ -268,7 +268,7 @@ class Acosh : public UnaryOp, public OutFloatOp {
 };
 
 
-class Asinh : public UnaryOp, public OutFloatOp {
+class Asinh final : public UnaryOp, public OutFloatOp {
   public:
     std::string toString() const override {
         return "asinh";
@@ -283,7 +283,7 @@ class Asinh : public UnaryOp, public OutFloatOp {
 };
 
 
-class Atanh : public UnaryOp, public OutFloatOp {
+class Atanh final : public UnaryOp, public OutFloatOp {
   public:
     std::string toString() const override {
         return "atanh";

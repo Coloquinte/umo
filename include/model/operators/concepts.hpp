@@ -5,6 +5,7 @@
 #include "model/operator.hpp"
 
 #include <cassert>
+#include <algorithm>
 
 namespace umoi {
 namespace operators {
@@ -108,8 +109,10 @@ class InBoolOp : virtual public Operator {
 
 class ConstantInputOp : virtual public Operator {
     bool validOperandOps(int nbOperands, umo_operator *operandOps) const override {
-        return operandOps[0] == UMO_OP_CONSTANT
-            && operandOps[1] == UMO_OP_CONSTANT;
+        for (int i = 0; i < nbOperands; ++i) {
+            if (operandOps[i] != UMO_OP_CONSTANT) return false;
+        }
+        return true;
     }
 };
 
@@ -117,6 +120,41 @@ class LeafOp : virtual public Operator {
     bool isLeaf() const final override {
         return true;
     }
+};
+
+class ComparisonOp : public OutBoolOp {
+  public:
+    bool compareEq(double op1, double op2) const {
+        double diff = std::abs(op1 - op2);
+        if (diff <= absTol)
+            return true;
+        double magnitude = std::max(std::abs(op1), std::abs(op2));
+        return diff <= relTol * magnitude;
+    }
+
+    bool compareNeq(double op1, double op2) const {
+        return !compareEq(op1, op2);
+    }
+
+    bool compareLt(double op1, double op2) const {
+        return op1 <= op2 && !compareEq(op1, op2);
+    }
+
+    bool compareGt(double op1, double op2) const {
+        return op1 >= op2 && !compareEq(op1, op2);
+    }
+
+    bool compareLeq(double op1, double op2) const {
+        return op1 <= op2 || compareEq(op1, op2);
+    }
+
+    bool compareGeq(double op1, double op2) const {
+        return op1 >= op2 || compareEq(op1, op2);
+    }
+
+    // TODO: make tolerance a runtime parameter
+    const double absTol = 1.0e-8;
+    const double relTol = 1.0e-6;
 };
 
 }

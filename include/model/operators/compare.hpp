@@ -10,26 +10,10 @@
 namespace umoi {
 namespace operators {
 
-class CompareOperator : public BinaryOp, public OutBoolOp, public InFloatOp {
-  public:
-    bool compareEqual(double op1, double op2) const {
-        double diff = std::abs(op1 - op2);
-        if (diff <= absTol)
-            return true;
-        double magnitude = std::max(std::abs(op1), std::abs(op2));
-        return diff <= relTol * magnitude;
-    }
-
-    bool compareLessThan(double op1, double op2) const {
-        return op1 <= op2 && !compareEqual(op1, op2);
-    }
-
-    // TODO: make tolerance a runtime parameter
-    const double absTol = 1.0e-6;
-    const double relTol = 1.0e-8;
+class CompareOp : public BinaryOp, public ComparisonOp, public InFloatOp {
 };
 
-class Eq : public CompareOperator {
+class Eq final : public CompareOp {
   public:
     std::string toString() const override {
         return "eq";
@@ -37,13 +21,13 @@ class Eq : public CompareOperator {
 
     double compute(int nbOperands, double *operands) const override {
         assert(nbOperands == 2);
-        return compareEqual(operands[0], operands[1]);
+        return compareEq(operands[0], operands[1]);
     }
 
     static Eq instance;
 };
 
-class Neq : public CompareOperator {
+class Neq final : public CompareOp {
   public:
     std::string toString() const override {
         return "neq";
@@ -51,13 +35,13 @@ class Neq : public CompareOperator {
 
     double compute(int nbOperands, double *operands) const override {
         assert(nbOperands == 2);
-        return !compareEqual(operands[0], operands[1]);
+        return compareNeq(operands[0], operands[1]);
     }
 
     static Neq instance;
 };
 
-class Leq : public CompareOperator {
+class Leq final : public CompareOp {
   public:
     std::string toString() const override {
         return "leq";
@@ -65,13 +49,13 @@ class Leq : public CompareOperator {
 
     double compute(int nbOperands, double *operands) const override {
         assert(nbOperands == 2);
-        return !compareLessThan(operands[1], operands[0]);
+        return compareLeq(operands[0], operands[1]);
     }
 
     static Leq instance;
 };
 
-class Geq : public CompareOperator {
+class Geq final : public CompareOp {
   public:
     std::string toString() const override {
         return "geq";
@@ -79,13 +63,13 @@ class Geq : public CompareOperator {
 
     double compute(int nbOperands, double *operands) const override {
         assert(nbOperands == 2);
-        return !compareLessThan(operands[0], operands[1]);
+        return compareGeq(operands[0], operands[1]);
     }
 
     static Geq instance;
 };
 
-class Lt : public CompareOperator {
+class Lt final : public CompareOp {
   public:
     std::string toString() const override {
         return "lt";
@@ -93,13 +77,13 @@ class Lt : public CompareOperator {
 
     double compute(int nbOperands, double *operands) const override {
         assert(nbOperands == 2);
-        return compareLessThan(operands[0], operands[1]);
+        return compareLt(operands[0], operands[1]);
     }
 
     static Lt instance;
 };
 
-class Gt : public CompareOperator {
+class Gt final : public CompareOp {
   public:
     std::string toString() const override {
         return "gt";
@@ -107,7 +91,7 @@ class Gt : public CompareOperator {
 
     double compute(int nbOperands, double *operands) const override {
         assert(nbOperands == 2);
-        return compareLessThan(operands[1], operands[0]);
+        return compareGt(operands[0], operands[1]);
     }
 
     static Gt instance;

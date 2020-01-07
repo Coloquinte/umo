@@ -93,4 +93,83 @@ BOOST_AUTO_TEST_CASE(Operations) {
     model.check();
 }
 
+BOOST_AUTO_TEST_CASE(Comparisons) {
+    Model model;
+    FloatExpression dec1 = model.floatVar(0.0, 10.0);
+    FloatExpression dec2 = model.floatVar(0.0, 10.0);
+    BoolExpression x01 = dec1 == dec2;
+    BoolExpression x02 = dec1 != dec2;
+    BoolExpression x03 = dec1 <= dec2;
+    BoolExpression x04 = dec1 >= dec2;
+    BoolExpression x05 = dec1 < dec2;
+    BoolExpression x06 = dec1 > dec2;
+
+    // Should compare equal
+    dec1.setValue(1.0 - 1e-7);
+    dec2.setValue(1.0);
+    BOOST_CHECK_EQUAL(x01.getValue(),  true); // ==
+    BOOST_CHECK_EQUAL(x02.getValue(), false); // !=
+    BOOST_CHECK_EQUAL(x03.getValue(),  true); // <=
+    BOOST_CHECK_EQUAL(x04.getValue(),  true); // >=
+    BOOST_CHECK_EQUAL(x05.getValue(), false); // <
+    BOOST_CHECK_EQUAL(x06.getValue(), false); // >
+
+    // Should compare different
+    dec1.setValue(1.0 - 1e-5);
+    dec2.setValue(1.0);
+    BOOST_CHECK_EQUAL(x01.getValue(), false); // ==
+    BOOST_CHECK_EQUAL(x02.getValue(),  true); // !=
+    BOOST_CHECK_EQUAL(x03.getValue(),  true); // <=
+    BOOST_CHECK_EQUAL(x04.getValue(), false); // >=
+    BOOST_CHECK_EQUAL(x05.getValue(),  true); // <
+    BOOST_CHECK_EQUAL(x06.getValue(), false); // >
+
+    // Should compare equal
+    dec1.setValue(1e-9);
+    dec2.setValue(0.0);
+    BOOST_CHECK_EQUAL(x01.getValue(),  true); // ==
+    BOOST_CHECK_EQUAL(x02.getValue(), false); // !=
+    BOOST_CHECK_EQUAL(x03.getValue(),  true); // <=
+    BOOST_CHECK_EQUAL(x04.getValue(),  true); // >=
+    BOOST_CHECK_EQUAL(x05.getValue(), false); // <
+    BOOST_CHECK_EQUAL(x06.getValue(), false); // >
+
+    // Should compare different
+    dec1.setValue(1e-7);
+    dec2.setValue(0.0);
+    BOOST_CHECK_EQUAL(x01.getValue(), false); // ==
+    BOOST_CHECK_EQUAL(x02.getValue(),  true); // !=
+    BOOST_CHECK_EQUAL(x03.getValue(), false); // <=
+    BOOST_CHECK_EQUAL(x04.getValue(),  true); // >=
+    BOOST_CHECK_EQUAL(x05.getValue(), false); // <
+    BOOST_CHECK_EQUAL(x06.getValue(),  true); // >
+
+    // Should compare different
+    dec1.setValue(1e-5);
+    dec2.setValue(0.0);
+    BOOST_CHECK_EQUAL(x01.getValue(), false); // ==
+    BOOST_CHECK_EQUAL(x02.getValue(),  true); // !=
+    BOOST_CHECK_EQUAL(x03.getValue(), false); // <=
+    BOOST_CHECK_EQUAL(x04.getValue(),  true); // >=
+    BOOST_CHECK_EQUAL(x05.getValue(), false); // <
+    BOOST_CHECK_EQUAL(x06.getValue(),  true); // >
+
+    // Just for directions
+    dec1.setValue(1.0);
+    dec2.setValue(2.0);
+    BOOST_CHECK_EQUAL(x03.getValue(),  true); // <=
+    BOOST_CHECK_EQUAL(x04.getValue(), false); // >=
+    BOOST_CHECK_EQUAL(x05.getValue(),  true); // <
+    BOOST_CHECK_EQUAL(x06.getValue(), false); // >
+    dec1.setValue(2.0);
+    dec2.setValue(1.0);
+    BOOST_CHECK_EQUAL(x03.getValue(), false); // <=
+    BOOST_CHECK_EQUAL(x04.getValue(),  true); // >=
+    BOOST_CHECK_EQUAL(x05.getValue(), false); // <
+    BOOST_CHECK_EQUAL(x06.getValue(),  true); // >
+
+
+    model.check();
+}
+
 

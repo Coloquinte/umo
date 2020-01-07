@@ -10,7 +10,7 @@
 namespace umoi {
 namespace operators {
 
-class Round : public UnaryOp, public OutIntOp {
+class Round final : public UnaryOp, public OutIntOp {
   public:
     std::string toString() const override {
         return "round";
@@ -23,7 +23,7 @@ class Round : public UnaryOp, public OutIntOp {
     static Round instance;
 };
 
-class Floor : public UnaryOp, public OutIntOp {
+class Floor final : public UnaryOp, public OutIntOp {
   public:
     std::string toString() const override {
         return "floor";
@@ -36,7 +36,7 @@ class Floor : public UnaryOp, public OutIntOp {
     static Floor instance;
 };
 
-class Ceil : public UnaryOp, public OutIntOp {
+class Ceil final : public UnaryOp, public OutIntOp {
   public:
     std::string toString() const override {
         return "ceil";
@@ -49,7 +49,7 @@ class Ceil : public UnaryOp, public OutIntOp {
     static Ceil instance;
 };
 
-class Sign : public UnaryOp, public OutIntOp {
+class Sign final : public UnaryOp, public OutIntOp {
   public:
     std::string toString() const override {
         return "sign";
