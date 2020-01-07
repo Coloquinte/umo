@@ -5,6 +5,7 @@ SET(TESTS
     c_api
     cpp_api
     operators
+    compute
 )
 
 FOREACH(TEST IN LISTS TESTS)

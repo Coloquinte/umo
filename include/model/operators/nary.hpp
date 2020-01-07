@@ -34,7 +34,7 @@ class Product : public NaryOp, public OutInferIntBoolOp, public InFloatOp {
     }
 
     double compute(int nbOperands, double *operands) const override {
-        double result = 0.0;
+        double result = 1.0;
         for (int i = 0; i < nbOperands; ++i) {
             result *= operands[i];
         }
