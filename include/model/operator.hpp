@@ -28,6 +28,7 @@ class Operator {
 
     // Additional information
     virtual bool isLeaf() const { return false; }
+    virtual bool isDecision() const { return false; }
 };
 
 std::ostream& operator<<(std::ostream &os, umo_operator op);

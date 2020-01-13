@@ -50,7 +50,7 @@ class Model {
 
     void compute();
 
-  private:
+  protected:
     std::vector<ExpressionData> expressions_;
 
     // Constraints

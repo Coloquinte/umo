@@ -23,7 +23,7 @@ class Constant final : public NoaryOp, public LeafOp {
     static Constant instance;
 };
 
-class DecBool final : public NoaryOp, public LeafOp, public OutBoolOp {
+class DecBool final : public NoaryOp, public DecisionOp, public OutBoolOp {
   public:
     std::string toString() const override {
         return "bool";
@@ -36,7 +36,7 @@ class DecBool final : public NoaryOp, public LeafOp, public OutBoolOp {
     static DecBool instance;
 };
 
-class DecInt final : public BinaryOp, public LeafOp, public OutIntOp, public InIntOp, public ConstantInputOp {
+class DecInt final : public BinaryOp, public DecisionOp, public OutIntOp, public InIntOp, public ConstantInputOp {
   public:
     std::string toString() const override {
         return "int";
@@ -49,7 +49,7 @@ class DecInt final : public BinaryOp, public LeafOp, public OutIntOp, public InI
     static DecInt instance;
 };
 
-class DecFloat final : public BinaryOp, public LeafOp, public OutFloatOp, public InFloatOp, public ConstantInputOp {
+class DecFloat final : public BinaryOp, public DecisionOp, public OutFloatOp, public InFloatOp, public ConstantInputOp {
   public:
     std::string toString() const override {
         return "float";

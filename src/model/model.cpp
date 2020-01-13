@@ -1,6 +1,7 @@
 
 #include "model/model.hpp"
 #include "model/operator.hpp"
+#include "presolve/presolve.hpp"
 
 #include <cmath>
 #include <stdexcept>
@@ -98,6 +99,9 @@ umo_solution_status Model::getStatus() {
 }
 
 void Model::solve() {
+    check();
+    PresolvedModel model = presolve(*this);
+    model.check();
 }
 
 double Model::getFloatParameter(const std::string &param) const {

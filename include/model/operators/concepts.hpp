@@ -122,6 +122,12 @@ class LeafOp : virtual public Operator {
     }
 };
 
+class DecisionOp : public LeafOp {
+    bool isDecision() const final override {
+        return true;
+    }
+};
+
 class ComparisonOp : public OutBoolOp {
   public:
     bool compareEq(double op1, double op2) const {

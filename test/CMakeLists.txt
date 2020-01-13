@@ -6,6 +6,7 @@ SET(TESTS
     cpp_api
     operators
     compute
+    small_models
 )
 
 FOREACH(TEST IN LISTS TESTS)
