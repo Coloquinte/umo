@@ -224,3 +224,51 @@ BOOST_AUTO_TEST_CASE(Exception) {
     model.check();
 }
 
+BOOST_AUTO_TEST_CASE(CompountFloat) {
+    Model model;
+    FloatExpression dec1 = model.floatVar(-10.0, 10.0);
+    FloatExpression dec2 = model.floatVar(5, 10.0);
+    dec1 += 3.0;
+    dec1 += 3;
+    dec1 += dec2;
+    dec2 -= 3.0;
+    dec2 -= 3;
+    dec2 -= dec1;
+    dec1 *= 3.0;
+    dec1 *= 3;
+    dec1 *= dec2;
+    dec2 /= 3.0;
+    dec2 /= 3;
+    dec2 /= dec1;
+    model.check();
+}
+
+BOOST_AUTO_TEST_CASE(CompountInt) {
+    Model model;
+    IntExpression dec1 = model.intVar(-10, 10);
+    IntExpression dec2 = model.intVar(5, 10);
+    dec1 += 3;
+    dec1 += dec2;
+    dec2 -= 3;
+    dec2 -= dec1;
+    dec1 *= 3;
+    dec1 *= dec2;
+    dec2 /= 3;
+    dec2 /= dec1;
+    dec2 %= 3;
+    dec2 %= dec1;
+    model.check();
+}
+
+BOOST_AUTO_TEST_CASE(CompountBool) {
+    Model model;
+    BoolExpression dec1 = model.boolVar();
+    BoolExpression dec2 = model.boolVar();
+    dec1 &= dec2;
+    dec1 &= true;
+    dec2 |= dec1;
+    dec2 |= false;
+    dec1 ^= dec2;
+    dec1 ^= true;
+    model.check();
+}

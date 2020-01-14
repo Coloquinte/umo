@@ -49,8 +49,8 @@ BOOST_AUTO_TEST_CASE(Knapsack1) {
     vector<BoolExpression> expressions;
     for (int i = 0; i < 100; ++i) {
         BoolExpression expr = model.boolVar();
-        weight = weight + i * expr;
-        value = value + i * i * expr;
+        weight += i * expr;
+        value += i * i * expr;
     }
     maximize(value);
     constraint(weight <= 1000.0);

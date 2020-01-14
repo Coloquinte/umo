@@ -354,6 +354,46 @@ FloatExpression operator/(const FloatExpression &op1, double op2) {
     return binaryOp<FloatExpression>(UMO_OP_DIV, op1, op2);
 }
 
+FloatExpression& operator+=(FloatExpression& op1, const FloatExpression& op2) {
+    op1 = op1 + op2;
+    return op1;
+}
+
+FloatExpression& operator-=(FloatExpression& op1, const FloatExpression& op2) {
+    op1 = op1 - op2;
+    return op1;
+}
+
+FloatExpression& operator*=(FloatExpression& op1, const FloatExpression& op2) {
+    op1 = op1 * op2;
+    return op1;
+}
+
+FloatExpression& operator/=(FloatExpression& op1, const FloatExpression& op2) {
+    op1 = op1 / op2;
+    return op1;
+}
+
+FloatExpression& operator+=(FloatExpression& op1, double op2) {
+    op1 = op1 + op2;
+    return op1;
+}
+
+FloatExpression& operator-=(FloatExpression& op1, double op2) {
+    op1 = op1 - op2;
+    return op1;
+}
+
+FloatExpression& operator*=(FloatExpression& op1, double op2) {
+    op1 = op1 * op2;
+    return op1;
+}
+
+FloatExpression& operator/=(FloatExpression& op1, double op2) {
+    op1 = op1 / op2;
+    return op1;
+}
+
 BoolExpression operator==(const FloatExpression &op1, const FloatExpression &op2) {
     return binaryOp<BoolExpression>(UMO_OP_CMP_EQ, op1, op2);
 }
@@ -490,6 +530,56 @@ IntExpression operator%(const IntExpression &op1, long long op2) {
     return binaryOp<IntExpression>(UMO_OP_MOD, op1, op2);
 }
 
+IntExpression& operator+=(IntExpression& op1, const IntExpression& op2) {
+    op1 = op1 + op2;
+    return op1;
+}
+
+IntExpression& operator-=(IntExpression& op1, const IntExpression& op2) {
+    op1 = op1 - op2;
+    return op1;
+}
+
+IntExpression& operator*=(IntExpression& op1, const IntExpression& op2) {
+    op1 = op1 * op2;
+    return op1;
+}
+
+IntExpression& operator/=(IntExpression& op1, const IntExpression& op2) {
+    op1 = op1 / op2;
+    return op1;
+}
+
+IntExpression& operator%=(IntExpression& op1, const IntExpression& op2) {
+    op1 = op1 % op2;
+    return op1;
+}
+
+IntExpression& operator+=(IntExpression& op1, long long op2) {
+    op1 = op1 + op2;
+    return op1;
+}
+
+IntExpression& operator-=(IntExpression& op1, long long op2) {
+    op1 = op1 - op2;
+    return op1;
+}
+
+IntExpression& operator*=(IntExpression& op1, long long op2) {
+    op1 = op1 * op2;
+    return op1;
+}
+
+IntExpression& operator/=(IntExpression& op1, long long op2) {
+    op1 = op1 / op2;
+    return op1;
+}
+
+IntExpression& operator%=(IntExpression& op1, long long op2) {
+    op1 = op1 % op2;
+    return op1;
+}
+
 BoolExpression operator&&(const BoolExpression &op1, const BoolExpression &op2) {
     return binaryOp<BoolExpression>(UMO_OP_AND, op1, op2);
 }
@@ -528,6 +618,36 @@ BoolExpression operator^(const BoolExpression &op1, bool op2) {
 
 BoolExpression operator!(const BoolExpression &op1) {
     return unaryOp<BoolExpression, BoolExpression>(UMO_OP_NOT, op1);
+}
+
+BoolExpression& operator&=(BoolExpression& op1, const BoolExpression &op2) {
+    op1 = op1 && op2;
+    return op1;
+}
+
+BoolExpression& operator|=(BoolExpression& op1, const BoolExpression &op2) {
+    op1 = op1 || op2;
+    return op1;
+}
+
+BoolExpression& operator^=(BoolExpression& op1, const BoolExpression &op2) {
+    op1 = op1 ^ op2;
+    return op1;
+}
+
+BoolExpression& operator&=(BoolExpression& op1, bool op2) {
+    op1 = op1 && op2;
+    return op1;
+}
+
+BoolExpression& operator|=(BoolExpression& op1, bool op2) {
+    op1 = op1 || op2;
+    return op1;
+}
+
+BoolExpression& operator^=(BoolExpression& op1, bool op2) {
+    op1 = op1 ^ op2;
+    return op1;
 }
 
 FloatExpression abs(const FloatExpression &op1) {

@@ -17,14 +17,16 @@ BOOST_AUTO_TEST_CASE(FloatCompute) {
     FloatExpression x02 = dec1 - dec2;
     FloatExpression x03 = dec1 * dec2;
     FloatExpression x04 = dec1 / dec2;
-    for (double val1 : {5.0, -4.0}) {
-        for (double val2 : {-7.0, 2.0}) {
+    FloatExpression x05 = - dec1;
+    for (double val1 : {5.0, -4.0, 2.5}) {
+        for (double val2 : {-7.0, 2.0, 1.3}) {
             dec1.setValue(val1);
             dec2.setValue(val2);
             BOOST_CHECK_EQUAL(x01.getValue(), val1 + val2);
             BOOST_CHECK_EQUAL(x02.getValue(), val1 - val2);
             BOOST_CHECK_EQUAL(x03.getValue(), val1 * val2);
             BOOST_CHECK_EQUAL(x04.getValue(), val1 / val2);
+            BOOST_CHECK_EQUAL(x05.getValue(), - val1);
         }
     }
     model.check();
@@ -39,7 +41,8 @@ BOOST_AUTO_TEST_CASE(IntCompute) {
     IntExpression x03 = dec1 * dec2;
     IntExpression x04 = dec1 / dec2;
     IntExpression x05 = dec1 % dec2;
-    for (long long val1 : {5, -4}) {
+    IntExpression x06 = - dec1;
+    for (long long val1 : {5, -4, 0}) {
         for (long long val2 : {-7, 2}) {
             dec1.setValue(val1);
             dec2.setValue(val2);
@@ -48,6 +51,7 @@ BOOST_AUTO_TEST_CASE(IntCompute) {
             BOOST_CHECK_EQUAL(x03.getValue(), val1 * val2);
             BOOST_CHECK_EQUAL(x04.getValue(), val1 / val2);
             BOOST_CHECK_EQUAL(x05.getValue(), val1 % val2);
+            BOOST_CHECK_EQUAL(x06.getValue(), - val1);
         }
     }
     model.check();
@@ -63,6 +67,7 @@ BOOST_AUTO_TEST_CASE(BoolCompute) {
     BoolExpression x04 = !dec1 ||  dec2;
     BoolExpression x05 = !(dec1 || dec2);
     BoolExpression x06 = !(dec1 && dec2);
+    BoolExpression x07 = !dec1;
     for (bool val1 : {false, true}) {
         for (bool val2 : {false, true}) {
             dec1.setValue(val1);
@@ -73,6 +78,7 @@ BOOST_AUTO_TEST_CASE(BoolCompute) {
             BOOST_CHECK_EQUAL(x04.getValue(), !val1 ||  val2);
             BOOST_CHECK_EQUAL(x05.getValue(), !(val1 || val2));
             BOOST_CHECK_EQUAL(x06.getValue(), !(val1 && val2));
+            BOOST_CHECK_EQUAL(x07.getValue(), !val1);
         }
     }
     model.check();
