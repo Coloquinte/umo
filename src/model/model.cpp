@@ -98,7 +98,11 @@ void Model::setFloatValue(ExpressionId expr, double value) {
     values_[expr.var()] = value;
 }
 
-umo_solution_status Model::getStatus() { return status_; }
+umo_solution_status Model::getStatus() {
+    if (!computed_)
+        compute();
+    return status_;
+}
 
 void Model::solve() {
     check();
@@ -225,6 +229,12 @@ void Model::compute() {
         }
         values_[i] = op.compute(operands.size(), operands.data());
     }
-    // TODO: update status
+    bool constraintViolated = false;
+    for (ExpressionId constraint : constraints_) {
+        double val = getExpressionIdValue(constraint);
+        if (val == 0.0)
+            constraintViolated = true;
+    }
+    status_ = constraintViolated ? UMO_STATUS_INVALID : UMO_STATUS_VALID;
     computed_ = true;
 }

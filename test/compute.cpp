@@ -176,3 +176,13 @@ BOOST_AUTO_TEST_CASE(Comparisons) {
 
     model.check();
 }
+
+BOOST_AUTO_TEST_CASE(ModelStatus) {
+    Model model;
+    BoolExpression dec = model.boolVar();
+    constraint(dec);
+    dec.setValue(false);
+    BOOST_CHECK(model.getStatus() == Status::Invalid);
+    dec.setValue(true);
+    BOOST_CHECK(model.getStatus() == Status::Valid);
+}
