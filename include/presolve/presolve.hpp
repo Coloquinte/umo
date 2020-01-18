@@ -7,6 +7,7 @@
 #include "model/presolved_model.hpp"
 
 namespace umoi {
+namespace presolve {
 
 class PresolverPass {
   public:
@@ -15,8 +16,9 @@ class PresolverPass {
     virtual void run(PresolvedModel &model) =0;
 };
 
-PresolvedModel presolve(const Model &model);
+PresolvedModel run(const Model &model);
 
+}
 }
 
 #endif

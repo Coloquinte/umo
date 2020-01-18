@@ -15,7 +15,9 @@ SET(SOURCES
   src/model/operator.cpp
   src/model/presolved_model.cpp
   src/presolve/presolve.cpp
-  src/presolve/normalization_pass.cpp
+  src/presolve/cleanup.cpp
+  src/presolve/flatten.cpp
+  src/presolve/propagate_constants.cpp
 )
 
 add_library(libumo ${SOURCES})

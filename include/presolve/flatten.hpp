@@ -1,20 +1,20 @@
 
-#ifndef __UMO_NORMALIZATION_PASS_HPP__
-#define __UMO_NORMALIZATION_PASS_HPP__
+#ifndef __UMO_PRESOLVE_FLATTEN_HPP__
+#define __UMO_PRESOLVE_FLATTEN_HPP__
 
 #include "presolve/presolve.hpp"
 
 namespace umoi {
-
-class NormalizationPass final : public PresolverPass {
+namespace presolve {
+class Flatten final : public PresolverPass {
   public:
     std::string toString() const override {
-        return "normalization";
+        return "flatten";
     }
 
     void run(PresolvedModel &model) override;
 };
-
+}
 }
 
 #endif

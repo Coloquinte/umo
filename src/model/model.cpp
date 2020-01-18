@@ -100,7 +100,7 @@ umo_solution_status Model::getStatus() {
 
 void Model::solve() {
     check();
-    PresolvedModel model = presolve(*this);
+    PresolvedModel model = presolve::run(*this);
     model.check();
 }
 

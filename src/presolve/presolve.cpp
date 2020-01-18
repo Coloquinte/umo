@@ -1,14 +1,22 @@
 
 #include "presolve/presolve.hpp"
-#include "presolve/normalization_pass.hpp"
+#include "presolve/cleanup.hpp"
+#include "presolve/flatten.hpp"
+#include "presolve/propagate_constants.hpp"
 
 using namespace std;
 
 namespace umoi {
-PresolvedModel presolve(const Model &m) {
+namespace presolve {
+
+PresolvedModel run(const Model &m) {
     PresolvedModel model = m;
-    NormalizationPass().run(model);
+    Cleanup().run(model);
+    Flatten().run(model);
+    PropagateConstants().run(model);
     return model;
+}
+
 }
 }
 
