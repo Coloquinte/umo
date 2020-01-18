@@ -8,17 +8,11 @@ namespace umoi {
 namespace presolve {
 class Flatten final : public PresolverPass {
   public:
-    std::string toString() const override {
-        return "flatten";
-    }
+    std::string toString() const override { return "flatten"; }
 
     void run(PresolvedModel &model) override;
 };
-}
-}
+} // namespace presolve
+} // namespace umoi
 
 #endif
-
-
-
-

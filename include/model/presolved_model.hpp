@@ -14,8 +14,6 @@ class PresolvedModel : public Model {
     // Mapping from the original decisions to the new variables
     std::unordered_map<unsigned int, ExpressionId> decisionMapping_;
 };
-}
-
+} // namespace umoi
 
 #endif
-

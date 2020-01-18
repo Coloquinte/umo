@@ -2,13 +2,13 @@
 #ifndef __UMO_MODEL_HPP__
 #define __UMO_MODEL_HPP__
 
-#include "api/umo_enums.h"
-#include "model/expression_id.hpp"
-
 #include <cstdint>
-#include <vector>
 #include <unordered_map>
 #include <unordered_set>
+#include <vector>
+
+#include "api/umo_enums.h"
+#include "model/expression_id.hpp"
 
 namespace umoi {
 class Model {
@@ -17,7 +17,8 @@ class Model {
 
   public:
     ExpressionId createConstant(double value);
-    ExpressionId createExpression(umo_operator op, long long *beginOp, long long *endOp);
+    ExpressionId createExpression(umo_operator op, long long *beginOp,
+                                  long long *endOp);
 
     void createConstraint(ExpressionId expr);
     void createObjective(ExpressionId expr, umo_objective_direction dir);
@@ -57,7 +58,7 @@ class Model {
     std::unordered_set<ExpressionId> constraints_;
 
     // Objectives
-    std::vector<std::pair<ExpressionId, umo_objective_direction> > objectives_;
+    std::vector<std::pair<ExpressionId, umo_objective_direction>> objectives_;
 
     // Constant values to variable
     std::unordered_map<double, std::uint32_t> constants_;
@@ -74,13 +75,9 @@ struct Model::ExpressionData {
     umo_operator op;
     umo_type type;
     std::vector<ExpressionId> operands;
-    ExpressionData(umo_operator op)
-        : op(op) {}
-    ExpressionData(umo_operator op, umo_type type)
-        : op(op), type(type) {}
+    ExpressionData(umo_operator op) : op(op) {}
+    ExpressionData(umo_operator op, umo_type type) : op(op), type(type) {}
 };
-}
-
+} // namespace umoi
 
 #endif
-

@@ -1,5 +1,6 @@
 
 #include "model/presolved_model.hpp"
+
 #include "model/operator.hpp"
 
 using namespace umoi;
@@ -12,12 +13,10 @@ void PresolvedModel::load(Model &model) {
     }
 }
 
-PresolvedModel::PresolvedModel(const Model &model)
-: Model(model) {
+PresolvedModel::PresolvedModel(const Model &model) : Model(model) {
     for (size_t i = 0; i < expressions_.size(); ++i) {
         if (Operator::get(expressions_[i].op).isDecision()) {
             decisionMapping_.emplace(i, ExpressionId(i, false, false));
         }
     }
 }
-

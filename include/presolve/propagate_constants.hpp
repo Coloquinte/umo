@@ -8,17 +8,11 @@ namespace umoi {
 namespace presolve {
 class PropagateConstants final : public PresolverPass {
   public:
-    std::string toString() const override {
-        return "propagateConstants";
-    }
+    std::string toString() const override { return "propagateConstants"; }
 
     void run(PresolvedModel &model) override;
 };
-}
-}
+} // namespace presolve
+} // namespace umoi
 
 #endif
-
-
-
-

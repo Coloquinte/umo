@@ -8,17 +8,11 @@ namespace umoi {
 namespace presolve {
 class Cleanup final : public PresolverPass {
   public:
-    std::string toString() const override {
-        return "cleanup";
-    }
+    std::string toString() const override { return "cleanup"; }
 
     void run(PresolvedModel &model) override;
 };
-}
-}
+} // namespace presolve
+} // namespace umoi
 
 #endif
-
-
-
-

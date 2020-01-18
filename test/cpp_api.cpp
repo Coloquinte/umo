@@ -217,10 +217,7 @@ BOOST_AUTO_TEST_CASE(Params) {
 
 BOOST_AUTO_TEST_CASE(Exception) {
     Model model;
-    BOOST_CHECK_THROW(
-        model.constant(NAN),
-        std::runtime_error
-    );
+    BOOST_CHECK_THROW(model.constant(NAN), std::runtime_error);
     model.check();
 }
 

@@ -5,8 +5,6 @@ using namespace std;
 
 namespace umoi {
 namespace presolve {
-void PropagateConstants::run(PresolvedModel &model) {
-}
-}
-}
-
+void PropagateConstants::run(PresolvedModel &model) {}
+} // namespace presolve
+} // namespace umoi

@@ -1,5 +1,6 @@
 
 #include "presolve/presolve.hpp"
+
 #include "presolve/cleanup.hpp"
 #include "presolve/flatten.hpp"
 #include "presolve/propagate_constants.hpp"
@@ -17,7 +18,5 @@ PresolvedModel run(const Model &m) {
     return model;
 }
 
-}
-}
-
-
+} // namespace presolve
+} // namespace umoi

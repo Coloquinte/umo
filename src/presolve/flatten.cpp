@@ -5,8 +5,6 @@ using namespace std;
 
 namespace umoi {
 namespace presolve {
-void Flatten::run(PresolvedModel &model) {
-}
-}
-}
-
+void Flatten::run(PresolvedModel &model) {}
+} // namespace presolve
+} // namespace umoi

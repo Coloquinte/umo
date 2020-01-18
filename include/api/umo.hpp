@@ -15,18 +15,13 @@ class FloatExpression;
 class IntExpression;
 class BoolExpression;
 
-enum class Status {
-    Infeasible,
-    Invalid,
-    Valid,
-    Optimal
-};
+enum class Status { Infeasible, Invalid, Valid, Optimal };
 
 class Model {
   public:
     Model();
-    Model(Model&&);
-    Model &operator=(Model&&);
+    Model(Model &&);
+    Model &operator=(Model &&);
     ~Model();
 
     FloatExpression constant(double);
@@ -57,8 +52,7 @@ class Expression {
     umo_model *rawPtr() const { return model; }
     long long rawId() const { return v; }
 
-    Expression(umo_model *model, long long v)
-        : model(model), v(v) {}
+    Expression(umo_model *model, long long v) : model(model), v(v) {}
 
   protected:
     umo_model *model;
@@ -70,8 +64,7 @@ class FloatExpression : public Expression {
     double getValue();
     void setValue(double val);
 
-    FloatExpression(umo_model *model, long long v)
-        : Expression(model, v) {}
+    FloatExpression(umo_model *model, long long v) : Expression(model, v) {}
 };
 
 class IntExpression : public FloatExpression {
@@ -79,8 +72,7 @@ class IntExpression : public FloatExpression {
     long long getValue();
     void setValue(long long val);
 
-    IntExpression(umo_model *model, long long v)
-        : FloatExpression(model, v) {}
+    IntExpression(umo_model *model, long long v) : FloatExpression(model, v) {}
 };
 
 class BoolExpression : public IntExpression {
@@ -88,98 +80,97 @@ class BoolExpression : public IntExpression {
     bool getValue();
     void setValue(bool val);
 
-    BoolExpression(umo_model *model, long long v)
-        : IntExpression(model, v) {}
+    BoolExpression(umo_model *model, long long v) : IntExpression(model, v) {}
 };
 
 void constraint(const BoolExpression &);
 void minimize(const FloatExpression &);
 void maximize(const FloatExpression &);
 
-FloatExpression operator+(const FloatExpression&, const FloatExpression&);
-FloatExpression operator+(double, const FloatExpression&);
-FloatExpression operator+(const FloatExpression&, double);
-FloatExpression operator-(const FloatExpression&, const FloatExpression&);
-FloatExpression operator-(double, const FloatExpression&);
-FloatExpression operator-(const FloatExpression&, double);
-FloatExpression operator-(const FloatExpression&);
-FloatExpression operator*(const FloatExpression&, const FloatExpression&);
-FloatExpression operator*(double, const FloatExpression&);
-FloatExpression operator*(const FloatExpression&, double);
-FloatExpression operator/(const FloatExpression&, const FloatExpression&);
-FloatExpression operator/(double, const FloatExpression&);
-FloatExpression operator/(const FloatExpression&, double);
-FloatExpression& operator+=(FloatExpression&, const FloatExpression&);
-FloatExpression& operator-=(FloatExpression&, const FloatExpression&);
-FloatExpression& operator*=(FloatExpression&, const FloatExpression&);
-FloatExpression& operator/=(FloatExpression&, const FloatExpression&);
-FloatExpression& operator+=(FloatExpression&, double);
-FloatExpression& operator-=(FloatExpression&, double);
-FloatExpression& operator*=(FloatExpression&, double);
-FloatExpression& operator/=(FloatExpression&, double);
+FloatExpression operator+(const FloatExpression &, const FloatExpression &);
+FloatExpression operator+(double, const FloatExpression &);
+FloatExpression operator+(const FloatExpression &, double);
+FloatExpression operator-(const FloatExpression &, const FloatExpression &);
+FloatExpression operator-(double, const FloatExpression &);
+FloatExpression operator-(const FloatExpression &, double);
+FloatExpression operator-(const FloatExpression &);
+FloatExpression operator*(const FloatExpression &, const FloatExpression &);
+FloatExpression operator*(double, const FloatExpression &);
+FloatExpression operator*(const FloatExpression &, double);
+FloatExpression operator/(const FloatExpression &, const FloatExpression &);
+FloatExpression operator/(double, const FloatExpression &);
+FloatExpression operator/(const FloatExpression &, double);
+FloatExpression &operator+=(FloatExpression &, const FloatExpression &);
+FloatExpression &operator-=(FloatExpression &, const FloatExpression &);
+FloatExpression &operator*=(FloatExpression &, const FloatExpression &);
+FloatExpression &operator/=(FloatExpression &, const FloatExpression &);
+FloatExpression &operator+=(FloatExpression &, double);
+FloatExpression &operator-=(FloatExpression &, double);
+FloatExpression &operator*=(FloatExpression &, double);
+FloatExpression &operator/=(FloatExpression &, double);
 
-BoolExpression operator==(const FloatExpression&, const FloatExpression&);
-BoolExpression operator==(double, const FloatExpression&);
-BoolExpression operator==(const FloatExpression&, double);
-BoolExpression operator!=(const FloatExpression&, const FloatExpression&);
-BoolExpression operator!=(double, const FloatExpression&);
-BoolExpression operator!=(const FloatExpression&, double);
-BoolExpression operator<=(const FloatExpression&, const FloatExpression&);
-BoolExpression operator<=(double, const FloatExpression&);
-BoolExpression operator<=(const FloatExpression&, double);
-BoolExpression operator>=(const FloatExpression&, const FloatExpression&);
-BoolExpression operator>=(double, const FloatExpression&);
-BoolExpression operator>=(const FloatExpression&, double);
-BoolExpression operator<(const FloatExpression&, const FloatExpression&);
-BoolExpression operator<(double, const FloatExpression&);
-BoolExpression operator<(const FloatExpression&, double);
-BoolExpression operator>(const FloatExpression&, const FloatExpression&);
-BoolExpression operator>(double, const FloatExpression&);
-BoolExpression operator>(const FloatExpression&, double);
+BoolExpression operator==(const FloatExpression &, const FloatExpression &);
+BoolExpression operator==(double, const FloatExpression &);
+BoolExpression operator==(const FloatExpression &, double);
+BoolExpression operator!=(const FloatExpression &, const FloatExpression &);
+BoolExpression operator!=(double, const FloatExpression &);
+BoolExpression operator!=(const FloatExpression &, double);
+BoolExpression operator<=(const FloatExpression &, const FloatExpression &);
+BoolExpression operator<=(double, const FloatExpression &);
+BoolExpression operator<=(const FloatExpression &, double);
+BoolExpression operator>=(const FloatExpression &, const FloatExpression &);
+BoolExpression operator>=(double, const FloatExpression &);
+BoolExpression operator>=(const FloatExpression &, double);
+BoolExpression operator<(const FloatExpression &, const FloatExpression &);
+BoolExpression operator<(double, const FloatExpression &);
+BoolExpression operator<(const FloatExpression &, double);
+BoolExpression operator>(const FloatExpression &, const FloatExpression &);
+BoolExpression operator>(double, const FloatExpression &);
+BoolExpression operator>(const FloatExpression &, double);
 
-IntExpression operator+(const IntExpression&, const IntExpression&);
-IntExpression operator+(long long, const IntExpression&);
-IntExpression operator+(const IntExpression&, long long);
-IntExpression operator-(const IntExpression&, const IntExpression&);
-IntExpression operator-(long long, const IntExpression&);
-IntExpression operator-(const IntExpression&, long long);
-IntExpression operator-(const IntExpression&);
-IntExpression operator*(const IntExpression&, const IntExpression&);
-IntExpression operator*(long long, const IntExpression&);
-IntExpression operator*(const IntExpression&, long long);
-IntExpression operator/(const IntExpression&, const IntExpression&);
-IntExpression operator/(long long, const IntExpression&);
-IntExpression operator/(const IntExpression&, long long);
-IntExpression operator%(const IntExpression&, const IntExpression&);
-IntExpression operator%(long long, const IntExpression&);
-IntExpression operator%(const IntExpression&, long long);
-IntExpression& operator+=(IntExpression&, const IntExpression&);
-IntExpression& operator-=(IntExpression&, const IntExpression&);
-IntExpression& operator*=(IntExpression&, const IntExpression&);
-IntExpression& operator/=(IntExpression&, const IntExpression&);
-IntExpression& operator%=(IntExpression&, const IntExpression&);
-IntExpression& operator+=(IntExpression&, long long);
-IntExpression& operator-=(IntExpression&, long long);
-IntExpression& operator*=(IntExpression&, long long);
-IntExpression& operator/=(IntExpression&, long long);
-IntExpression& operator%=(IntExpression&, long long);
+IntExpression operator+(const IntExpression &, const IntExpression &);
+IntExpression operator+(long long, const IntExpression &);
+IntExpression operator+(const IntExpression &, long long);
+IntExpression operator-(const IntExpression &, const IntExpression &);
+IntExpression operator-(long long, const IntExpression &);
+IntExpression operator-(const IntExpression &, long long);
+IntExpression operator-(const IntExpression &);
+IntExpression operator*(const IntExpression &, const IntExpression &);
+IntExpression operator*(long long, const IntExpression &);
+IntExpression operator*(const IntExpression &, long long);
+IntExpression operator/(const IntExpression &, const IntExpression &);
+IntExpression operator/(long long, const IntExpression &);
+IntExpression operator/(const IntExpression &, long long);
+IntExpression operator%(const IntExpression &, const IntExpression &);
+IntExpression operator%(long long, const IntExpression &);
+IntExpression operator%(const IntExpression &, long long);
+IntExpression &operator+=(IntExpression &, const IntExpression &);
+IntExpression &operator-=(IntExpression &, const IntExpression &);
+IntExpression &operator*=(IntExpression &, const IntExpression &);
+IntExpression &operator/=(IntExpression &, const IntExpression &);
+IntExpression &operator%=(IntExpression &, const IntExpression &);
+IntExpression &operator+=(IntExpression &, long long);
+IntExpression &operator-=(IntExpression &, long long);
+IntExpression &operator*=(IntExpression &, long long);
+IntExpression &operator/=(IntExpression &, long long);
+IntExpression &operator%=(IntExpression &, long long);
 
-BoolExpression operator&&(const BoolExpression&, const BoolExpression&);
-BoolExpression operator&&(bool, const BoolExpression&);
-BoolExpression operator&&(const BoolExpression&, bool);
-BoolExpression operator||(const BoolExpression&, const BoolExpression&);
-BoolExpression operator||(bool, const BoolExpression&);
-BoolExpression operator||(const BoolExpression&, bool);
-BoolExpression operator^(const BoolExpression&, const BoolExpression&);
-BoolExpression operator^(bool, const BoolExpression&);
-BoolExpression operator^(const BoolExpression&, bool);
-BoolExpression operator!(const BoolExpression&);
-BoolExpression& operator&=(BoolExpression&, const BoolExpression&);
-BoolExpression& operator|=(BoolExpression&, const BoolExpression&);
-BoolExpression& operator^=(BoolExpression&, const BoolExpression&);
-BoolExpression& operator&=(BoolExpression&, bool);
-BoolExpression& operator|=(BoolExpression&, bool);
-BoolExpression& operator^=(BoolExpression&, bool);
+BoolExpression operator&&(const BoolExpression &, const BoolExpression &);
+BoolExpression operator&&(bool, const BoolExpression &);
+BoolExpression operator&&(const BoolExpression &, bool);
+BoolExpression operator||(const BoolExpression &, const BoolExpression &);
+BoolExpression operator||(bool, const BoolExpression &);
+BoolExpression operator||(const BoolExpression &, bool);
+BoolExpression operator^(const BoolExpression &, const BoolExpression &);
+BoolExpression operator^(bool, const BoolExpression &);
+BoolExpression operator^(const BoolExpression &, bool);
+BoolExpression operator!(const BoolExpression &);
+BoolExpression &operator&=(BoolExpression &, const BoolExpression &);
+BoolExpression &operator|=(BoolExpression &, const BoolExpression &);
+BoolExpression &operator^=(BoolExpression &, const BoolExpression &);
+BoolExpression &operator&=(BoolExpression &, bool);
+BoolExpression &operator|=(BoolExpression &, bool);
+BoolExpression &operator^=(BoolExpression &, bool);
 
 FloatExpression abs(const FloatExpression &);
 FloatExpression min(const FloatExpression &, const FloatExpression &);
@@ -230,7 +221,6 @@ FloatExpression acosh(const FloatExpression &);
 FloatExpression asinh(const FloatExpression &);
 FloatExpression atanh(const FloatExpression &);
 
-}
+} // namespace umo
 
 #endif
-
