@@ -15,7 +15,7 @@ umo_type computeType(double value) {
     if (value == 0.0 || value == 1.0) {
         return UMO_TYPE_BOOL;
     }
-    if (value == std::round(value)) {
+    if (value == round(value)) {
         return UMO_TYPE_INT;
     }
     return UMO_TYPE_FLOAT;
@@ -41,7 +41,7 @@ ExpressionId Model::createConstant(double value) {
     if (isnan(value)) {
         throw runtime_error("Constants with Not-a-Number value are forbidden");
     }
-    auto itp = constants_.emplace(value, expressions_.size());
+    auto itp = constants_.emplace(value, nbExpressions());
     if (itp.second) {
         // New constant inserted
         expressions_.emplace_back(UMO_OP_CONSTANT, computeType(value));
@@ -53,11 +53,11 @@ ExpressionId Model::createConstant(double value) {
 ExpressionId Model::createExpression(umo_operator op, long long *beginOp,
                                      long long *endOp) {
     if (op == UMO_OP_CONSTANT || op == UMO_OP_INVALID || op >= UMO_OP_END) {
-        throw std::runtime_error("Invalid expression type");
+        throw runtime_error("Invalid expression type");
     }
 
     computed_ = false;
-    std::uint32_t var = expressions_.size();
+    uint32_t var = nbExpressions();
     // Gather operands with type info
     ExpressionData expr(op);
     for (long long *it = beginOp; it != endOp; ++it) {
@@ -110,25 +110,24 @@ void Model::solve() {
     model.check();
 }
 
-double Model::getFloatParameter(const std::string &param) const {
+double Model::getFloatParameter(const string &param) const {
     return floatParams_.at(param);
 }
 
-void Model::setFloatParameter(const std::string &param, double value) {
+void Model::setFloatParameter(const string &param, double value) {
     floatParams_.emplace(param, value);
 }
 
-const std::string &Model::getStringParameter(const std::string &param) const {
+const string &Model::getStringParameter(const string &param) const {
     return stringParams_.at(param);
 }
 
-void Model::setStringParameter(const std::string &param,
-                               const std::string &value) {
+void Model::setStringParameter(const string &param, const string &value) {
     stringParams_.emplace(param, value);
 }
 
 void Model::checkExpressionId(ExpressionId expr) const {
-    if (expr.var() >= expressions_.size())
+    if (expr.var() >= nbExpressions())
         throw runtime_error("Expression is out of bounds");
     umo_type type = expressions_[expr.var()].type;
     if (expr.isNot() && type != UMO_TYPE_BOOL)
@@ -164,34 +163,33 @@ umo_type Model::checkAndInferType(const ExpressionData &expr) const {
     for (ExpressionId id : expr.operands) {
         checkExpressionId(id);
     }
-    std::vector<umo_type> operandTypes = getOperandTypes(expr);
-    std::vector<umo_operator> operandOps = getOperandOps(expr);
+    vector<umo_type> operandTypes = getOperandTypes(expr);
+    vector<umo_operator> operandOps = getOperandOps(expr);
     const Operator &op = Operator::get(expr.op);
     if (!op.validOperands(expr.operands.size(), operandTypes.data(),
                           operandOps.data())) {
         if (!op.validOperandCount(expr.operands.size()))
-            throw std::runtime_error("Invalid number of operands.");
+            throw runtime_error("Invalid number of operands.");
         if (!op.validOperandTypes(expr.operands.size(), operandTypes.data()))
-            throw std::runtime_error("Invalid operand types.");
+            throw runtime_error("Invalid operand types.");
         if (!op.validOperandOps(expr.operands.size(), operandOps.data()))
-            throw std::runtime_error("Invalid operand operations.");
-        throw std::runtime_error("Invalid operands (unknown).");
+            throw runtime_error("Invalid operand operations.");
+        throw runtime_error("Invalid operands (unknown).");
     }
     return op.resultType(expr.operands.size(), operandTypes.data(),
                          operandOps.data());
 }
 
-std::vector<umo_type> Model::getOperandTypes(const ExpressionData &expr) const {
-    std::vector<umo_type> operandTypes;
+vector<umo_type> Model::getOperandTypes(const ExpressionData &expr) const {
+    vector<umo_type> operandTypes;
     for (ExpressionId id : expr.operands) {
         operandTypes.push_back(getExpressionIdType(id));
     }
     return operandTypes;
 }
 
-std::vector<umo_operator>
-Model::getOperandOps(const ExpressionData &expr) const {
-    std::vector<umo_operator> operandOps;
+vector<umo_operator> Model::getOperandOps(const ExpressionData &expr) const {
+    vector<umo_operator> operandOps;
     for (ExpressionId id : expr.operands) {
         operandOps.push_back(expressions_[id.var()].op);
     }
@@ -199,31 +197,41 @@ Model::getOperandOps(const ExpressionData &expr) const {
 }
 
 void Model::check() const {
+    checkTypes();
+    checkTopologicalOrder();
+}
+
+void Model::checkTypes() const {
     if (expressions_.size() != values_.size()) {
-        throw std::runtime_error("Different number of expressions and values");
+        throw runtime_error("Different number of expressions and values");
     }
-    for (size_t i = 0; i < expressions_.size(); ++i) {
+    for (uint32_t i = 0; i < nbExpressions(); ++i) {
         const ExpressionData &expr = expressions_[i];
         umo_type type = expr.op == UMO_OP_CONSTANT ? computeType(values_[i])
                                                    : checkAndInferType(expr);
         if (!isSubtype(type, expr.type))
-            throw std::runtime_error(
+            throw runtime_error(
                 "The computed type is not compatible with the inferred type");
+    }
+}
+
+void Model::checkTopologicalOrder() const {
+    for (uint32_t i = 0; i < nbExpressions(); ++i) {
+        const ExpressionData &expr = expressions_[i];
         for (ExpressionId id : expr.operands) {
             if (id.var() >= i)
-                throw std::runtime_error(
-                    "The expressions are not in sorted order");
+                throw runtime_error("The expressions are not in sorted order");
         }
     }
 }
 
 void Model::compute() {
-    for (size_t i = 0; i < expressions_.size(); ++i) {
+    for (uint32_t i = 0; i < nbExpressions(); ++i) {
         const ExpressionData &expr = expressions_[i];
         const Operator &op = Operator::get(expr.op);
         if (op.isLeaf())
             continue;
-        std::vector<double> operands;
+        vector<double> operands;
         for (ExpressionId id : expr.operands) {
             operands.push_back(getExpressionIdValue(id));
         }

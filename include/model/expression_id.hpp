@@ -8,11 +8,11 @@ namespace umoi {
 class ExpressionId {
   public:
     // Construct from variable, "not" bit and "minus" bit
-    ExpressionId(std::uint32_t var, bool isNot, bool isOpp) {
+    ExpressionId(std::uint32_t var, bool isNot, bool isMinus) {
         v = var << 2;
         if (isNot)
             v |= 0x01;
-        if (isOpp)
+        if (isMinus)
             v |= 0x02;
     }
 

@@ -39,7 +39,10 @@ class Model {
     std::uint32_t nbConstraints() const { return constraints_.size(); }
     std::uint32_t nbObjectives() const { return objectives_.size(); }
 
-  private:
+    void checkTypes() const;
+    void checkTopologicalOrder() const;
+
+  protected:
     void checkExpressionId(ExpressionId expr) const;
     umo_type getExpressionIdType(ExpressionId expr) const;
     umo_operator getExpressionIdOp(ExpressionId expr) const;

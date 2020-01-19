@@ -8,11 +8,13 @@ namespace umoi {
 class PresolvedModel : public Model {
   public:
     PresolvedModel(const Model &);
-    void load(Model &model);
+    void push(Model &model);
+    void pull(Model &model);
+    void apply(const PresolvedModel &model);
 
   private:
     // Mapping from the original decisions to the new variables
-    std::unordered_map<unsigned int, ExpressionId> decisionMapping_;
+    std::unordered_map<unsigned int, ExpressionId> variableMapping_;
 };
 } // namespace umoi
 
