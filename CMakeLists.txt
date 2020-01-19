@@ -22,7 +22,7 @@ SET(SOURCES
   src/presolve/to_sat.cpp
 )
 
-add_library(libumo ${SOURCES})
+add_library(umo ${SOURCES})
 
 enable_testing()
 add_subdirectory(test)

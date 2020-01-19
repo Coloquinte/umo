@@ -11,7 +11,7 @@ SET(TESTS
 
 FOREACH(TEST IN LISTS TESTS)
     add_executable(${TEST}_test ${TEST}.cpp)
-    target_link_libraries(${TEST}_test ${Boost_LIBRARIES} libumo)
+    target_link_libraries(${TEST}_test ${Boost_LIBRARIES} umo)
     add_test(${TEST} ${TEST}_test)
 ENDFOREACH(TEST)
 
