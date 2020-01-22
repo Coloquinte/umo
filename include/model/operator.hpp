@@ -38,6 +38,8 @@ class Operator {
     virtual bool isLeaf() const { return false; }
     // Is a decision variable
     virtual bool isDecision() const { return false; }
+    // Is a constant
+    virtual bool isConstant() const { return false; }
     // Is an associative operation: can be flattened
     virtual bool isAssociative() const { return false; }
     // Is an idempotent operation: can remove duplicates

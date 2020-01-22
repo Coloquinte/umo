@@ -4,6 +4,9 @@
 #include <cmath>
 #include <limits>
 #include <stdexcept>
+#include <algorithm>
+#include <cassert>
+#include <iostream>
 
 #include "model/operator.hpp"
 #include "presolve/presolve.hpp"
@@ -58,6 +61,15 @@ ExpressionId Model::createConstant(double value) {
 
 ExpressionId Model::createExpression(umo_operator op, long long *beginOp,
                                      long long *endOp) {
+    vector<ExpressionId> operands;
+    for (long long *it = beginOp; it != endOp; ++it) {
+        operands.push_back(ExpressionId::fromRaw(*it));
+    }
+    return createExpression(op, operands);
+}
+
+ExpressionId Model::createExpression(umo_operator op,
+                                     const vector<ExpressionId> &operands) {
     if (op == UMO_OP_CONSTANT || op == UMO_OP_INVALID || op >= UMO_OP_END) {
         throw runtime_error("Invalid expression type");
     }
@@ -65,17 +77,22 @@ ExpressionId Model::createExpression(umo_operator op, long long *beginOp,
     computed_ = false;
     // Gather operands with type info
     ExpressionData expr(op);
-    for (long long *it = beginOp; it != endOp; ++it) {
-        expr.operands.push_back(ExpressionId::fromRaw(*it));
-    }
+    expr.operands = operands;
     expr.type = checkAndInferType(expr);
 
     // Handle compressed representations
     if (op == UMO_OP_NOT) {
+        assert (operands.size() == 1);
         return operands[0].getNot();
     }
     if (op == UMO_OP_MINUS_UNARY) {
+        assert (operands.size() == 1);
         return operands[0].getMinus();
+    }
+    if (op == UMO_OP_MINUS_BINARY) {
+        assert (operands.size() == 2);
+        expr.op = UMO_OP_SUM;
+        expr.operands[1] = expr.operands[1].getMinus();
     }
 
     // Add the expression
@@ -122,8 +139,8 @@ umo_solution_status Model::getStatus() {
 
 void Model::solve() {
     check();
-    PresolvedModel model = presolve::run(*this);
-    model.check();
+    PresolvedModel presolved = presolve::run(*this);
+    presolved.check();
 }
 
 double Model::getFloatParameter(const string &param) const {
@@ -218,6 +235,34 @@ void Model::check() const {
     checkCompressedOperands();
 }
 
+bool Model::isConstant(uint32_t i) const {
+    return Operator::get(expressions_[i].op).isConstant();
+}
+
+bool Model::isLeaf(uint32_t i) const {
+    return Operator::get(expressions_[i].op).isLeaf();
+}
+
+bool Model::isDecision(uint32_t i) const {
+    return Operator::get(expressions_[i].op).isDecision();
+}
+
+bool Model::isConstraint(uint32_t i) const {
+    if (expressions_[i].type != UMO_TYPE_BOOL)
+        return false;
+    bool cTrue = constraints_.count(ExpressionId(i, false, false));
+    bool cFalse = constraints_.count(ExpressionId(i, true, false));
+    return cTrue || cFalse;
+}
+
+bool Model::isObjective(uint32_t i) const {
+    for (auto o : objectives_) {
+        if (o.first.var() == i)
+            return true;
+    }
+    return false;
+}
+
 void Model::checkTypes() const {
     if (expressions_.size() != values_.size()) {
         throw runtime_error("Different number of expressions and values");
@@ -248,7 +293,9 @@ void Model::checkCompressedOperands() const {
         if (expr.op == UMO_OP_NOT)
             throw runtime_error("NOT expressions should be compressed");
         if (expr.op == UMO_OP_MINUS_UNARY)
-            throw runtime_error("MINUS expressions should be compressed");
+            throw runtime_error("Unary MINUS expressions should be compressed");
+        if (expr.op == UMO_OP_MINUS_BINARY)
+            throw runtime_error("Binary MINUS expressions should be compressed");
     }
 }
 
@@ -277,3 +324,67 @@ void Model::compute() {
 void Model::initDefaultParameters() {
     setFloatParameter("umo_time_limit", numeric_limits<double>::infinity());
 }
+
+void Model::write(ostream &os) const {
+    vector<uint32_t> varToId(nbExpressions(), -1);
+    uint32_t id = 0;
+    for (uint32_t i = 0; i < nbExpressions(); ++i) {
+        const ExpressionData &expr = expressions_[i];
+        if (expr.op == UMO_OP_INVALID) continue;
+        if (expr.op == UMO_OP_CONSTANT) continue;
+        varToId[i] = id++;
+    }
+    for (uint32_t i = 0; i < nbExpressions(); ++i) {
+        const ExpressionData &expr = expressions_[i];
+        if (expr.op == UMO_OP_INVALID) continue;
+        if (expr.op == UMO_OP_CONSTANT) continue;
+        os << "x" << varToId[i] << " <- " << Operator::get(expr.op).toString();
+        for (ExpressionId operand : expr.operands) {
+            umo_operator operandOp = expressions_[operand.var()].op;
+            os << " " << (operand.isMinus() ? "-" : "")
+                      << (operand.isNot() ? "!" : "");
+            if (operandOp == UMO_OP_CONSTANT) {
+                os  << values_[operand.var()];
+            }
+            else {
+                os  << "x" << varToId[operand.var()];
+            }
+        }
+        os << endl;
+    }
+    vector<ExpressionId> constraints(constraints_.begin(), constraints_.end());
+    sort(constraints.begin(), constraints.end());
+    for (ExpressionId constraint : constraints) {
+        os << "constraint";
+        umo_operator constraintOp = expressions_[constraint.var()].op;
+        os << " " << (constraint.isMinus() ? "-" : "")
+                  << (constraint.isNot() ? "!" : "");
+        if (constraintOp == UMO_OP_CONSTANT) {
+            os  << values_[constraint.var()];
+        }
+        else {
+            os  << "x" << varToId[constraint.var()];
+        }
+        os << endl;
+    }
+    for (const auto obj : objectives_) {
+        if (obj.second == UMO_OBJ_MAXIMIZE) {
+            os << "maximize";
+        }
+        else {
+            os << "minimize";
+        }
+        ExpressionId objective = obj.first;
+        umo_operator objectiveOp = expressions_[objective.var()].op;
+        os << " " << (objective.isMinus() ? "-" : "")
+                  << (objective.isNot() ? "!" : "");
+        if (objectiveOp == UMO_OP_CONSTANT) {
+            os  << values_[objective.var()];
+        }
+        else {
+            os  << "x" << varToId[objective.var()];
+        }
+        os << endl;
+    }
+}
+

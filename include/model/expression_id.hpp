@@ -7,6 +7,11 @@
 namespace umoi {
 class ExpressionId {
   public:
+    // Default constructor for convenience
+    ExpressionId() {
+        v = -1;
+    }
+
     // Construct from variable, "not" bit and "minus" bit
     ExpressionId(std::uint32_t var, bool isNot, bool isMinus) {
         v = var << 2;

@@ -3,8 +3,18 @@
 
 #include "model/operator.hpp"
 
-using namespace umoi;
 using namespace std;
+
+namespace umoi {
+PresolvedModel::PresolvedModel() {}
+
+PresolvedModel::PresolvedModel(const Model &model) : Model(model) {
+    for (size_t i = 0; i < expressions_.size(); ++i) {
+        if (Operator::get(expressions_[i].op).isDecision()) {
+            variableMapping_.emplace(i, ExpressionId(i, false, false));
+        }
+    }
+}
 
 void PresolvedModel::push(Model &model) {
     for (auto p : variableMapping_) {
@@ -55,11 +65,4 @@ void PresolvedModel::apply(const PresolvedModel &next) {
     *this = next;
     variableMapping_ = newMapping;
 }
-
-PresolvedModel::PresolvedModel(const Model &model) : Model(model) {
-    for (size_t i = 0; i < expressions_.size(); ++i) {
-        if (Operator::get(expressions_[i].op).isDecision()) {
-            variableMapping_.emplace(i, ExpressionId(i, false, false));
-        }
-    }
-}
+} // namespace umoi

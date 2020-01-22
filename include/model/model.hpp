@@ -6,6 +6,7 @@
 #include <unordered_map>
 #include <unordered_set>
 #include <vector>
+#include <iosfwd>
 
 #include "api/umo_enums.h"
 #include "model/expression_id.hpp"
@@ -21,6 +22,8 @@ class Model {
     ExpressionId createConstant(double value);
     ExpressionId createExpression(umo_operator op, long long *beginOp,
                                   long long *endOp);
+    ExpressionId createExpression(umo_operator op,
+                                  const std::vector<ExpressionId> &operands);
 
     void createConstraint(ExpressionId expr);
     void createObjective(ExpressionId expr, umo_objective_direction dir);
@@ -41,11 +44,22 @@ class Model {
     std::uint32_t nbConstraints() const { return constraints_.size(); }
     std::uint32_t nbObjectives() const { return objectives_.size(); }
 
+    const ExpressionData& expression(std::uint32_t id) const { return expressions_[id]; }
+    const double& value(std::uint32_t id) const { return values_[id]; }
+
+    bool isConstant(std::uint32_t id) const;
+    bool isLeaf(std::uint32_t id) const;
+    bool isDecision(std::uint32_t id) const;
+    bool isConstraint(std::uint32_t id) const;
+    bool isObjective(std::uint32_t id) const;
+
+    void write(std::ostream &) const;
+
+  protected:
     void checkTypes() const;
     void checkTopologicalOrder() const;
     void checkCompressedOperands() const;
 
-  protected:
     void checkExpressionId(ExpressionId expr) const;
     umo_type getExpressionIdType(ExpressionId expr) const;
     umo_operator getExpressionIdOp(ExpressionId expr) const;
@@ -65,7 +79,7 @@ class Model {
     // Constraints
     std::unordered_set<ExpressionId> constraints_;
 
-    // Objectives
+    // Objectives (ordered)
     std::vector<std::pair<ExpressionId, umo_objective_direction>> objectives_;
 
     // Constant values to variable
@@ -86,6 +100,11 @@ struct Model::ExpressionData {
     ExpressionData(umo_operator op) : op(op) {}
     ExpressionData(umo_operator op, umo_type type) : op(op), type(type) {}
 };
+
+inline std::ostream& operator<<(std::ostream &os, const Model &model) {
+    model.write(os);
+    return os;
+}
 } // namespace umoi
 
 #endif

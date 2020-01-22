@@ -11,6 +11,9 @@ class ToLinear final : public PresolverPass {
     std::string toString() const override { return "toLinear"; }
 
     void run(PresolvedModel &model) override;
+
+    class Transformer;
+    struct Element;
 };
 } // namespace presolve
 } // namespace umoi

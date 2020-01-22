@@ -20,6 +20,10 @@ class Constant final : public NoaryOp, public LeafOp {
         throw std::runtime_error("Computing a constant is not possible.");
     }
 
+    bool isConstant() const override {
+        return true;
+    }
+
     static Constant instance;
 };
 

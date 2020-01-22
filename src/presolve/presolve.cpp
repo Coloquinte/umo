@@ -4,6 +4,7 @@
 #include "presolve/cleanup.hpp"
 #include "presolve/flatten.hpp"
 #include "presolve/propagate_constants.hpp"
+#include "presolve/to_linear.hpp"
 
 using namespace std;
 
@@ -15,6 +16,7 @@ PresolvedModel run(const Model &m) {
     Cleanup().run(model);
     Flatten().run(model);
     PropagateConstants().run(model);
+    ToLinear().run(model);
     return model;
 }
 
