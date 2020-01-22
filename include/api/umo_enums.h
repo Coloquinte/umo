@@ -92,6 +92,11 @@ enum umo_operator {
     UMO_OP_END
 };
 
+typedef enum umo_type umo_type;
+typedef enum umo_objective_direction umo_objective_direction;
+typedef enum umo_solution_status umo_solution_status;
+typedef enum umo_operator umo_operator;
+
 #ifdef __cplusplus
 }
 #endif
