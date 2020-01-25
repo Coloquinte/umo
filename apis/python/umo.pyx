@@ -87,20 +87,28 @@ cdef extern from "api/umo.h":
 
 from cpython.object cimport Py_EQ, Py_NE, Py_LT, Py_GT, Py_LE, Py_GE
 
+cdef unwrap_error(const char **err):
+    if (err[0]) != NULL:
+        raise RuntimeError("An error occured")
+        # TODO: free err[0]
+
 cdef class Model:
     cdef umo_model *ptr
 
     def __cinit__(self):
-        cdef const char* err
+        cdef const char* err = NULL
         self.ptr = umo_create_model(&err)
+        unwrap_error(&err)
 
     def __dealloc__(self):
-        cdef const char* err
+        cdef const char* err = NULL
         umo_destroy_model(self.ptr, &err)
+        unwrap_error(&err)
 
-    cdef constant(self, value):
-        cdef const char* err
+    def constant(self, value):
+        cdef const char *err = NULL
         cdef long long v = umo_create_constant(self.ptr, <double> value, &err)
+        unwrap_error(&err)
         if value == bool(value):
             return BoolExpression.create(self.ptr, v)
         elif value == int(value):
@@ -108,20 +116,24 @@ cdef class Model:
         else:
             return FloatExpression.create(self.ptr, v)
 
-    cdef bool_var(self):
-        cdef const char* err
+    def bool_var(self):
+        cdef const char *err = NULL
         cdef long long v = umo_create_expression(self.ptr, UMO_OP_DEC_BOOL, 0, NULL, &err)
+        unwrap_error(&err)
         return BoolExpression.create(self.ptr, v)
 
-    cdef int_var(self, lb, ub):
-        cdef const char* err
-        cdef long long v = umo_create_expression(self.ptr, UMO_OP_DEC_INT, 0, NULL, &err)
-        return IntExpression.create(self.ptr, v)
+    def int_var(self, lb, ub):
+        clb = self.constant(lb)
+        cub = self.constant(ub)
+        return Expression._binary_method(clb, cub, UMO_OP_DEC_INT)._asint()
 
-    cdef float_var(self, lb, ub):
-        cdef const char* err
-        cdef long long v = umo_create_expression(self.ptr, UMO_OP_DEC_FLOAT, 0, NULL, &err)
-        return FloatExpression.create(self.ptr, v)
+    def float_var(self, lb, ub):
+        clb = self.constant(lb)
+        cub = self.constant(ub)
+        return Expression._binary_method(clb, cub, UMO_OP_DEC_FLOAT)._asfloat()
+
+    def __repr__(self):
+        return "Model"
 
 
 cdef class Expression:
@@ -139,44 +151,65 @@ cdef class Expression:
         raise NotImplementedError("Pyumo expressions are not convertible to booleans; use Expression.value to query its value in a given solution.")
 
     @staticmethod
-    cdef long long _unary_method(Expression expr, umo_operator op):
-        cdef const char *err
+    cdef Expression _unary_method(Expression expr, umo_operator op):
+        cdef const char *err = NULL
         cdef long long v = umo_create_expression(expr.ptr, op, 1, &expr.v, &err)
-        return v
-
-    #@staticmethod
-    #cdef long long _binary_method(object o1, object o2, umo_operator op):
-    #    assert isinstance(o1, Expression) or isinstance(o2, Expression)
-    #    cdef umo_model *ptr
-    #    if isinstance(o1, Expression):
-    #        ptr = (<Expression> o1).v
-    #    if isinstance(o2, Expression):
-    #        ptr = (<Expression> o2).v
+        unwrap_error(&err)
+        return Expression.create(expr.ptr, v)
 
     @staticmethod
-    cdef long long _binary_method(Expression o1, Expression o2, umo_operator op):
+    cdef Expression _binary_method(Expression o1, Expression o2, umo_operator op):
+        # TODO: handle numeric types
         cdef long long operands[2]
         operands[0] = o1.v
         operands[1] = o2.v
-        cdef const char *err
+        cdef const char *err = NULL
         cdef long long v = umo_create_expression(o1.ptr, op, 2, operands, &err)
-        return v
+        unwrap_error(&err)
+        return Expression.create(o1.ptr, v)
+
+    cdef FloatExpression _asfloat(self):
+        expr = FloatExpression()
+        expr.ptr = self.ptr
+        expr.v = self.v
+        return expr
+
+    cdef IntExpression _asint(self):
+        expr = BoolExpression()
+        expr.ptr = self.ptr
+        expr.v = self.v
+        return expr
+
+    cdef BoolExpression _asbool(self):
+        expr = BoolExpression()
+        expr.ptr = self.ptr
+        expr.v = self.v
+        return expr
+
+    def __repr__(self):
+        return "Expression#{}".format(self.v)
 
 
 cdef class FloatExpression(Expression):
     @staticmethod
     cdef create(umo_model *ptr, long long v):
-        return FloatExpression(Expression.create(ptr, v))
+        expr = FloatExpression()
+        expr.ptr = ptr
+        expr.v = v
+        return expr
 
     @property
     def value(self):
-        cdef const char *err
-        return float(umo_get_float_value(self.ptr, self.v, &err))
+        cdef const char *err = NULL
+        cdef double val = umo_get_float_value(self.ptr, self.v, &err)
+        unwrap_error(&err)
+        return float(val)
 
-    @property.setter
+    @value.setter
     def value(self, value):
-        cdef const char *err
+        cdef const char *err = NULL
         umo_set_float_value(self.ptr, self.v, value, &err)
+        unwrap_error(&err)
 
     def __richcmp__(o1, o2, int op):
         umo_op = None
@@ -192,81 +225,102 @@ cdef class FloatExpression(Expression):
             umo_op = UMO_OP_CMP_EQ
         elif op == Py_NE:
             umo_op = UMO_OP_CMP_NEQ
-        return BoolExpression(Expression._binary_method(o1, o2, umo_op))
+        return Expression._binary_method(o1, o2, umo_op)._asbool()
 
     def __add__(o1, o2):
-        return FloatExpression(Expression._binary_method(o1, o2, UMO_OP_SUM))
+        return Expression._binary_method(o1, o2, UMO_OP_SUM)._asfloat()
 
     def __sub__(o1, o2):
-        return FloatExpression(Expression._binary_method(o1, o2, UMO_OP_MINUS_BINARY))
+        return Expression._binary_method(o1, o2, UMO_OP_MINUS_BINARY)._asfloat()
 
     def __mul__(o1, o2):
-        return FloatExpression(Expression._binary_method(o1, o2, UMO_OP_PROD))
+        return Expression._binary_method(o1, o2, UMO_OP_PROD)._asfloat()
 
     def __truediv__(o1, o2):
-        return FloatExpression(Expression._binary_method(o1, o2, UMO_OP_DIV))
+        return Expression._binary_method(o1, o2, UMO_OP_DIV)._asfloat()
 
     def __neg__(self):
-        return FloatExpression(Expression._unary_method(self, UMO_OP_MINUS_UNARY))
+        return Expression._unary_method(self, UMO_OP_MINUS_UNARY)._asfloat()
 
     def __pos__(self):
         return self
 
     def __abs__(self):
-        return FloatExpression(Expression._unary_method(self, UMO_OP_ABS))
+        return Expression._unary_method(self, UMO_OP_ABS)._asfloat()
 
     def __pow__(o1, o2, o3):
-        return FloatExpression(Expression._binary_method(o1, o2, UMO_OP_POW))
+        return Expression._binary_method(o1, o2, UMO_OP_POW)._asfloat()
+
+    def __repr__(self):
+        return "Float#{}".format(self.v)
 
 
 cdef class IntExpression(FloatExpression):
     @staticmethod
     cdef create(umo_model *ptr, long long v):
-        return IntExpression(Expression.create(ptr, v))
+        expr = IntExpression()
+        expr.ptr = ptr
+        expr.v = v
+        return expr
 
     @property
     def value(self):
-        cdef const char *err
-        return int(umo_get_float_value(self.ptr, self.v, &err))
+        cdef const char *err = NULL
+        cdef double val = umo_get_float_value(self.ptr, self.v, &err)
+        unwrap_error(&err)
+        return int(val)
 
-    @property.setter
+    @value.setter
     def value(self, value):
         cdef const char *err = NULL
         umo_set_float_value(self.ptr, self.v, value, &err)
+        unwrap_error(&err)
 
     def __floordiv__(o1, o2):
-        return IntExpression(Expression._binary_method(o1, o2, UMO_OP_IDIV))
+        return Expression._binary_method(o1, o2, UMO_OP_IDIV)._asint()
 
     def __mod__(o1, o2):
-        return IntExpression(Expression._binary_method(o1, o2, UMO_OP_MOD))
+        return Expression._binary_method(o1, o2, UMO_OP_MOD)._asint()
+
+    def __repr__(self):
+        return "Int#{}".format(self.v)
 
 
 cdef class BoolExpression(IntExpression):
     @staticmethod
     cdef create(umo_model *ptr, long long v):
-        return BoolExpression(Expression.create(ptr, v))
+        expr = BoolExpression()
+        expr.ptr = ptr
+        expr.v = v
+        return expr
 
     @property
     def value(self):
-        cdef const char *err
-        return bool(umo_get_float_value(self.ptr, self.v, &err))
+        cdef const char *err = NULL
+        cdef double val = umo_get_float_value(self.ptr, self.v, &err)
+        unwrap_error(&err)
+        return bool(val)
 
-    @property.setter
+    @value.setter
     def value(self, value):
         cdef const char *err = NULL
         umo_set_float_value(self.ptr, self.v, value, &err)
+        unwrap_error(&err)
 
     def __and__(o1, o2):
-        return BoolExpression(Expression._binary_method(o1, o2, UMO_OP_AND))
+        return Expression._binary_method(o1, o2, UMO_OP_AND)._asbool()
 
     def __or__(o1, o2):
-        return BoolExpression(Expression._binary_method(o1, o2, UMO_OP_OR))
+        return Expression._binary_method(o1, o2, UMO_OP_OR)._asbool()
 
     def __xor__(o1, o2):
-        return BoolExpression(Expression._binary_method(o1, o2, UMO_OP_XOR))
+        return Expression._binary_method(o1, o2, UMO_OP_XOR)._asbool()
 
     def __invert__(self):
-        return BoolExpression(Expression._unary_method(self, UMO_OP_NOT))
+        return Expression._unary_method(self, UMO_OP_NOT)._asbool()
+
+    def __repr__(self):
+        return "Bool#{}".format(self.v)
 
 
 

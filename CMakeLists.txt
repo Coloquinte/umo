@@ -22,7 +22,7 @@ SET(SOURCES
   src/presolve/to_sat.cpp
 )
 
-add_library(umo ${SOURCES})
+add_library(umo SHARED ${SOURCES})
 
 enable_testing()
 add_subdirectory(test)
