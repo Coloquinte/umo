@@ -92,6 +92,12 @@ cdef unwrap_error(const char **err):
         raise RuntimeError("An error occured")
         # TODO: free err[0]
 
+cdef is_bool(value):
+    return value == bool(value)
+
+cdef is_int(value):
+    return value == int(value)
+
 cdef class Model:
     cdef umo_model *ptr
 
@@ -109,9 +115,9 @@ cdef class Model:
         cdef const char *err = NULL
         cdef long long v = umo_create_constant(self.ptr, <double> value, &err)
         unwrap_error(&err)
-        if value == bool(value):
+        if is_bool(value):
             return BoolExpression.create(self.ptr, v)
-        elif value == int(value):
+        elif is_int(value):
             return IntExpression.create(self.ptr, v)
         else:
             return FloatExpression.create(self.ptr, v)
@@ -123,11 +129,13 @@ cdef class Model:
         return BoolExpression.create(self.ptr, v)
 
     def int_var(self, lb, ub):
+        # TODO: check types
         clb = self.constant(lb)
         cub = self.constant(ub)
         return Expression._binary_method(clb, cub, UMO_OP_DEC_INT)._asint()
 
     def float_var(self, lb, ub):
+        # TODO: check types
         clb = self.constant(lb)
         cub = self.constant(ub)
         return Expression._binary_method(clb, cub, UMO_OP_DEC_FLOAT)._asfloat()
@@ -175,7 +183,7 @@ cdef class Expression:
         return expr
 
     cdef IntExpression _asint(self):
-        expr = BoolExpression()
+        expr = IntExpression()
         expr.ptr = self.ptr
         expr.v = self.v
         return expr
