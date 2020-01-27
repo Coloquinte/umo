@@ -1,8 +1,8 @@
 
-cmake_minimum_required(VERSION 2.8)
+cmake_minimum_required(VERSION 3.0)
 PROJECT(UMO)
 
-SET(CMAKE_CXX_FLAGS "-g -Wall -std=c++14")
+set (CMAKE_CXX_STANDARD 14)
 
 INCLUDE_DIRECTORIES(
     ${UMO_SOURCE_DIR}/include

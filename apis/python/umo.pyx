@@ -244,6 +244,9 @@ cdef class FloatExpression(Expression):
     def __mul__(o1, o2):
         return Expression._binary_method(o1, o2, UMO_OP_PROD)._asfloat()
 
+    def __div__(o1, o2):
+        return Expression._binary_method(o1, o2, UMO_OP_DIV)._asfloat()
+
     def __truediv__(o1, o2):
         return Expression._binary_method(o1, o2, UMO_OP_DIV)._asfloat()
 
@@ -330,5 +333,47 @@ cdef class BoolExpression(IntExpression):
     def __repr__(self):
         return "Bool#{}".format(self.v)
 
+def exp(expr):
+    return Expression._unary_method(expr, UMO_OP_EXP)._asfloat()
 
+def log(expr):
+    return Expression._unary_method(expr, UMO_OP_LOG)._asfloat()
 
+def sqrt(expr):
+    return Expression._unary_method(expr, UMO_OP_SQRT)._asfloat()
+
+def cos(expr):
+    return Expression._unary_method(expr, UMO_OP_COS)._asfloat()
+
+def sin(expr):
+    return Expression._unary_method(expr, UMO_OP_SIN)._asfloat()
+
+def tan(expr):
+    return Expression._unary_method(expr, UMO_OP_TAN)._asfloat()
+
+def cosh(expr):
+    return Expression._unary_method(expr, UMO_OP_COSH)._asfloat()
+
+def sinh(expr):
+    return Expression._unary_method(expr, UMO_OP_SINH)._asfloat()
+
+def tanh(expr):
+    return Expression._unary_method(expr, UMO_OP_TANH)._asfloat()
+
+def acos(expr):
+    return Expression._unary_method(expr, UMO_OP_ACOS)._asfloat()
+
+def asin(expr):
+    return Expression._unary_method(expr, UMO_OP_ASIN)._asfloat()
+
+def atan(expr):
+    return Expression._unary_method(expr, UMO_OP_ATAN)._asfloat()
+
+def acosh(expr):
+    return Expression._unary_method(expr, UMO_OP_ACOSH)._asfloat()
+
+def asinh(expr):
+    return Expression._unary_method(expr, UMO_OP_ASINH)._asfloat()
+
+def atanh(expr):
+    return Expression._unary_method(expr, UMO_OP_ATANH)._asfloat()

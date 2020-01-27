@@ -1,6 +1,7 @@
 
 import unittest
 import umo
+import math
 
 class TestUmoApi(unittest.TestCase):
 
@@ -50,15 +51,73 @@ class TestUmoApi(unittest.TestCase):
         m = umo.Model()
         dec1 = m.float_var(0.0, 10.0)
         dec2 = m.float_var(0.0, 10.0)
+        x01 = dec1 + dec2
+        x02 = dec1 - dec2
+        x03 = dec1 * dec2
+        x04 = dec1 / dec2
+        x05 = -dec1
+        for val1 in [5.0, -4.0, 2.5]:
+            for val2 in [-7.0, 2.0, 1.3]:
+                dec1.value = val1
+                dec2.value = val2
+                self.assertEqual(x01.value, val1 + val2)
+                self.assertEqual(x02.value, val1 - val2)
+                self.assertEqual(x03.value, val1 * val2)
+                self.assertEqual(x04.value, val1 / val2)
+                self.assertEqual(x05.value, -val1)
 
     def test_int_compute(self):
-        pass
+        m = umo.Model()
+        dec1 = m.int_var(0.0, 10.0)
+        dec2 = m.int_var(0.0, 10.0)
+        x01 = dec1 + dec2
+        x02 = dec1 - dec2
+        x03 = dec1 * dec2
+        x04 = dec1 // dec2
+        x05 = dec1 % dec2
+        x06 = -dec1
+        x07 = +dec1
+        for val1 in [5, 4, 0]:
+            for val2 in [1, 2, 3]:
+                dec1.value = val1
+                dec2.value = val2
+                self.assertEqual(x01.value, val1 + val2)
+                self.assertEqual(x02.value, val1 - val2)
+                self.assertEqual(x03.value, val1 * val2)
+                self.assertEqual(x04.value, val1 // val2)
+                self.assertEqual(x05.value, val1 % val2)
+                self.assertEqual(x06.value, -val1)
+                self.assertEqual(x07.value, +val1)
 
     def test_bool_compute(self):
-        pass
+        m = umo.Model()
+        dec1 = m.bool_var()
+        dec2 = m.bool_var()
+        x01 = dec1 & dec2
+        x02 = dec1 | dec2
+        x03 = dec1 ^ dec2
+        x04 = ~dec1
+        for val1 in [False, True]:
+            for val2 in [False, True]:
+                dec1.value = val1
+                dec2.value = val2
+                self.assertEqual(x01.value, val1 & val2)
+                self.assertEqual(x02.value, val1 | val2)
+                self.assertEqual(x03.value, val1 ^ val2)
+                self.assertEqual(x04.value, not val1)
 
     def test_operations(self):
-        pass
+        m = umo.Model()
+        dec = m.float_var(-10.0, 10.0)
+        x01 = umo.exp(dec)
+        x02 = umo.cos(dec)
+        x03 = umo.atan(dec)
+        for val in [5.0, -4.0, 2.5]:
+            dec.value = val
+            self.assertEqual(x01.value, math.exp(val))
+            self.assertEqual(x02.value, math.cos(val))
+            self.assertEqual(x03.value, math.atan(val))
+
 if __name__ == '__main__':
     unittest.main()
 
