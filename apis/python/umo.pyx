@@ -87,16 +87,31 @@ cdef extern from "api/umo.h":
 
 from cpython.object cimport Py_EQ, Py_NE, Py_LT, Py_GT, Py_LE, Py_GE
 
+
 cdef unwrap_error(const char **err):
     if (err[0]) != NULL:
         raise RuntimeError("An error occured")
         # TODO: free err[0]
 
+
 cdef is_bool(value):
     return value == bool(value)
 
+
 cdef is_int(value):
     return value == int(value)
+
+
+cdef is_float(value):
+    return value == float(value)
+
+
+class SolutionStatus:
+    INFEASIBLE = 0
+    VALID = 1
+    INVALID = 2
+    OPTIMAL = 3
+
 
 cdef class Model:
     cdef umo_model *ptr
@@ -112,6 +127,8 @@ cdef class Model:
         unwrap_error(&err)
 
     def constant(self, value):
+        if not is_float(value):
+            raise TypeError("constant() argument must be a number")
         cdef const char *err = NULL
         cdef long long v = umo_create_constant(self.ptr, <double> value, &err)
         unwrap_error(&err)
@@ -129,19 +146,34 @@ cdef class Model:
         return BoolExpression.create(self.ptr, v)
 
     def int_var(self, lb, ub):
-        # TODO: check types
+        if not is_int(lb) or not is_int(ub):
+            raise TypeError("int_var() arguments must be integer numbers")
         clb = self.constant(lb)
         cub = self.constant(ub)
         return Expression._binary_method(clb, cub, UMO_OP_DEC_INT)._asint()
 
     def float_var(self, lb, ub):
-        # TODO: check types
+        if not is_float(lb) or not is_float(ub):
+            raise TypeError("float_var() arguments must be numbers")
         clb = self.constant(lb)
         cub = self.constant(ub)
         return Expression._binary_method(clb, cub, UMO_OP_DEC_FLOAT)._asfloat()
 
-    def __repr__(self):
-        return "Model"
+    @property
+    def status(self):
+        cdef const char *err = NULL
+        cdef umo_solution_status status = umo_get_solution_status(self.ptr, &err)
+        unwrap_error(&err)
+        if status == UMO_STATUS_INFEASIBLE:
+            return SolutionStatus.INFEASIBLE
+        elif status == UMO_STATUS_INVALID:
+            return SolutionStatus.INVALID
+        elif status == UMO_STATUS_VALID:
+            return SolutionStatus.VALID
+        elif status == UMO_STATUS_OPTIMAL:
+            return SolutionStatus.OPTIMAL
+        else:
+            raise RuntimeError("Unknown solution status")
 
 
 cdef class Expression:
@@ -193,9 +225,6 @@ cdef class Expression:
         expr.ptr = self.ptr
         expr.v = self.v
         return expr
-
-    def __repr__(self):
-        return "Expression#{}".format(self.v)
 
 
 cdef class FloatExpression(Expression):
@@ -262,9 +291,6 @@ cdef class FloatExpression(Expression):
     def __pow__(o1, o2, o3):
         return Expression._binary_method(o1, o2, UMO_OP_POW)._asfloat()
 
-    def __repr__(self):
-        return "Float#{}".format(self.v)
-
 
 cdef class IntExpression(FloatExpression):
     @staticmethod
@@ -292,9 +318,6 @@ cdef class IntExpression(FloatExpression):
 
     def __mod__(o1, o2):
         return Expression._binary_method(o1, o2, UMO_OP_MOD)._asint()
-
-    def __repr__(self):
-        return "Int#{}".format(self.v)
 
 
 cdef class BoolExpression(IntExpression):
@@ -330,50 +353,89 @@ cdef class BoolExpression(IntExpression):
     def __invert__(self):
         return Expression._unary_method(self, UMO_OP_NOT)._asbool()
 
-    def __repr__(self):
-        return "Bool#{}".format(self.v)
+
+def constraint(expr):
+    if not isinstance(expr, BoolExpression):
+        raise RuntimeError("constraint() argument must be a BoolExpression")
+    cdef BoolExpression o = <BoolExpression> expr
+    cdef const char* err = NULL
+    umo_create_constraint(o.ptr, o.v, &err)
+    unwrap_error(&err)
+
+
+def minimize(expr):
+    if not isinstance(expr, FloatExpression):
+        raise RuntimeError("objective() argument must be a FloatExpression")
+    cdef FloatExpression o = <FloatExpression> expr
+    cdef const char* err = NULL
+    umo_create_objective(o.ptr, o.v, UMO_OBJ_MINIMIZE, &err)
+    unwrap_error(&err)
+
+
+def maximize(expr):
+    if not isinstance(expr, FloatExpression):
+        raise RuntimeError("objective() argument must be a FloatExpression")
+    cdef FloatExpression o = <FloatExpression> expr
+    cdef const char* err = NULL
+    umo_create_objective(o.ptr, o.v, UMO_OBJ_MAXIMIZE, &err)
+    unwrap_error(&err)
+
 
 def exp(expr):
     return Expression._unary_method(expr, UMO_OP_EXP)._asfloat()
 
+
 def log(expr):
     return Expression._unary_method(expr, UMO_OP_LOG)._asfloat()
+
 
 def sqrt(expr):
     return Expression._unary_method(expr, UMO_OP_SQRT)._asfloat()
 
+
 def cos(expr):
     return Expression._unary_method(expr, UMO_OP_COS)._asfloat()
+
 
 def sin(expr):
     return Expression._unary_method(expr, UMO_OP_SIN)._asfloat()
 
+
 def tan(expr):
     return Expression._unary_method(expr, UMO_OP_TAN)._asfloat()
+
 
 def cosh(expr):
     return Expression._unary_method(expr, UMO_OP_COSH)._asfloat()
 
+
 def sinh(expr):
     return Expression._unary_method(expr, UMO_OP_SINH)._asfloat()
+
 
 def tanh(expr):
     return Expression._unary_method(expr, UMO_OP_TANH)._asfloat()
 
+
 def acos(expr):
     return Expression._unary_method(expr, UMO_OP_ACOS)._asfloat()
+
 
 def asin(expr):
     return Expression._unary_method(expr, UMO_OP_ASIN)._asfloat()
 
+
 def atan(expr):
     return Expression._unary_method(expr, UMO_OP_ATAN)._asfloat()
+
 
 def acosh(expr):
     return Expression._unary_method(expr, UMO_OP_ACOSH)._asfloat()
 
+
 def asinh(expr):
     return Expression._unary_method(expr, UMO_OP_ASINH)._asfloat()
+
 
 def atanh(expr):
     return Expression._unary_method(expr, UMO_OP_ATANH)._asfloat()

@@ -118,6 +118,36 @@ class TestUmoApi(unittest.TestCase):
             self.assertEqual(x02.value, math.cos(val))
             self.assertEqual(x03.value, math.atan(val))
 
+    def test_comparisons(self):
+        m = umo.Model()
+        dec1 = m.float_var(0.0, 10.0)
+        dec2 = m.float_var(0.0, 10.0)
+        x01 = dec1 == dec2
+        x02 = dec1 != dec2
+        x03 = dec1 <= dec2
+        x04 = dec1 >= dec2
+        x05 = dec1 < dec2
+        x06 = dec1 > dec2
+        for val1 in [5.0, -4.0, 2.5]:
+            for val2 in [5.0, -4.0, 2.5]:
+                dec1.value = val1
+                dec2.value = val2
+                self.assertEqual(x01.value, val1 == val2)
+                self.assertEqual(x02.value, val1 != val2)
+                self.assertEqual(x03.value, val1 <= val2)
+                self.assertEqual(x04.value, val1 >= val2)
+                self.assertEqual(x05.value, val1 < val2)
+                self.assertEqual(x06.value, val1 > val2)
+
+    def test_status(self):
+       m = umo.Model()
+       dec = m.bool_var()
+       umo.constraint(dec)
+       dec.value = True
+       self.assertEqual(m.status, umo.SolutionStatus.VALID)
+       dec.value = False
+       self.assertEqual(m.status, umo.SolutionStatus.INVALID)
+
 if __name__ == '__main__':
     unittest.main()
 
