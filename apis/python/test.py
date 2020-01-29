@@ -140,13 +140,17 @@ class TestUmoApi(unittest.TestCase):
                 self.assertEqual(x06.value, val1 > val2)
 
     def test_status(self):
-       m = umo.Model()
-       dec = m.bool_var()
-       umo.constraint(dec)
-       dec.value = True
-       self.assertEqual(m.status, umo.SolutionStatus.VALID)
-       dec.value = False
-       self.assertEqual(m.status, umo.SolutionStatus.INVALID)
+        m = umo.Model()
+        dec = m.bool_var()
+        umo.constraint(dec)
+        dec.value = True
+        self.assertEqual(m.status, umo.SolutionStatus.VALID)
+        dec.value = False
+        self.assertEqual(m.status, umo.SolutionStatus.INVALID)
+
+    def test_errors(self):
+        m = umo.Model()
+        self.assertRaises(RuntimeError, m.constant, float("nan"))
 
 if __name__ == '__main__':
     unittest.main()

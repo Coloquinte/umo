@@ -86,24 +86,27 @@ cdef extern from "api/umo.h":
 
 
 from cpython.object cimport Py_EQ, Py_NE, Py_LT, Py_GT, Py_LE, Py_GE
+from libc.stdlib cimport free
 
 
 cdef unwrap_error(const char **err):
     if (err[0]) != NULL:
-        raise RuntimeError("An error occured")
-        # TODO: free err[0]
+        msg = err[0].decode('UTF-8')
+        free(<char*> err[0])
+        err[0] = NULL
+        raise RuntimeError(msg)
 
 
 cdef is_bool(value):
-    return value == bool(value)
+    return isinstance(value, bool) or value == bool(value)
 
 
 cdef is_int(value):
-    return value == int(value)
+    return isinstance(value, int) or value == int(value)
 
 
 cdef is_float(value):
-    return value == float(value)
+    return isinstance(value, float) or value == float(value)
 
 
 class SolutionStatus:
@@ -148,16 +151,16 @@ cdef class Model:
     def int_var(self, lb, ub):
         if not is_int(lb) or not is_int(ub):
             raise TypeError("int_var() arguments must be integer numbers")
-        clb = self.constant(lb)
-        cub = self.constant(ub)
-        return Expression._binary_method(clb, cub, UMO_OP_DEC_INT)._asint()
+        cdef Expression clb = self.constant(lb)
+        cdef Expression cub = self.constant(ub)
+        return Expression._binary_method_typed(clb, cub, UMO_OP_DEC_INT)._asint()
 
     def float_var(self, lb, ub):
         if not is_float(lb) or not is_float(ub):
             raise TypeError("float_var() arguments must be numbers")
-        clb = self.constant(lb)
-        cub = self.constant(ub)
-        return Expression._binary_method(clb, cub, UMO_OP_DEC_FLOAT)._asfloat()
+        cdef Expression clb = self.constant(lb)
+        cdef Expression cub = self.constant(ub)
+        return Expression._binary_method_typed(clb, cub, UMO_OP_DEC_FLOAT)._asfloat()
 
     @property
     def status(self):
@@ -188,18 +191,37 @@ cdef class Expression:
         return expr
 
     def __bool__(self):
-        raise NotImplementedError("Pyumo expressions are not convertible to booleans; use Expression.value to query its value in a given solution.")
+        raise NotImplementedError("Expressions are not convertible to booleans; use Expression.value to query its value in a given solution.")
 
     @staticmethod
-    cdef Expression _unary_method(Expression expr, umo_operator op):
+    cdef Expression _unary_method(expr, umo_operator op):
+        if not isinstance(expr, Expression):
+            raise TypeError("Argument must be an expression")
+        return Expression._unary_method_typed(<Expression> expr, op)
+
+    @staticmethod
+    cdef Expression _binary_method(expr1, expr2, umo_operator op):
+        if not isinstance(expr1, Expression) and not isinstance(expr2, Expression):
+            raise TypeError("One of the arguments must be an expression")
+        if not isinstance(expr1, Expression):
+            if not is_float(expr1):
+                raise TypeError("Argument must be an expression or a number")
+            raise NotImplementedError("Number arguments are not supported yet")
+        if not isinstance(expr2, Expression):
+            if not is_float(expr2):
+                raise TypeError("Argument must be an expression or a number")
+            raise NotImplementedError("Number arguments are not supported yet")
+        return Expression._binary_method_typed(<Expression> expr1, <Expression> expr2, op)
+
+    @staticmethod
+    cdef Expression _unary_method_typed(Expression expr, umo_operator op):
         cdef const char *err = NULL
         cdef long long v = umo_create_expression(expr.ptr, op, 1, &expr.v, &err)
         unwrap_error(&err)
         return Expression.create(expr.ptr, v)
 
     @staticmethod
-    cdef Expression _binary_method(Expression o1, Expression o2, umo_operator op):
-        # TODO: handle numeric types
+    cdef Expression _binary_method_typed(Expression o1, Expression o2, umo_operator op):
         cdef long long operands[2]
         operands[0] = o1.v
         operands[1] = o2.v

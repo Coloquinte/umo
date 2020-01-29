@@ -221,7 +221,7 @@ BOOST_AUTO_TEST_CASE(Exception) {
     model.check();
 }
 
-BOOST_AUTO_TEST_CASE(CompountFloat) {
+BOOST_AUTO_TEST_CASE(CompoundFloat) {
     Model model;
     FloatExpression dec1 = model.floatVar(-10.0, 10.0);
     FloatExpression dec2 = model.floatVar(5, 10.0);
@@ -240,7 +240,7 @@ BOOST_AUTO_TEST_CASE(CompountFloat) {
     model.check();
 }
 
-BOOST_AUTO_TEST_CASE(CompountInt) {
+BOOST_AUTO_TEST_CASE(CompoundInt) {
     Model model;
     IntExpression dec1 = model.intVar(-10, 10);
     IntExpression dec2 = model.intVar(5, 10);
@@ -257,7 +257,7 @@ BOOST_AUTO_TEST_CASE(CompountInt) {
     model.check();
 }
 
-BOOST_AUTO_TEST_CASE(CompountBool) {
+BOOST_AUTO_TEST_CASE(CompoundBool) {
     Model model;
     BoolExpression dec1 = model.boolVar();
     BoolExpression dec2 = model.boolVar();
