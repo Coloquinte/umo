@@ -10,6 +10,8 @@ umo_module = Extension(
 
 setup (
     name = 'umo',
+    author = 'Gabriel Gouvine',
+    author_email = 'gabriel.gouvine_umo@m4x.org',
     version = '0.0.1',
     description = 'Universal modeler',
     ext_modules = [umo_module]

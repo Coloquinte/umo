@@ -135,18 +135,19 @@ cdef class Model:
         cdef const char *err = NULL
         cdef long long v = umo_create_constant(self.ptr, <double> value, &err)
         unwrap_error(&err)
+        cdef Expression expr = Expression.create(self, v)
         if is_bool(value):
-            return BoolExpression.create(self.ptr, v)
+            return expr._asbool()
         elif is_int(value):
-            return IntExpression.create(self.ptr, v)
+            return expr._asint()
         else:
-            return FloatExpression.create(self.ptr, v)
+            return expr._asfloat()
 
     def bool_var(self):
         cdef const char *err = NULL
         cdef long long v = umo_create_expression(self.ptr, UMO_OP_DEC_BOOL, 0, NULL, &err)
         unwrap_error(&err)
-        return BoolExpression.create(self.ptr, v)
+        return Expression.create(self, v)._asbool()
 
     def int_var(self, lb, ub):
         if not is_int(lb) or not is_int(ub):
@@ -180,13 +181,17 @@ cdef class Model:
 
 
 cdef class Expression:
-    cdef umo_model *ptr
+    cdef object model
     cdef long long v
 
+    cdef umo_model *get_ptr(self):
+        assert isinstance(self.model, Model)
+        return (<Model> self.model).ptr
+
     @staticmethod
-    cdef create(umo_model *ptr, long long v):
+    cdef Expression create(object model, long long v):
         expr = Expression()
-        expr.ptr = ptr
+        expr.model = model
         expr.v = v
         return expr
 
@@ -216,9 +221,9 @@ cdef class Expression:
     @staticmethod
     cdef Expression _unary_method_typed(Expression expr, umo_operator op):
         cdef const char *err = NULL
-        cdef long long v = umo_create_expression(expr.ptr, op, 1, &expr.v, &err)
+        cdef long long v = umo_create_expression(expr.get_ptr(), op, 1, &expr.v, &err)
         unwrap_error(&err)
-        return Expression.create(expr.ptr, v)
+        return Expression.create(expr.model, v)
 
     @staticmethod
     cdef Expression _binary_method_typed(Expression o1, Expression o2, umo_operator op):
@@ -226,48 +231,41 @@ cdef class Expression:
         operands[0] = o1.v
         operands[1] = o2.v
         cdef const char *err = NULL
-        cdef long long v = umo_create_expression(o1.ptr, op, 2, operands, &err)
+        cdef long long v = umo_create_expression(o1.get_ptr(), op, 2, operands, &err)
         unwrap_error(&err)
-        return Expression.create(o1.ptr, v)
+        return Expression.create(o1.model, v)
 
     cdef FloatExpression _asfloat(self):
         expr = FloatExpression()
-        expr.ptr = self.ptr
+        expr.model = self.model
         expr.v = self.v
         return expr
 
     cdef IntExpression _asint(self):
         expr = IntExpression()
-        expr.ptr = self.ptr
+        expr.model = self.model
         expr.v = self.v
         return expr
 
     cdef BoolExpression _asbool(self):
         expr = BoolExpression()
-        expr.ptr = self.ptr
+        expr.model = self.model
         expr.v = self.v
         return expr
 
 
 cdef class FloatExpression(Expression):
-    @staticmethod
-    cdef create(umo_model *ptr, long long v):
-        expr = FloatExpression()
-        expr.ptr = ptr
-        expr.v = v
-        return expr
-
     @property
     def value(self):
         cdef const char *err = NULL
-        cdef double val = umo_get_float_value(self.ptr, self.v, &err)
+        cdef double val = umo_get_float_value(self.get_ptr(), self.v, &err)
         unwrap_error(&err)
         return float(val)
 
     @value.setter
     def value(self, value):
         cdef const char *err = NULL
-        umo_set_float_value(self.ptr, self.v, value, &err)
+        umo_set_float_value(self.get_ptr(), self.v, value, &err)
         unwrap_error(&err)
 
     def __richcmp__(o1, o2, int op):
@@ -315,24 +313,17 @@ cdef class FloatExpression(Expression):
 
 
 cdef class IntExpression(FloatExpression):
-    @staticmethod
-    cdef create(umo_model *ptr, long long v):
-        expr = IntExpression()
-        expr.ptr = ptr
-        expr.v = v
-        return expr
-
     @property
     def value(self):
         cdef const char *err = NULL
-        cdef double val = umo_get_float_value(self.ptr, self.v, &err)
+        cdef double val = umo_get_float_value(self.get_ptr(), self.v, &err)
         unwrap_error(&err)
         return int(val)
 
     @value.setter
     def value(self, value):
         cdef const char *err = NULL
-        umo_set_float_value(self.ptr, self.v, value, &err)
+        umo_set_float_value(self.get_ptr(), self.v, value, &err)
         unwrap_error(&err)
 
     def __floordiv__(o1, o2):
@@ -343,24 +334,17 @@ cdef class IntExpression(FloatExpression):
 
 
 cdef class BoolExpression(IntExpression):
-    @staticmethod
-    cdef create(umo_model *ptr, long long v):
-        expr = BoolExpression()
-        expr.ptr = ptr
-        expr.v = v
-        return expr
-
     @property
     def value(self):
         cdef const char *err = NULL
-        cdef double val = umo_get_float_value(self.ptr, self.v, &err)
+        cdef double val = umo_get_float_value(self.get_ptr(), self.v, &err)
         unwrap_error(&err)
         return bool(val)
 
     @value.setter
     def value(self, value):
         cdef const char *err = NULL
-        umo_set_float_value(self.ptr, self.v, value, &err)
+        umo_set_float_value(self.get_ptr(), self.v, value, &err)
         unwrap_error(&err)
 
     def __and__(o1, o2):
@@ -381,7 +365,7 @@ def constraint(expr):
         raise RuntimeError("constraint() argument must be a BoolExpression")
     cdef BoolExpression o = <BoolExpression> expr
     cdef const char* err = NULL
-    umo_create_constraint(o.ptr, o.v, &err)
+    umo_create_constraint(o.get_ptr(), o.v, &err)
     unwrap_error(&err)
 
 
@@ -390,7 +374,7 @@ def minimize(expr):
         raise RuntimeError("objective() argument must be a FloatExpression")
     cdef FloatExpression o = <FloatExpression> expr
     cdef const char* err = NULL
-    umo_create_objective(o.ptr, o.v, UMO_OBJ_MINIMIZE, &err)
+    umo_create_objective(o.get_ptr(), o.v, UMO_OBJ_MINIMIZE, &err)
     unwrap_error(&err)
 
 
@@ -399,7 +383,7 @@ def maximize(expr):
         raise RuntimeError("objective() argument must be a FloatExpression")
     cdef FloatExpression o = <FloatExpression> expr
     cdef const char* err = NULL
-    umo_create_objective(o.ptr, o.v, UMO_OBJ_MAXIMIZE, &err)
+    umo_create_objective(o.get_ptr(), o.v, UMO_OBJ_MAXIMIZE, &err)
     unwrap_error(&err)
 
 
