@@ -1,11 +1,10 @@
-from distutils.core import setup, Extension
+from setuptools import setup, Extension
 
 umo_module = Extension(
     'umo',
     include_dirs = ['../../include'],
-    libraries = ['umo'],
-    library_dirs = ['../../build'],
-    sources = ['umo.c']
+    extra_objects = ['../../build/libumo.a'],
+    sources = ['umo.cpp']
 )
 
 setup (
@@ -14,5 +13,6 @@ setup (
     author_email = 'gabriel.gouvine_umo@m4x.org',
     version = '0.0.1',
     description = 'Universal modeler',
+    test_suite = "test.TestUmoApi",
     ext_modules = [umo_module]
 )

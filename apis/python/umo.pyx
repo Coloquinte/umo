@@ -205,18 +205,21 @@ cdef class Expression:
         return Expression._unary_method_typed(<Expression> expr, op)
 
     @staticmethod
-    cdef Expression _binary_method(expr1, expr2, umo_operator op):
+    def _binary_method(expr1, expr2, op):
         if not isinstance(expr1, Expression) and not isinstance(expr2, Expression):
             raise TypeError("One of the arguments must be an expression")
         if not isinstance(expr1, Expression):
             if not is_float(expr1):
                 raise TypeError("Argument must be an expression or a number")
-            raise NotImplementedError("Number arguments are not supported yet")
+            assert isinstance(expr2, Expression)
+            expr1 = (<Expression> expr2).model.constant(expr1)
         if not isinstance(expr2, Expression):
+            assert isinstance(expr1, Expression)
             if not is_float(expr2):
                 raise TypeError("Argument must be an expression or a number")
-            raise NotImplementedError("Number arguments are not supported yet")
-        return Expression._binary_method_typed(<Expression> expr1, <Expression> expr2, op)
+            expr2 = (<Expression> expr1).model.constant(expr2)
+        assert isinstance(expr1, Expression) and isinstance(expr2, Expression)
+        return Expression._binary_method_typed(<Expression> expr1, <Expression> expr2, <umo_operator> op)
 
     @staticmethod
     cdef Expression _unary_method_typed(Expression expr, umo_operator op):
@@ -235,19 +238,19 @@ cdef class Expression:
         unwrap_error(&err)
         return Expression.create(o1.model, v)
 
-    cdef FloatExpression _asfloat(self):
+    def _asfloat(self):
         expr = FloatExpression()
         expr.model = self.model
         expr.v = self.v
         return expr
 
-    cdef IntExpression _asint(self):
+    def _asint(self):
         expr = IntExpression()
         expr.model = self.model
         expr.v = self.v
         return expr
 
-    cdef BoolExpression _asbool(self):
+    def _asbool(self):
         expr = BoolExpression()
         expr.model = self.model
         expr.v = self.v

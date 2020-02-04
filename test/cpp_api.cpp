@@ -98,6 +98,8 @@ BOOST_AUTO_TEST_CASE(IntOps) {
     Model model;
     IntExpression idec1 = model.intVar(-10, 10);
     IntExpression idec2 = model.intVar(5, 10);
+    idec1.setValue(1);
+    idec2.setValue(1);
     IntExpression i01 = idec1 + idec2;
     IntExpression i02 = idec1 + 1;
     IntExpression i03 = 1 + idec1;

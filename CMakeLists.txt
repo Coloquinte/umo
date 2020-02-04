@@ -22,7 +22,8 @@ SET(SOURCES
   src/presolve/to_sat.cpp
 )
 
-add_library(umo SHARED ${SOURCES})
+add_library(umo STATIC ${SOURCES})
+set_property(TARGET umo PROPERTY POSITION_INDEPENDENT_CODE ON)
 
 enable_testing()
 add_subdirectory(test)

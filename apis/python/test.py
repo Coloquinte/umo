@@ -152,6 +152,173 @@ class TestUmoApi(unittest.TestCase):
         m = umo.Model()
         self.assertRaises(RuntimeError, m.constant, float("nan"))
 
+    def test_float_ops(self):
+        m = umo.Model()
+        fdec1 = m.float_var(-10.0, 10.0)
+        fdec2 = m.float_var(5, 10.0)
+        f01 = fdec1 + fdec2
+        f02 = fdec1 + 1.0
+        f03 = 1.0 + fdec1
+        f04 = fdec1 * fdec2
+        f05 = fdec2 * 2.0
+        f06 = 2.0 * fdec2
+        f07 = fdec1 - fdec2
+        f08 = fdec2 - 1.0
+        f09 = 1.0 - fdec2
+        f10 = -fdec2
+        f11 = fdec1 / fdec2
+        f12 = fdec2 / 2.0
+        f13 = 2.0 / fdec2
+        f01.value
+        f02.value
+        f03.value
+        f04.value
+        f05.value
+        f06.value
+        f07.value
+        f08.value
+        f09.value
+        f10.value
+        f11.value
+        f12.value
+        f13.value
+        b01 = fdec1 < fdec2
+        b02 = fdec1 < 100.0
+        b03 = 100.0 < fdec2
+        b04 = fdec2 > fdec1
+        b05 = fdec1 > -100.0
+        b06 = 100.0 > fdec2
+        b07 = fdec1 <= fdec2
+        b08 = fdec1 <= 100.0
+        b09 = -100.0 <= fdec2
+        b10 = fdec2 >= fdec1
+        b11 = fdec1 >= -100.0
+        b12 = 100.0 >= fdec2
+        b13 = fdec1 == fdec2
+        b14 = fdec1 == 100.0
+        b15 = 100.0 == fdec2
+        b16 = fdec1 != fdec2
+        b17 = fdec1 != 100.0
+        b18 = 100.0 != fdec2
+        b01.value
+        b02.value
+        b03.value
+        b04.value
+        b05.value
+        b06.value
+        b07.value
+        b08.value
+        b09.value
+        b10.value
+        b11.value
+        b12.value
+        b13.value
+        b14.value
+        b15.value
+        b16.value
+        b17.value
+        b18.value
+
+    def test_int_ops(self):
+        m = umo.Model()
+        idec1 = m.int_var(-10, 10)
+        idec2 = m.int_var(5, 10)
+        idec1.value = 1
+        idec2.value = 1
+        i01 = idec1 + idec2
+        i02 = idec1 + 1
+        i03 = 1 + idec1
+        i04 = idec1 * idec2
+        i05 = idec2 * 2
+        i06 = 2 * idec2
+        i07 = idec1 - idec2
+        i08 = idec2 - 1
+        i09 = 1 - idec2
+        i10 = -idec2
+        i11 = idec1 / idec2
+        i12 = idec2 / 2
+        i13 = 2 / idec2
+        i14 = idec1 % idec2
+        i15 = idec2 % 2
+        i16 = 2 % idec2
+        i01.value
+        i02.value
+        i03.value
+        i04.value
+        i05.value
+        i06.value
+        i07.value
+        i08.value
+        i09.value
+        i10.value
+        i11.value
+        i12.value
+        i13.value
+        i14.value
+        i15.value
+        i16.value
+        b01 = idec1 < idec2
+        b02 = idec1 < 100
+        b03 = 100 < idec2
+        b04 = idec2 > idec1
+        b05 = idec1 > -100
+        b06 = 100 > idec2
+        b07 = idec1 <= idec2
+        b08 = idec1 <= 100
+        b09 = -100 <= idec2
+        b10 = idec2 >= idec1
+        b11 = idec1 >= -100
+        b12 = 100 >= idec2
+        b13 = idec1 == idec2
+        b14 = idec1 == 100
+        b15 = 100 == idec2
+        b16 = idec1 != idec2
+        b17 = idec1 != 100
+        b18 = 100 != idec2
+        b01.value
+        b02.value
+        b03.value
+        b04.value
+        b05.value
+        b06.value
+        b07.value
+        b08.value
+        b09.value
+        b10.value
+        b11.value
+        b12.value
+        b13.value
+        b14.value
+        b15.value
+        b16.value
+        b17.value
+        b18.value
+
+    def test_bool_ops(self):
+        m = umo.Model()
+        bdec1 = m.bool_var()
+        bdec2 = m.bool_var()
+        b01 = bdec1 & bdec2
+        b02 = bdec1 & True
+        b03 = False & bdec1
+        b04 = bdec1 | bdec2
+        b05 = bdec2 | False
+        b06 = True | bdec2
+        b07 = bdec1 ^ bdec2
+        b08 = bdec2 ^ False
+        b09 = True ^ bdec2
+        b10 = ~bdec2
+        b01.value
+        b02.value
+        b03.value
+        b04.value
+        b05.value
+        b06.value
+        b07.value
+        b08.value
+        b09.value
+        b10.value
+
 if __name__ == '__main__':
     unittest.main()
 
