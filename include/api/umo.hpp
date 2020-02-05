@@ -2,6 +2,7 @@
 #ifndef UMO_HPP
 #define UMO_HPP
 
+#include <memory>
 #include <string>
 
 extern "C" {
@@ -22,7 +23,6 @@ class Model {
     Model();
     Model(Model &&);
     Model &operator=(Model &&);
-    ~Model();
 
     FloatExpression constant(double);
     IntExpression constant(long long);
@@ -45,20 +45,23 @@ class Model {
     double getTimeLimit();
     void setTimeLimit(double limit);
 
+    umo_model *rawPtr() const { return ptr_.get(); }
+
   private:
-    // TODO: switch everything to a shared pointer
-    struct umo_model *ptr_;
+    std::shared_ptr<umo_model> ptr_;
 };
 
 class Expression {
   public:
-    umo_model *rawPtr() const { return model; }
+    const std::shared_ptr<umo_model> &ptr() const { return model; }
+    umo_model *rawPtr() const { return model.get(); }
     long long rawId() const { return v; }
 
-    Expression(umo_model *model, long long v) : model(model), v(v) {}
+    Expression(std::shared_ptr<umo_model> model, long long v)
+        : model(model), v(v) {}
 
   protected:
-    umo_model *model;
+    std::shared_ptr<umo_model> model;
     long long v;
 };
 
@@ -67,7 +70,8 @@ class FloatExpression : public Expression {
     double getValue();
     void setValue(double val);
 
-    FloatExpression(umo_model *model, long long v) : Expression(model, v) {}
+    FloatExpression(std::shared_ptr<umo_model> model, long long v)
+        : Expression(model, v) {}
 };
 
 class IntExpression : public FloatExpression {
@@ -75,7 +79,8 @@ class IntExpression : public FloatExpression {
     long long getValue();
     void setValue(long long val);
 
-    IntExpression(umo_model *model, long long v) : FloatExpression(model, v) {}
+    IntExpression(std::shared_ptr<umo_model> model, long long v)
+        : FloatExpression(model, v) {}
 };
 
 class BoolExpression : public IntExpression {
@@ -83,7 +88,8 @@ class BoolExpression : public IntExpression {
     bool getValue();
     void setValue(bool val);
 
-    BoolExpression(umo_model *model, long long v) : IntExpression(model, v) {}
+    BoolExpression(std::shared_ptr<umo_model> model, long long v)
+        : IntExpression(model, v) {}
 };
 
 void constraint(const BoolExpression &);

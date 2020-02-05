@@ -280,3 +280,9 @@ BOOST_AUTO_TEST_CASE(CompoundBool) {
     dec1 ^= true;
     model.check();
 }
+
+BOOST_AUTO_TEST_CASE(Deletion) {
+    BoolExpression dec1 = Model().boolVar();
+    BoolExpression dec2 = dec1.model().boolVar();
+    dec2.model().check();
+}

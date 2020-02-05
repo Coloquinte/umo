@@ -60,14 +60,14 @@ long long makeTernaryOp(umo_model *model, umo_operator op, long long op1,
 template <typename OperandExpression, typename ResultExpression>
 ResultExpression unaryOp(umo_operator op, const OperandExpression &op1) {
     long long v = makeUnaryOp(op1.rawPtr(), op, op1.rawId());
-    return ResultExpression(op1.rawPtr(), v);
+    return ResultExpression(op1.ptr(), v);
 }
 
 template <typename ResultExpression>
 ResultExpression binaryOp(umo_operator op, const FloatExpression &op1,
                           const FloatExpression &op2) {
     long long v = makeBinaryOp(op1.rawPtr(), op, op1.rawId(), op2.rawId());
-    return ResultExpression(op1.rawPtr(), v);
+    return ResultExpression(op1.ptr(), v);
 }
 
 template <typename ResultExpression>
@@ -75,7 +75,7 @@ ResultExpression binaryOp(umo_operator op, double op1Val,
                           const FloatExpression &op2) {
     long long op1 = makeConstant(op2.rawPtr(), op1Val);
     long long v = makeBinaryOp(op2.rawPtr(), op, op1, op2.rawId());
-    return ResultExpression(op2.rawPtr(), v);
+    return ResultExpression(op2.ptr(), v);
 }
 
 template <typename ResultExpression>
@@ -83,14 +83,14 @@ ResultExpression binaryOp(umo_operator op, const FloatExpression &op1,
                           double op2Val) {
     long long op2 = makeConstant(op1.rawPtr(), op2Val);
     long long v = makeBinaryOp(op1.rawPtr(), op, op1.rawId(), op2);
-    return ResultExpression(op1.rawPtr(), v);
+    return ResultExpression(op1.ptr(), v);
 }
 
 template <typename ResultExpression>
 ResultExpression binaryOp(umo_operator op, const IntExpression &op1,
                           const IntExpression &op2) {
     long long v = makeBinaryOp(op1.rawPtr(), op, op1.rawId(), op2.rawId());
-    return ResultExpression(op1.rawPtr(), v);
+    return ResultExpression(op1.ptr(), v);
 }
 
 template <typename ResultExpression>
@@ -98,7 +98,7 @@ ResultExpression binaryOp(umo_operator op, long long op1Val,
                           const IntExpression &op2) {
     long long op1 = makeConstant(op2.rawPtr(), (double)op1Val);
     long long v = makeBinaryOp(op2.rawPtr(), op, op1, op2.rawId());
-    return ResultExpression(op2.rawPtr(), v);
+    return ResultExpression(op2.ptr(), v);
 }
 
 template <typename ResultExpression>
@@ -106,14 +106,14 @@ ResultExpression binaryOp(umo_operator op, const IntExpression &op1,
                           long long op2Val) {
     long long op2 = makeConstant(op1.rawPtr(), (double)op2Val);
     long long v = makeBinaryOp(op1.rawPtr(), op, op1.rawId(), op2);
-    return ResultExpression(op1.rawPtr(), v);
+    return ResultExpression(op1.ptr(), v);
 }
 
 template <typename ResultExpression>
 ResultExpression binaryOp(umo_operator op, const BoolExpression &op1,
                           const BoolExpression &op2) {
     long long v = makeBinaryOp(op1.rawPtr(), op, op1.rawId(), op2.rawId());
-    return ResultExpression(op1.rawPtr(), v);
+    return ResultExpression(op1.ptr(), v);
 }
 
 template <typename ResultExpression>
@@ -121,7 +121,7 @@ ResultExpression binaryOp(umo_operator op, bool op1Val,
                           const BoolExpression &op2) {
     long long op1 = makeConstant(op2.rawPtr(), (double)op1Val);
     long long v = makeBinaryOp(op2.rawPtr(), op, op1, op2.rawId());
-    return ResultExpression(op2.rawPtr(), v);
+    return ResultExpression(op2.ptr(), v);
 }
 
 template <typename ResultExpression>
@@ -129,36 +129,40 @@ ResultExpression binaryOp(umo_operator op, const BoolExpression &op1,
                           bool op2Val) {
     long long op2 = makeConstant(op1.rawPtr(), (double)op2Val);
     long long v = makeBinaryOp(op1.rawPtr(), op, op1.rawId(), op2);
-    return ResultExpression(op1.rawPtr(), v);
+    return ResultExpression(op1.ptr(), v);
 }
 
-Model::Model() { UNWRAP_EXCEPTIONS(ptr_ = umo_create_model(&err);); }
+void destroyModel(umo_model *m) {}
 
-Model::Model(Model &&o) { ptr_ = o.ptr_; }
+Model::Model() {
+    UNWRAP_EXCEPTIONS(ptr_ = std::shared_ptr<umo_model>(
+                          umo_create_model(&err), [](umo_model *m) {
+                              const char *err = NULL;
+                              umo_destroy_model(m, &err);
+                              // Destructor should never throw
+                              assert(err == NULL);
+                          }););
+}
+
+Model::Model(Model &&o) { ptr_ = std::move(o.ptr_); }
 
 Model &Model::operator=(Model &&o) {
-    ptr_ = o.ptr_;
+    ptr_ = std::move(o.ptr_);
     return *this;
 }
 
-Model::~Model() {
-    const char *err = NULL;
-    umo_destroy_model(ptr_, &err);
-    assert(err == NULL); // Destructor should never throw
-}
-
 FloatExpression Model::constant(double val) {
-    long long v = makeConstant(ptr_, (double)val);
+    long long v = makeConstant(rawPtr(), (double)val);
     return FloatExpression(ptr_, v);
 }
 
 IntExpression Model::constant(long long val) {
-    long long v = makeConstant(ptr_, (double)val);
+    long long v = makeConstant(rawPtr(), (double)val);
     return IntExpression(ptr_, v);
 }
 
 BoolExpression Model::constant(bool val) {
-    long long v = makeConstant(ptr_, (double)val);
+    long long v = makeConstant(rawPtr(), (double)val);
     return BoolExpression(ptr_, v);
 }
 
@@ -175,13 +179,13 @@ IntExpression Model::intVar(long long lb, long long ub) {
 }
 
 BoolExpression Model::boolVar() {
-    long long v = makeNoaryOp(ptr_, UMO_OP_DEC_BOOL);
+    long long v = makeNoaryOp(rawPtr(), UMO_OP_DEC_BOOL);
     return BoolExpression(ptr_, v);
 }
 
 Status Model::getStatus() {
     umo_solution_status ret;
-    UNWRAP_EXCEPTIONS(ret = umo_get_solution_status(ptr_, &err););
+    UNWRAP_EXCEPTIONS(ret = umo_get_solution_status(rawPtr(), &err););
     switch (ret) {
     case UMO_STATUS_INFEASIBLE:
         return Status::Infeasible;
@@ -196,19 +200,20 @@ Status Model::getStatus() {
     }
 }
 
-void Model::solve() { UNWRAP_EXCEPTIONS(umo_solve(ptr_, &err);); }
+void Model::solve() { UNWRAP_EXCEPTIONS(umo_solve(rawPtr(), &err);); }
 
-void Model::check() { UNWRAP_EXCEPTIONS(umo_check(ptr_, &err);); }
+void Model::check() { UNWRAP_EXCEPTIONS(umo_check(rawPtr(), &err);); }
 
 double Model::getFloatParam(const std::string &param) {
     double tmp;
-    UNWRAP_EXCEPTIONS(tmp =
-                          umo_get_float_parameter(ptr_, param.c_str(), &err););
+    UNWRAP_EXCEPTIONS(
+        tmp = umo_get_float_parameter(rawPtr(), param.c_str(), &err););
     return tmp;
 }
 
 void Model::setFloatParam(const std::string &param, double val) {
-    UNWRAP_EXCEPTIONS(umo_set_float_parameter(ptr_, param.c_str(), val, &err););
+    UNWRAP_EXCEPTIONS(
+        umo_set_float_parameter(rawPtr(), param.c_str(), val, &err););
 }
 
 double Model::getTimeLimit() { return getFloatParam("umo_time_limit"); }
@@ -219,44 +224,44 @@ void Model::setTimeLimit(double limit) {
 
 std::string Model::getStringParam(const std::string &param) {
     const char *tmp;
-    UNWRAP_EXCEPTIONS(tmp =
-                          umo_get_string_parameter(ptr_, param.c_str(), &err););
+    UNWRAP_EXCEPTIONS(
+        tmp = umo_get_string_parameter(rawPtr(), param.c_str(), &err););
     return tmp;
 }
 
 void Model::setStringParam(const std::string &param, const std::string &val) {
     UNWRAP_EXCEPTIONS(
-        umo_set_string_parameter(ptr_, param.c_str(), val.c_str(), &err););
+        umo_set_string_parameter(rawPtr(), param.c_str(), val.c_str(), &err););
 }
 
 double FloatExpression::getValue() {
     double tmp;
-    UNWRAP_EXCEPTIONS(tmp = umo_get_float_value(model, v, &err););
+    UNWRAP_EXCEPTIONS(tmp = umo_get_float_value(rawPtr(), v, &err););
     return tmp;
 }
 
 long long IntExpression::getValue() {
     double tmp;
-    UNWRAP_EXCEPTIONS(tmp = umo_get_float_value(model, v, &err););
+    UNWRAP_EXCEPTIONS(tmp = umo_get_float_value(rawPtr(), v, &err););
     return (long long)tmp;
 }
 
 bool BoolExpression::getValue() {
     double tmp;
-    UNWRAP_EXCEPTIONS(tmp = umo_get_float_value(model, v, &err););
+    UNWRAP_EXCEPTIONS(tmp = umo_get_float_value(rawPtr(), v, &err););
     return (bool)tmp;
 }
 
 void FloatExpression::setValue(double val) {
-    UNWRAP_EXCEPTIONS(umo_set_float_value(model, v, val, &err););
+    UNWRAP_EXCEPTIONS(umo_set_float_value(rawPtr(), v, val, &err););
 }
 
 void IntExpression::setValue(long long val) {
-    UNWRAP_EXCEPTIONS(umo_set_float_value(model, v, (double)val, &err););
+    UNWRAP_EXCEPTIONS(umo_set_float_value(rawPtr(), v, (double)val, &err););
 }
 
 void BoolExpression::setValue(bool val) {
-    UNWRAP_EXCEPTIONS(umo_set_float_value(model, v, (double)val, &err););
+    UNWRAP_EXCEPTIONS(umo_set_float_value(rawPtr(), v, (double)val, &err););
 }
 
 void constraint(const BoolExpression &c) {
