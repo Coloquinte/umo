@@ -226,7 +226,7 @@ BOOST_AUTO_TEST_CASE(Exception) {
 BOOST_AUTO_TEST_CASE(CompoundFloat) {
     Model model;
     FloatExpression dec1 = model.floatVar(-10.0, 10.0);
-    FloatExpression dec2 = model.floatVar(5, 10.0);
+    FloatExpression dec2 = model.floatVar(5.0, 10.0);
     dec1 += 3.0;
     dec1 += 3;
     dec1 += dec2;

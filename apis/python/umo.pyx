@@ -109,6 +109,13 @@ cdef is_float(value):
     return isinstance(value, float) or value == float(value)
 
 
+cdef is_intexpr(value):
+    if isinstance(value, Expression):
+        return isinstance(value, IntExpression)
+    else:
+        return is_int(value)
+
+
 class SolutionStatus:
     INFEASIBLE = 0
     VALID = 1
@@ -256,6 +263,12 @@ cdef class Expression:
         expr.v = self.v
         return expr
 
+    def _asrettype(self, o1, o2):
+        if is_intexpr(o1) and is_intexpr(o2):
+            return self._asint()
+        else:
+            return self._asfloat()
+
 
 cdef class FloatExpression(Expression):
     @property
@@ -288,13 +301,13 @@ cdef class FloatExpression(Expression):
         return Expression._binary_method(o1, o2, umo_op)._asbool()
 
     def __add__(o1, o2):
-        return Expression._binary_method(o1, o2, UMO_OP_SUM)._asfloat()
+        return Expression._binary_method(o1, o2, UMO_OP_SUM)._asrettype(o1, o2)
 
     def __sub__(o1, o2):
-        return Expression._binary_method(o1, o2, UMO_OP_MINUS_BINARY)._asfloat()
+        return Expression._binary_method(o1, o2, UMO_OP_MINUS_BINARY)._asrettype(o1, o2)
 
     def __mul__(o1, o2):
-        return Expression._binary_method(o1, o2, UMO_OP_PROD)._asfloat()
+        return Expression._binary_method(o1, o2, UMO_OP_PROD)._asrettype(o1, o2)
 
     def __div__(o1, o2):
         return Expression._binary_method(o1, o2, UMO_OP_DIV)._asfloat()
@@ -303,13 +316,13 @@ cdef class FloatExpression(Expression):
         return Expression._binary_method(o1, o2, UMO_OP_DIV)._asfloat()
 
     def __neg__(self):
-        return Expression._unary_method(self, UMO_OP_MINUS_UNARY)._asfloat()
+        return Expression._unary_method(self, UMO_OP_MINUS_UNARY)._asrettype(self, self)
 
     def __pos__(self):
         return self
 
     def __abs__(self):
-        return Expression._unary_method(self, UMO_OP_ABS)._asfloat()
+        return Expression._unary_method(self, UMO_OP_ABS)._asrettype(self, self)
 
     def __pow__(o1, o2, o3):
         return Expression._binary_method(o1, o2, UMO_OP_POW)._asfloat()

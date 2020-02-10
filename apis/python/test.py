@@ -319,6 +319,56 @@ class TestUmoApi(unittest.TestCase):
         b09.value
         b10.value
 
+    def test_compount_float(self):
+        m = umo.Model()
+        dec1 = m.float_var(-10.0, 10.0);
+        dec2 = m.float_var(5.0, 10.0);
+        dec1 += 3.0;
+        dec1 += 3;
+        dec1 += dec2;
+        dec2 -= 3.0;
+        dec2 -= 3;
+        dec2 -= dec1;
+        dec1 *= 3.0;
+        dec1 *= 3;
+        dec1 *= dec2;
+        dec2 /= 3.0;
+        dec2 /= 3;
+        dec2 /= dec1;
+        self.assertTrue(isinstance(dec1, umo.FloatExpression))
+        self.assertTrue(isinstance(dec2, umo.FloatExpression))
+
+    def test_compount_int(self):
+        m = umo.Model()
+        dec1 = m.int_var(-10, 10);
+        dec2 = m.int_var(5, 10);
+        dec1 += 3;
+        dec1 += dec2;
+        dec2 -= 3;
+        dec2 -= dec1;
+        dec1 *= 3;
+        dec1 *= dec2;
+        dec2 //= 3;
+        dec2 //= dec1;
+        dec2 %= 3;
+        dec2 %= dec1;
+        self.assertTrue(isinstance(dec1, umo.IntExpression))
+        self.assertTrue(isinstance(dec2, umo.IntExpression))
+
+    def test_compount_bool(self):
+        m = umo.Model()
+        dec1 = m.bool_var();
+        dec2 = m.bool_var();
+        dec1 &= dec2;
+        dec1 &= True;
+        dec2 |= dec1;
+        dec2 |= False;
+        dec1 ^= dec2;
+        dec1 ^= True;
+        self.assertTrue(isinstance(dec1, umo.BoolExpression))
+        self.assertTrue(isinstance(dec2, umo.BoolExpression))
+
+
 if __name__ == '__main__':
     unittest.main()
 
