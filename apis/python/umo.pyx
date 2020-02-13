@@ -263,8 +263,8 @@ cdef class Expression:
         expr.v = self.v
         return expr
 
-    def _asrettype(self, o1, o2):
-        if is_intexpr(o1) and is_intexpr(o2):
+    def _asrettype(self, o1, o2=None):
+        if is_intexpr(o1) and (o2 is None or is_intexpr(o2)):
             return self._asint()
         else:
             return self._asfloat()
@@ -316,13 +316,16 @@ cdef class FloatExpression(Expression):
         return Expression._binary_method(o1, o2, UMO_OP_DIV)._asfloat()
 
     def __neg__(self):
-        return Expression._unary_method(self, UMO_OP_MINUS_UNARY)._asrettype(self, self)
+        return Expression._unary_method(self, UMO_OP_MINUS_UNARY)._asrettype(self)
 
     def __pos__(self):
         return self
 
     def __abs__(self):
-        return Expression._unary_method(self, UMO_OP_ABS)._asrettype(self, self)
+        return Expression._unary_method(self, UMO_OP_ABS)._asrettype(self)
+
+    def __round__(self):
+        return Expression._unary_method(self, UMO_OP_ROUND)._asint()
 
     def __pow__(o1, o2, o3):
         return Expression._binary_method(o1, o2, UMO_OP_POW)._asfloat()
@@ -387,7 +390,7 @@ def constraint(expr):
 
 def minimize(expr):
     if not isinstance(expr, FloatExpression):
-        raise RuntimeError("objective() argument must be a FloatExpression")
+        raise RuntimeError("minimize() argument must be a FloatExpression")
     cdef FloatExpression o = <FloatExpression> expr
     cdef const char* err = NULL
     umo_create_objective(o.get_ptr(), o.v, UMO_OBJ_MINIMIZE, &err)
@@ -396,7 +399,7 @@ def minimize(expr):
 
 def maximize(expr):
     if not isinstance(expr, FloatExpression):
-        raise RuntimeError("objective() argument must be a FloatExpression")
+        raise RuntimeError("maximize() argument must be a FloatExpression")
     cdef FloatExpression o = <FloatExpression> expr
     cdef const char* err = NULL
     umo_create_objective(o.get_ptr(), o.v, UMO_OBJ_MAXIMIZE, &err)
@@ -413,6 +416,36 @@ def log(expr):
 
 def sqrt(expr):
     return Expression._unary_method(expr, UMO_OP_SQRT)._asfloat()
+
+
+def square(expr):
+    return Expression._unary_method(expr, UMO_OP_SQUARE)._asrettype(expr)
+
+
+def factorial(expr):
+    if not isinstance(expr, IntExpression):
+        raise RuntimeError("factorial() argument must be a FloatExpression")
+    return Expression._unary_method(expr, UMO_OP_FACTORIAL)._asint()
+
+
+def round(expr):
+    return Expression._unary_method(expr, UMO_OP_ROUND)._asint()
+
+
+def floor(expr):
+    return Expression._unary_method(expr, UMO_OP_FLOOR)._asint()
+
+
+def ceil(expr):
+    return Expression._unary_method(expr, UMO_OP_CEIL)._asint()
+
+
+def sign(expr):
+    return Expression._unary_method(expr, UMO_OP_SIGN)._asint()
+
+
+def frac(expr):
+    return Expression._unary_method(expr, UMO_OP_FRAC)._asfloat()
 
 
 def cos(expr):
@@ -461,3 +494,5 @@ def asinh(expr):
 
 def atanh(expr):
     return Expression._unary_method(expr, UMO_OP_ATANH)._asfloat()
+
+# TODO: n-ary operations, lpsum

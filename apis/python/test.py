@@ -34,6 +34,9 @@ class TestUmoApi(unittest.TestCase):
         x1 = m.bool_var()
         x2 = m.int_var(-4, 2)
         x3 = m.float_var(0.5, 2)
+        self.assertTrue(isinstance(x1, umo.BoolExpression))
+        self.assertTrue(isinstance(x2, umo.IntExpression))
+        self.assertTrue(isinstance(x3, umo.FloatExpression))
         x1.value = False
         self.assertEqual(x1.value, False)
         x1.value = True
@@ -56,8 +59,8 @@ class TestUmoApi(unittest.TestCase):
         x03 = dec1 * dec2
         x04 = dec1 / dec2
         x05 = -dec1
-        for val1 in [5.0, -4.0, 2.5]:
-            for val2 in [-7.0, 2.0, 1.3]:
+        for val1 in [5.2, -4.0, 2.5]:
+            for val2 in [-7.97, 2.0, 1.3]:
                 dec1.value = val1
                 dec2.value = val2
                 self.assertEqual(x01.value, val1 + val2)
@@ -77,6 +80,13 @@ class TestUmoApi(unittest.TestCase):
         x05 = dec1 % dec2
         x06 = -dec1
         x07 = +dec1
+        self.assertTrue(isinstance(x01, umo.IntExpression))
+        self.assertTrue(isinstance(x02, umo.IntExpression))
+        self.assertTrue(isinstance(x03, umo.IntExpression))
+        self.assertTrue(isinstance(x04, umo.IntExpression))
+        self.assertTrue(isinstance(x05, umo.IntExpression))
+        self.assertTrue(isinstance(x06, umo.IntExpression))
+        self.assertTrue(isinstance(x07, umo.IntExpression))
         for val1 in [5, 4, 0]:
             for val2 in [1, 2, 3]:
                 dec1.value = val1
@@ -97,6 +107,10 @@ class TestUmoApi(unittest.TestCase):
         x02 = dec1 | dec2
         x03 = dec1 ^ dec2
         x04 = ~dec1
+        self.assertTrue(isinstance(x01, umo.BoolExpression))
+        self.assertTrue(isinstance(x02, umo.BoolExpression))
+        self.assertTrue(isinstance(x03, umo.BoolExpression))
+        self.assertTrue(isinstance(x04, umo.BoolExpression))
         for val1 in [False, True]:
             for val2 in [False, True]:
                 dec1.value = val1
@@ -128,6 +142,12 @@ class TestUmoApi(unittest.TestCase):
         x04 = dec1 >= dec2
         x05 = dec1 < dec2
         x06 = dec1 > dec2
+        self.assertTrue(isinstance(x01, umo.BoolExpression))
+        self.assertTrue(isinstance(x02, umo.BoolExpression))
+        self.assertTrue(isinstance(x03, umo.BoolExpression))
+        self.assertTrue(isinstance(x04, umo.BoolExpression))
+        self.assertTrue(isinstance(x05, umo.BoolExpression))
+        self.assertTrue(isinstance(x06, umo.BoolExpression))
         for val1 in [5.0, -4.0, 2.5]:
             for val2 in [5.0, -4.0, 2.5]:
                 dec1.value = val1
@@ -367,6 +387,29 @@ class TestUmoApi(unittest.TestCase):
         dec1 ^= True;
         self.assertTrue(isinstance(dec1, umo.BoolExpression))
         self.assertTrue(isinstance(dec2, umo.BoolExpression))
+
+    def test_intrinsics(self):
+        m = umo.Model()
+        dec1 = m.float_var(-10.0, 10.0)
+        x01 = abs(dec1)
+        x03 = pow(dec1, -3)
+        x04 = pow(dec1, 4)
+        for val1 in [5.2, -4.0, 2.51]:
+            dec1.value = val1
+            self.assertEqual(x01.value, abs(val1))
+            self.assertEqual(x03.value, pow(val1, -3))
+            self.assertEqual(x04.value, pow(val1, 4))
+
+    def test_int_intrinsics(self):
+        m = umo.Model()
+        dec1 = m.int_var(-10, 10)
+        x01 = abs(dec1)
+        x02 = pow(dec1, 4)
+        self.assertTrue(isinstance(x01, umo.IntExpression))
+        for val1 in [5, -4, 2, 0]:
+            dec1.value = val1
+            self.assertEqual(x01.value, abs(val1))
+            self.assertEqual(x02.value, pow(val1, 4))
 
 
 if __name__ == '__main__':
