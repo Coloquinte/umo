@@ -25,12 +25,14 @@ void PresolvedModel::pull(Model &model) {
 
 namespace {
 ExpressionId composeExpressions(ExpressionId expr1, ExpressionId expr2) {
-    if (expr1.isNot() && expr2.isMinus()) throw runtime_error("Attempting to compose NOT and MINUS when applying a new presolve");
+    if (expr1.isNot() && expr2.isMinus())
+        throw runtime_error(
+            "Attempting to compose NOT and MINUS when applying a new presolve");
     bool isNot = expr1.isNot() ^ expr2.isNot();
     bool isMinus = expr1.isMinus() ^ expr2.isMinus();
     return ExpressionId(expr2.var(), isNot, isMinus);
 }
-}
+} // namespace
 
 void PresolvedModel::apply(const PresolvedModel &next) {
     // Update the decision mapping

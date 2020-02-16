@@ -186,6 +186,14 @@ cdef class Model:
         else:
             raise RuntimeError("Unknown solution status")
 
+    @property
+    def time_limit(self):
+        return self.get_param("umo_time_limit")
+
+    @time_limit.setter
+    def time_limit(self, value):
+        self.set_param("umo_time_limit", value)
+
     def solve(self):
         cdef const char *err = NULL
         umo_solve(self.ptr, &err)
@@ -196,6 +204,20 @@ cdef class Model:
         umo_check(self.ptr, &err)
         unwrap_error(&err)
 
+    def get_param(self, param):
+        cdef const char* err = NULL
+        cparam = param.encode('UTF-8')
+        cdef double val = umo_get_float_parameter(self.ptr, cparam, &err)
+        unwrap_error(&err)
+        return val
+
+    def set_param(self, param, value):
+        if not is_float(value):
+            raise TypeError("set_param() argument must be a number")
+        cdef const char* err = NULL
+        cparam = param.encode('UTF-8')
+        umo_set_float_parameter(self.ptr, cparam, float(value), &err)
+        unwrap_error(&err)
 
 cdef class Expression:
     cdef readonly object model

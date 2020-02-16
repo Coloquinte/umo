@@ -434,6 +434,15 @@ class TestUmoApi(unittest.TestCase):
         dec2 = dec1.model.int_var(-10, 10)
         dec1.model.check()
 
+    def test_params(self):
+        m = umo.Model()
+        m.set_param("test_param", 5.0)
+        self.assertEqual(m.get_param("test_param"), 5.0)
+        m.set_param("test_param", 6.4)
+        self.assertEqual(m.get_param("test_param"), 6.4)
+        self.assertEqual(m.time_limit, float("inf"))
+        m.time_limit = 10.0
+        self.assertEqual(m.time_limit, 10.0)
 
 if __name__ == '__main__':
     unittest.main()

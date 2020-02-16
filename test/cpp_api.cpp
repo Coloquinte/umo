@@ -6,6 +6,7 @@
 #include "api/umo.hpp"
 
 #include <cmath>
+#include <limits>
 
 using namespace umo;
 
@@ -209,11 +210,19 @@ BOOST_AUTO_TEST_CASE(BoolOps) {
 BOOST_AUTO_TEST_CASE(Params) {
     Model model;
     model.setFloatParam("testFloatParam", -1.0);
-    double resFloat = model.getFloatParam("testFloatParam");
-    BOOST_CHECK_EQUAL(resFloat, -1.0);
+    double resFloat1 = model.getFloatParam("testFloatParam");
+    BOOST_CHECK_EQUAL(resFloat1, -1.0);
+    model.setFloatParam("testFloatParam", 2.4);
+    double resFloat2 = model.getFloatParam("testFloatParam");
+    BOOST_CHECK_EQUAL(resFloat2, 2.4);
     model.setStringParam("testStringParam", "testValue");
     std::string resString = model.getStringParam("testStringParam");
     BOOST_CHECK_EQUAL(resString, "testValue");
+    BOOST_CHECK_EQUAL(model.getTimeLimit(), std::numeric_limits<double>::infinity());
+    model.setTimeLimit(10);
+    BOOST_CHECK_EQUAL(model.getTimeLimit(), 10.0);
+    model.setTimeLimit(0.125);
+    BOOST_CHECK_EQUAL(model.getTimeLimit(), 0.125);
     model.check();
 }
 

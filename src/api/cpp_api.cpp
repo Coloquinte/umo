@@ -211,6 +211,12 @@ void Model::setFloatParam(const std::string &param, double val) {
     UNWRAP_EXCEPTIONS(umo_set_float_parameter(ptr_, param.c_str(), val, &err););
 }
 
+double Model::getTimeLimit() { return getFloatParam("umo_time_limit"); }
+
+void Model::setTimeLimit(double limit) {
+    setFloatParam("umo_time_limit", limit);
+}
+
 std::string Model::getStringParam(const std::string &param) {
     const char *tmp;
     UNWRAP_EXCEPTIONS(tmp =

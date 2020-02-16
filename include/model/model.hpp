@@ -16,6 +16,8 @@ class Model {
     struct ExpressionData;
 
   public:
+    Model();
+
     ExpressionId createConstant(double value);
     ExpressionId createExpression(umo_operator op, long long *beginOp,
                                   long long *endOp);
@@ -53,6 +55,8 @@ class Model {
     std::vector<umo_operator> getOperandOps(const ExpressionData &expr) const;
 
     void compute();
+
+    void initDefaultParameters();
 
   protected:
     std::vector<ExpressionData> expressions_;

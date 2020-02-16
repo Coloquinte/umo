@@ -42,6 +42,9 @@ class Model {
     std::string getStringParam(const std::string &param);
     void setStringParam(const std::string &param, const std::string &val);
 
+    double getTimeLimit();
+    void setTimeLimit(double limit);
+
   private:
     // TODO: switch everything to a shared pointer
     struct umo_model *ptr_;

@@ -2,6 +2,7 @@
 #include "model/model.hpp"
 
 #include <cmath>
+#include <limits>
 #include <stdexcept>
 
 #include "model/operator.hpp"
@@ -36,6 +37,8 @@ bool isTypeCompatible(umo_type varType, double value) {
     return isSubtype(valueType, varType);
 }
 } // namespace
+
+Model::Model() { initDefaultParameters(); }
 
 ExpressionId Model::createConstant(double value) {
     if (isnan(value)) {
@@ -115,7 +118,7 @@ double Model::getFloatParameter(const string &param) const {
 }
 
 void Model::setFloatParameter(const string &param, double value) {
-    floatParams_.emplace(param, value);
+    floatParams_[param] = value;
 }
 
 const string &Model::getStringParameter(const string &param) const {
@@ -123,7 +126,7 @@ const string &Model::getStringParameter(const string &param) const {
 }
 
 void Model::setStringParameter(const string &param, const string &value) {
-    stringParams_.emplace(param, value);
+    stringParams_[param] = value;
 }
 
 void Model::checkExpressionId(ExpressionId expr) const {
@@ -245,4 +248,8 @@ void Model::compute() {
     }
     status_ = constraintViolated ? UMO_STATUS_INVALID : UMO_STATUS_VALID;
     computed_ = true;
+}
+
+void Model::initDefaultParameters() {
+    setFloatParameter("umo_time_limit", numeric_limits<double>::infinity());
 }
