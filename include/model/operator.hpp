@@ -34,9 +34,20 @@ class Operator {
     // Perform the computation
     virtual double compute(int nbOperands, double *operands) const = 0;
 
-    // Additional information
+    // Is a leaf of the expression graph (constant/decision)
     virtual bool isLeaf() const { return false; }
+    // Is a decision variable
     virtual bool isDecision() const { return false; }
+    // Is an associative operation: can be flattened
+    virtual bool isAssociative() const { return false; }
+    // Is an idempotent operation: can remove duplicates
+    virtual bool isIdempotent() const { return false; }
+
+    // TODO:
+    // Bound computation
+    // Differenciation
+    // Direction information (relies on bounds)
+    // Convexity information (relies on bounds)
 };
 
 std::ostream &operator<<(std::ostream &os, umo_operator op);

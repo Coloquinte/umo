@@ -203,7 +203,6 @@ FloatExpression sqrt(const FloatExpression &);
 FloatExpression square(const FloatExpression &);
 
 IntExpression square(const IntExpression &);
-IntExpression factorial(const IntExpression &);
 
 IntExpression round(const FloatExpression &);
 IntExpression floor(const FloatExpression &);

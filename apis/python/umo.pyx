@@ -454,12 +454,6 @@ def square(expr):
     return Expression._unary_method(expr, UMO_OP_SQUARE)._asrettype(expr)
 
 
-def factorial(expr):
-    if not isinstance(expr, IntExpression):
-        raise RuntimeError("factorial() argument must be a FloatExpression")
-    return Expression._unary_method(expr, UMO_OP_FACTORIAL)._asint()
-
-
 def round(expr):
     return Expression._unary_method(expr, UMO_OP_ROUND)._asint()
 

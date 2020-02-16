@@ -24,7 +24,11 @@ class Not final : public UnaryOp, public OutBoolOp, public InBoolOp {
     static Not instance;
 };
 
-class And final : public NaryOp, public OutBoolOp, public InBoolOp {
+class And final : public NaryOp,
+                  public OutBoolOp,
+                  public InBoolOp,
+                  public AssociativeOp,
+                  public IdempotentOp {
   public:
     std::string toString() const override {
         return "and";
@@ -41,7 +45,11 @@ class And final : public NaryOp, public OutBoolOp, public InBoolOp {
     static And instance;
 };
 
-class Or final : public NaryOp, public OutBoolOp, public InBoolOp {
+class Or final : public NaryOp,
+                 public OutBoolOp,
+                 public InBoolOp,
+                 public AssociativeOp,
+                 public IdempotentOp {
   public:
     std::string toString() const override {
         return "or";
@@ -58,7 +66,10 @@ class Or final : public NaryOp, public OutBoolOp, public InBoolOp {
     static Or instance;
 };
 
-class Xor final : public NaryOp, public OutBoolOp, public InBoolOp {
+class Xor final : public NaryOp,
+                  public OutBoolOp,
+                  public InBoolOp,
+                  public AssociativeOp {
   public:
     std::string toString() const override {
         return "xor";
@@ -74,8 +85,6 @@ class Xor final : public NaryOp, public OutBoolOp, public InBoolOp {
 
     static Xor instance;
 };
-
-
 }
 }
 

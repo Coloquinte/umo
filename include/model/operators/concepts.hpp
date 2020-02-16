@@ -163,6 +163,13 @@ class ComparisonOp : public OutBoolOp {
     const double relTol = 1.0e-6;
 };
 
+class AssociativeOp : virtual public Operator {
+    bool isAssociative() const final override { return true; }
+};
+
+class IdempotentOp : virtual public Operator {
+    bool isIdempotent() const final override { return true; }
+};
 }
 }
 

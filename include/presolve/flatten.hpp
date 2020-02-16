@@ -11,6 +11,7 @@ class Flatten final : public PresolverPass {
     std::string toString() const override { return "flatten"; }
 
     void run(PresolvedModel &model) override;
+    std::vector<ExpressionId> gatherFlattenedInputs(std::uint32_t var) const;
 };
 } // namespace presolve
 } // namespace umoi
