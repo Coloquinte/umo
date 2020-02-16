@@ -28,6 +28,7 @@ class TestUmoApi(unittest.TestCase):
         self.assertEqual(f2.value, -3.9)
         self.assertTrue(isinstance(f1, umo.FloatExpression))
         self.assertTrue(isinstance(f2, umo.FloatExpression))
+        m.check()
 
     def test_decisions(self):
         m = umo.Model()
@@ -49,6 +50,7 @@ class TestUmoApi(unittest.TestCase):
         self.assertEqual(x3.value, 1.0)
         x3.value = 1.83
         self.assertEqual(x3.value, 1.83)
+        m.check()
 
     def test_float_compute(self):
         m = umo.Model()
@@ -68,6 +70,7 @@ class TestUmoApi(unittest.TestCase):
                 self.assertEqual(x03.value, val1 * val2)
                 self.assertEqual(x04.value, val1 / val2)
                 self.assertEqual(x05.value, -val1)
+        m.check()
 
     def test_int_compute(self):
         m = umo.Model()
@@ -98,6 +101,7 @@ class TestUmoApi(unittest.TestCase):
                 self.assertEqual(x05.value, val1 % val2)
                 self.assertEqual(x06.value, -val1)
                 self.assertEqual(x07.value, +val1)
+        m.check()
 
     def test_bool_compute(self):
         m = umo.Model()
@@ -119,6 +123,7 @@ class TestUmoApi(unittest.TestCase):
                 self.assertEqual(x02.value, val1 | val2)
                 self.assertEqual(x03.value, val1 ^ val2)
                 self.assertEqual(x04.value, not val1)
+        m.check()
 
     def test_operations(self):
         m = umo.Model()
@@ -131,6 +136,7 @@ class TestUmoApi(unittest.TestCase):
             self.assertEqual(x01.value, math.exp(val))
             self.assertEqual(x02.value, math.cos(val))
             self.assertEqual(x03.value, math.atan(val))
+        m.check()
 
     def test_comparisons(self):
         m = umo.Model()
@@ -158,6 +164,7 @@ class TestUmoApi(unittest.TestCase):
                 self.assertEqual(x04.value, val1 >= val2)
                 self.assertEqual(x05.value, val1 < val2)
                 self.assertEqual(x06.value, val1 > val2)
+        m.check()
 
     def test_status(self):
         m = umo.Model()
@@ -167,6 +174,7 @@ class TestUmoApi(unittest.TestCase):
         self.assertEqual(m.status, umo.SolutionStatus.VALID)
         dec.value = False
         self.assertEqual(m.status, umo.SolutionStatus.INVALID)
+        m.check()
 
     def test_errors(self):
         m = umo.Model()
@@ -238,6 +246,7 @@ class TestUmoApi(unittest.TestCase):
         b16.value
         b17.value
         b18.value
+        m.check()
 
     def test_int_ops(self):
         m = umo.Model()
@@ -313,6 +322,7 @@ class TestUmoApi(unittest.TestCase):
         b16.value
         b17.value
         b18.value
+        m.check()
 
     def test_bool_ops(self):
         m = umo.Model()
@@ -338,6 +348,7 @@ class TestUmoApi(unittest.TestCase):
         b08.value
         b09.value
         b10.value
+        m.check()
 
     def test_compount_float(self):
         m = umo.Model()
@@ -357,6 +368,7 @@ class TestUmoApi(unittest.TestCase):
         dec2 /= dec1;
         self.assertTrue(isinstance(dec1, umo.FloatExpression))
         self.assertTrue(isinstance(dec2, umo.FloatExpression))
+        m.check()
 
     def test_compount_int(self):
         m = umo.Model()
@@ -374,6 +386,7 @@ class TestUmoApi(unittest.TestCase):
         dec2 %= dec1;
         self.assertTrue(isinstance(dec1, umo.IntExpression))
         self.assertTrue(isinstance(dec2, umo.IntExpression))
+        m.check()
 
     def test_compount_bool(self):
         m = umo.Model()
@@ -387,6 +400,7 @@ class TestUmoApi(unittest.TestCase):
         dec1 ^= True;
         self.assertTrue(isinstance(dec1, umo.BoolExpression))
         self.assertTrue(isinstance(dec2, umo.BoolExpression))
+        m.check()
 
     def test_intrinsics(self):
         m = umo.Model()
@@ -399,6 +413,7 @@ class TestUmoApi(unittest.TestCase):
             self.assertEqual(x01.value, abs(val1))
             self.assertEqual(x03.value, pow(val1, -3))
             self.assertEqual(x04.value, pow(val1, 4))
+        m.check()
 
     def test_int_intrinsics(self):
         m = umo.Model()
@@ -410,6 +425,14 @@ class TestUmoApi(unittest.TestCase):
             dec1.value = val1
             self.assertEqual(x01.value, abs(val1))
             self.assertEqual(x02.value, pow(val1, 4))
+        m.check()
+
+    def test_deletion(self):
+        m = umo.Model()
+        dec1 = m.bool_var()
+        m = None
+        dec2 = dec1.model.int_var(-10, 10)
+        dec1.model.check()
 
 
 if __name__ == '__main__':

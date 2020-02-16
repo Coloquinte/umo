@@ -186,9 +186,19 @@ cdef class Model:
         else:
             raise RuntimeError("Unknown solution status")
 
+    def solve(self):
+        cdef const char *err = NULL
+        umo_solve(self.ptr, &err)
+        unwrap_error(&err)
+
+    def check(self):
+        cdef const char *err = NULL
+        umo_check(self.ptr, &err)
+        unwrap_error(&err)
+
 
 cdef class Expression:
-    cdef object model
+    cdef readonly object model
     cdef long long v
 
     cdef umo_model *get_ptr(self):
