@@ -15,7 +15,8 @@ using namespace umoi;
             code                                                               \
         } catch (exception & e) {                                              \
             if (err != NULL) {                                                 \
-                char *msg = (char *)malloc(strlen(e.what()) * sizeof(char));   \
+                char *msg =                                                    \
+                    (char *)malloc((strlen(e.what()) + 1) * sizeof(char));     \
                 if (msg != NULL) {                                             \
                     strcpy(msg, e.what());                                     \
                     *err = msg;                                                \

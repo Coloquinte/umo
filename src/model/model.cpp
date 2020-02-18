@@ -38,7 +38,10 @@ bool isTypeCompatible(umo_type varType, double value) {
 }
 } // namespace
 
-Model::Model() { initDefaultParameters(); }
+Model::Model() { 
+    computed_ = false;
+    initDefaultParameters();
+}
 
 ExpressionId Model::createConstant(double value) {
     if (isnan(value)) {
