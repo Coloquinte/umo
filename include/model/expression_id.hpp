@@ -18,9 +18,11 @@ class ExpressionId {
 
     // Test "not" bit
     bool isNot() const { return v & 0x01; }
+    ExpressionId getNot() const { return fromRaw(v ^ 0x01); }
 
     // Test "minus" bit
     bool isMinus() const { return v & 0x02; }
+    ExpressionId getMinus() const { return fromRaw(v ^ 0x02); }
 
     // Index of the variable
     std::uint32_t var() const { return v >> 2; }

@@ -63,13 +63,23 @@ ExpressionId Model::createExpression(umo_operator op, long long *beginOp,
     }
 
     computed_ = false;
-    uint32_t var = nbExpressions();
     // Gather operands with type info
     ExpressionData expr(op);
     for (long long *it = beginOp; it != endOp; ++it) {
         expr.operands.push_back(ExpressionId::fromRaw(*it));
     }
     expr.type = checkAndInferType(expr);
+
+    // Handle compressed representations
+    if (op == UMO_OP_NOT) {
+        return operands[0].getNot();
+    }
+    if (op == UMO_OP_MINUS_UNARY) {
+        return operands[0].getMinus();
+    }
+
+    // Add the expression
+    uint32_t var = nbExpressions();
     expressions_.push_back(expr);
     values_.push_back(0.0);
     return ExpressionId(var, false, false);
@@ -205,6 +215,7 @@ vector<umo_operator> Model::getOperandOps(const ExpressionData &expr) const {
 void Model::check() const {
     checkTypes();
     checkTopologicalOrder();
+    checkCompressedOperands();
 }
 
 void Model::checkTypes() const {
@@ -228,6 +239,16 @@ void Model::checkTopologicalOrder() const {
             if (id.var() >= i)
                 throw runtime_error("The expressions are not in sorted order");
         }
+    }
+}
+
+void Model::checkCompressedOperands() const {
+    for (uint32_t i = 0; i < nbExpressions(); ++i) {
+        const ExpressionData &expr = expressions_[i];
+        if (expr.op == UMO_OP_NOT)
+            throw runtime_error("NOT expressions should be compressed");
+        if (expr.op == UMO_OP_MINUS_UNARY)
+            throw runtime_error("MINUS expressions should be compressed");
     }
 }
 

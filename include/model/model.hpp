@@ -43,6 +43,7 @@ class Model {
 
     void checkTypes() const;
     void checkTopologicalOrder() const;
+    void checkCompressedOperands() const;
 
   protected:
     void checkExpressionId(ExpressionId expr) const;

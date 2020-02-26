@@ -17,7 +17,7 @@ BOOST_AUTO_TEST_CASE(Model1) {
     FloatExpression fdec3 = model.floatVar(0.0, 10.0);
     maximize(fdec1 + 3.0 * fdec2 + 2 * fdec3);
     constraint(fdec1 + fdec2 <= 4.0 && fdec1 - fdec3 >= fdec2 - 1);
-    model.solve();
+    model.check();
 }
 
 BOOST_AUTO_TEST_CASE(Model2) {
@@ -27,7 +27,7 @@ BOOST_AUTO_TEST_CASE(Model2) {
     FloatExpression fdec3 = model.floatVar(1.0, 10.0);
     maximize(fdec1 + 3.0 * fdec2 + 2 / fdec3);
     constraint(fdec1 + fdec2 <= 4.0 && fdec1 / fdec3 >= 1.5 * fdec2);
-    model.solve();
+    model.check();
 }
 
 BOOST_AUTO_TEST_CASE(Model3) {
@@ -39,7 +39,7 @@ BOOST_AUTO_TEST_CASE(Model3) {
     constraint(fdec1 + fdec2 <= 4.0 || fdec1 / fdec3 >= 1.5 * fdec2);
     constraint(cos(fdec1) >= -1.2);
     constraint(sin(fdec2) <= 2.0);
-    model.solve();
+    model.check();
 }
 
 BOOST_AUTO_TEST_CASE(Knapsack1) {
@@ -54,4 +54,5 @@ BOOST_AUTO_TEST_CASE(Knapsack1) {
     }
     maximize(value);
     constraint(weight <= 1000.0);
+    model.check();
 }
