@@ -30,6 +30,8 @@ class ToLinear::Transformer {
     Element getElement(ExpressionId expr) const;
     // Helper function: constrain variable i to be within certain bounds of the summed operands
     void constrainToSum(uint32_t i, const vector<ExpressionId> &operands, double lb, double ub);
+    // Helper function: constrain variable i to be equal to factor * op
+    void constrainToProd(uint32_t i, ExpressionId op, double factor);
 
   private:
     PresolvedModel &model;
@@ -181,6 +183,29 @@ void ToLinear::Transformer::constrainToSum(uint32_t i, const vector<ExpressionId
     ExpressionId ubId = linearModel.createConstant(offset + ub);
     operands[0] = lbId;
     operands[1] = ubId;
+    // Constraint creation
+    ExpressionId linearized = linearModel.createExpression(UMO_OP_LINEARCOMP, operands);
+    linearModel.createConstraint(linearized);
+}
+
+void ToLinear::Transformer::constrainToProd(uint32_t i, ExpressionId op, double factor) {
+    vector<ExpressionId> operands;
+    // Reserve space for the bounds
+    operands.emplace_back();
+    operands.emplace_back();
+    Element elt = getElement(op);
+    operands.push_back(linearModel.createConstant(factor * elt.coef));
+    operands.push_back(ExpressionId(elt.var, false, false));
+    // Expression for the defined variable
+    operands.push_back(linearModel.createConstant(-1.0));
+    ExpressionId pi = linearModel.mapping().at(i);
+    assert (!pi.isNot() && !pi.isMinus());
+    operands.push_back(ExpressionId(pi.var(), false, false));
+    // Lower/upper bound of the constraint
+    ExpressionId constantId = linearModel.createConstant(factor * elt.constant);
+    operands[0] = constantId;
+    operands[1] = constantId;
+    // Constraint creation
     ExpressionId linearized = linearModel.createExpression(UMO_OP_LINEARCOMP, operands);
     linearModel.createConstraint(linearized);
 }
@@ -197,14 +222,29 @@ void ToLinear::Transformer::linearizeProd(uint32_t i) {
     double constantProd = 1.0;
     ExpressionId variableProd;
     for (ExpressionId id : expr.operands) {
+        if (model.isConstant(id.var())) {
+            constantProd *= model.getFloatValue(id);
+        }
+        else if (!variableProd.valid()) {
+            variableProd = id;
+        }
+        else {
+            THROW_ERROR("Impossible to linearize product with multiple variables");
+        }
     }
-    // TODO
+    if (variableProd.valid()) {
+        constrainToProd(i, variableProd, constantProd);
+    }
+    else {
+        constrainToSum(i, {}, -constantProd, -constantProd);
+    }
 }
 
 void ToLinear::Transformer::linearizeCompare(uint32_t i) {
     const auto &expr = model.expression(i);
     if (!model.isConstraint(i))
         THROW_ERROR("Comparisons that are not constraints are not handled yet");
+    // TODO
 }
 
 void ToLinear::Transformer::linearizeAnd(uint32_t i) {
