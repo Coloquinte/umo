@@ -248,11 +248,19 @@ bool Model::isDecision(uint32_t i) const {
 }
 
 bool Model::isConstraint(uint32_t i) const {
+    return isConstraintNeg(i) || isConstraintPos(i);
+}
+
+bool Model::isConstraintNeg(uint32_t i) const {
     if (expressions_[i].type != UMO_TYPE_BOOL)
         return false;
-    bool cTrue = constraints_.count(ExpressionId(i, false, false));
-    bool cFalse = constraints_.count(ExpressionId(i, true, false));
-    return cTrue || cFalse;
+    return constraints_.count(ExpressionId(i, true, false));
+}
+
+bool Model::isConstraintPos(uint32_t i) const {
+    if (expressions_[i].type != UMO_TYPE_BOOL)
+        return false;
+    return constraints_.count(ExpressionId(i, false, false));
 }
 
 bool Model::isObjective(uint32_t i) const {

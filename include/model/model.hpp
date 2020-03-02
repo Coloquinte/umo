@@ -51,6 +51,8 @@ class Model {
     bool isLeaf(std::uint32_t id) const;
     bool isDecision(std::uint32_t id) const;
     bool isConstraint(std::uint32_t id) const;
+    bool isConstraintNeg(std::uint32_t id) const;
+    bool isConstraintPos(std::uint32_t id) const;
     bool isObjective(std::uint32_t id) const;
 
     void write(std::ostream &) const;
