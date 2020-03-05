@@ -6,6 +6,8 @@
 #include "presolve/propagate_constants.hpp"
 #include "presolve/to_linear.hpp"
 
+#include <iostream>
+
 using namespace std;
 
 namespace umoi {

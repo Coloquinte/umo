@@ -1,12 +1,11 @@
 
 #include "model/model.hpp"
 
+#include <algorithm>
+#include <cassert>
 #include <cmath>
 #include <limits>
 #include <stdexcept>
-#include <algorithm>
-#include <cassert>
-#include <iostream>
 
 #include "model/operator.hpp"
 #include "presolve/presolve.hpp"
@@ -14,6 +13,7 @@
 using namespace umoi;
 using namespace std;
 
+namespace umoi {
 namespace {
 umo_type computeType(double value) {
     if (value == 0.0 || value == 1.0) {
@@ -41,7 +41,7 @@ bool isTypeCompatible(umo_type varType, double value) {
 }
 } // namespace
 
-Model::Model() { 
+Model::Model() {
     computed_ = false;
     initDefaultParameters();
 }
@@ -82,15 +82,15 @@ ExpressionId Model::createExpression(umo_operator op,
 
     // Handle compressed representations
     if (op == UMO_OP_NOT) {
-        assert (operands.size() == 1);
+        assert(operands.size() == 1);
         return operands[0].getNot();
     }
     if (op == UMO_OP_MINUS_UNARY) {
-        assert (operands.size() == 1);
+        assert(operands.size() == 1);
         return operands[0].getMinus();
     }
     if (op == UMO_OP_MINUS_BINARY) {
-        assert (operands.size() == 2);
+        assert(operands.size() == 2);
         expr.op = UMO_OP_SUM;
         expr.operands[1] = expr.operands[1].getMinus();
     }
@@ -303,7 +303,8 @@ void Model::checkCompressedOperands() const {
         if (expr.op == UMO_OP_MINUS_UNARY)
             throw runtime_error("Unary MINUS expressions should be compressed");
         if (expr.op == UMO_OP_MINUS_BINARY)
-            throw runtime_error("Binary MINUS expressions should be compressed");
+            throw runtime_error(
+                "Binary MINUS expressions should be compressed");
     }
 }
 
@@ -332,67 +333,4 @@ void Model::compute() {
 void Model::initDefaultParameters() {
     setFloatParameter("umo_time_limit", numeric_limits<double>::infinity());
 }
-
-void Model::write(ostream &os) const {
-    vector<uint32_t> varToId(nbExpressions(), -1);
-    uint32_t id = 0;
-    for (uint32_t i = 0; i < nbExpressions(); ++i) {
-        const ExpressionData &expr = expressions_[i];
-        if (expr.op == UMO_OP_INVALID) continue;
-        if (expr.op == UMO_OP_CONSTANT) continue;
-        varToId[i] = id++;
-    }
-    for (uint32_t i = 0; i < nbExpressions(); ++i) {
-        const ExpressionData &expr = expressions_[i];
-        if (expr.op == UMO_OP_INVALID) continue;
-        if (expr.op == UMO_OP_CONSTANT) continue;
-        os << "x" << varToId[i] << " <- " << Operator::get(expr.op).toString();
-        for (ExpressionId operand : expr.operands) {
-            umo_operator operandOp = expressions_[operand.var()].op;
-            os << " " << (operand.isMinus() ? "-" : "")
-                      << (operand.isNot() ? "!" : "");
-            if (operandOp == UMO_OP_CONSTANT) {
-                os  << values_[operand.var()];
-            }
-            else {
-                os  << "x" << varToId[operand.var()];
-            }
-        }
-        os << endl;
-    }
-    vector<ExpressionId> constraints(constraints_.begin(), constraints_.end());
-    sort(constraints.begin(), constraints.end());
-    for (ExpressionId constraint : constraints) {
-        os << "constraint";
-        umo_operator constraintOp = expressions_[constraint.var()].op;
-        os << " " << (constraint.isMinus() ? "-" : "")
-                  << (constraint.isNot() ? "!" : "");
-        if (constraintOp == UMO_OP_CONSTANT) {
-            os  << values_[constraint.var()];
-        }
-        else {
-            os  << "x" << varToId[constraint.var()];
-        }
-        os << endl;
-    }
-    for (const auto obj : objectives_) {
-        if (obj.second == UMO_OBJ_MAXIMIZE) {
-            os << "maximize";
-        }
-        else {
-            os << "minimize";
-        }
-        ExpressionId objective = obj.first;
-        umo_operator objectiveOp = expressions_[objective.var()].op;
-        os << " " << (objective.isMinus() ? "-" : "")
-                  << (objective.isNot() ? "!" : "");
-        if (objectiveOp == UMO_OP_CONSTANT) {
-            os  << values_[objective.var()];
-        }
-        else {
-            os  << "x" << varToId[objective.var()];
-        }
-        os << endl;
-    }
-}
-
+} // namespace umoi

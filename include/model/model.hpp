@@ -3,10 +3,10 @@
 #define __UMO_MODEL_HPP__
 
 #include <cstdint>
+#include <iosfwd>
 #include <unordered_map>
 #include <unordered_set>
 #include <vector>
-#include <iosfwd>
 
 #include "api/umo_enums.h"
 #include "model/expression_id.hpp"
@@ -15,6 +15,7 @@ namespace umoi {
 class Model {
   public:
     struct ExpressionData;
+    typedef std::pair<ExpressionId, umo_objective_direction> ObjectiveData;
 
   public:
     Model();
@@ -44,8 +45,21 @@ class Model {
     std::uint32_t nbConstraints() const { return constraints_.size(); }
     std::uint32_t nbObjectives() const { return objectives_.size(); }
 
-    const ExpressionData& expression(std::uint32_t id) const { return expressions_[id]; }
-    const double& value(std::uint32_t id) const { return values_[id]; }
+    const std::vector<ExpressionData> &expressions() const {
+        return expressions_;
+    }
+    const std::unordered_set<ExpressionId> &constraints() const {
+        return constraints_;
+    }
+    const std::vector<ObjectiveData> &objectives() const { return objectives_; }
+
+    const ExpressionData &expression(std::uint32_t id) const {
+        return expressions_[id];
+    }
+    const ObjectiveData &objective(std::uint32_t id) const {
+        return objectives_[id];
+    }
+    const double &value(std::uint32_t id) const { return values_[id]; }
 
     bool isConstant(std::uint32_t id) const;
     bool isLeaf(std::uint32_t id) const;
@@ -55,7 +69,14 @@ class Model {
     bool isConstraintPos(std::uint32_t id) const;
     bool isObjective(std::uint32_t id) const;
 
+    umo_type getExpressionIdType(ExpressionId expr) const;
+    umo_operator getExpressionIdOp(ExpressionId expr) const;
+    double getExpressionIdValue(ExpressionId expr) const;
+
     void write(std::ostream &) const;
+    void writeLp(std::ostream &) const;
+    void writeCnf(std::ostream &) const;
+    void writeAmpl(std::ostream &) const;
 
   protected:
     void checkTypes() const;
@@ -63,9 +84,6 @@ class Model {
     void checkCompressedOperands() const;
 
     void checkExpressionId(ExpressionId expr) const;
-    umo_type getExpressionIdType(ExpressionId expr) const;
-    umo_operator getExpressionIdOp(ExpressionId expr) const;
-    double getExpressionIdValue(ExpressionId expr) const;
 
     umo_type checkAndInferType(const ExpressionData &expr) const;
     std::vector<umo_type> getOperandTypes(const ExpressionData &expr) const;
@@ -82,7 +100,7 @@ class Model {
     std::unordered_set<ExpressionId> constraints_;
 
     // Objectives (ordered)
-    std::vector<std::pair<ExpressionId, umo_objective_direction>> objectives_;
+    std::vector<ObjectiveData> objectives_;
 
     // Constant values to variable
     std::unordered_map<double, std::uint32_t> constants_;
@@ -103,7 +121,7 @@ struct Model::ExpressionData {
     ExpressionData(umo_operator op, umo_type type) : op(op), type(type) {}
 };
 
-inline std::ostream& operator<<(std::ostream &os, const Model &model) {
+inline std::ostream &operator<<(std::ostream &os, const Model &model) {
     model.write(os);
     return os;
 }

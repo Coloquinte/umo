@@ -3,8 +3,8 @@
 #include "model/operator.hpp"
 #include "model/utils.hpp"
 
-#include <limits>
 #include <cassert>
+#include <limits>
 
 using namespace std;
 
@@ -27,14 +27,18 @@ class ToLinear::Transformer {
     void linearizeXor(uint32_t i);
 
     void linearizeConstrainedEq(ExpressionId op1, ExpressionId op2);
-    void linearizeConstrainedLess(ExpressionId op1, ExpressionId op2, double tol);
+    void linearizeConstrainedLess(ExpressionId op1, ExpressionId op2,
+                                  double margin);
     void linearizeConstrainedLeq(ExpressionId op1, ExpressionId op2);
     void linearizeConstrainedLt(ExpressionId op1, ExpressionId op2);
 
-    // Helper function: get affine coefficients for a compressed (not/minus) expression
+    // Helper function: get affine coefficients for a compressed (not/minus)
+    // expression
     Element getElement(ExpressionId expr) const;
-    // Helper function: constrain variable i to be within certain bounds of the summed operands
-    void constrainToSum(uint32_t i, const vector<ExpressionId> &operands, double lb, double ub);
+    // Helper function: constrain variable i to be within certain bounds of the
+    // summed operands
+    void constrainToSum(uint32_t i, const vector<ExpressionId> &operands,
+                        double lb, double ub);
     // Helper function: constrain variable i to be equal to factor * op
     void constrainToProd(uint32_t i, ExpressionId op, double factor);
 
@@ -48,7 +52,7 @@ class ToLinear::Transformer {
     ExpressionId constantPOne;
     ExpressionId constantMOne;
 
-    const double strictEqualityTol = 1.0e-6;
+    const double strictEqualityMargin= 1.0e-6;
 };
 
 struct ToLinear::Element {
@@ -58,8 +62,10 @@ struct ToLinear::Element {
 };
 
 ToLinear::Transformer::Transformer(PresolvedModel &model) : model(model) {
-    constantMInf = linearModel.createConstant(-numeric_limits<double>::infinity());
-    constantPInf = linearModel.createConstant(numeric_limits<double>::infinity());
+    constantMInf =
+        linearModel.createConstant(-numeric_limits<double>::infinity());
+    constantPInf =
+        linearModel.createConstant(numeric_limits<double>::infinity());
     constantZero = linearModel.createConstant(0.0);
     constantPOne = linearModel.createConstant(1.0);
     constantMOne = linearModel.createConstant(-1.0);
@@ -72,32 +78,37 @@ void ToLinear::Transformer::createExpressions() {
         if (model.isLeaf(i)) {
             ExpressionId newId;
             if (model.isConstraint(i)) {
-                throw runtime_error("Constraints on leaf expressions are not supported yet");
+                throw runtime_error(
+                    "Constraints on leaf expressions are not supported yet");
             } else if (expr.op == UMO_OP_DEC_BOOL) {
                 newId = linearModel.createExpression(UMO_OP_DEC_BOOL, {});
-            } else if (expr.op == UMO_OP_DEC_INT
-                    || expr.op == UMO_OP_DEC_FLOAT) {
-                ExpressionId lb = linearModel.createConstant(model.getFloatValue(expr.operands[0]));
-                ExpressionId ub = linearModel.createConstant(model.getFloatValue(expr.operands[1]));
+            } else if (expr.op == UMO_OP_DEC_INT ||
+                       expr.op == UMO_OP_DEC_FLOAT) {
+                ExpressionId lb = linearModel.createConstant(
+                    model.getFloatValue(expr.operands[0]));
+                ExpressionId ub = linearModel.createConstant(
+                    model.getFloatValue(expr.operands[1]));
                 newId = linearModel.createExpression(expr.op, {lb, ub});
-            }
-            else {
+            } else {
                 newId = linearModel.createConstant(model.value(i));
             }
             linearModel.mapping().emplace(i, newId);
         } else {
-            // TODO: check if we can skip the additional variable (for constraints for example)
-            // Other type of variable; convert it to a decision
+            // TODO: check if we can skip the additional variable (for
+            // constraints for example) Other type of variable; convert it to a
+            // decision
             ExpressionId newId;
             switch (expr.type) {
             case UMO_TYPE_BOOL:
                 newId = linearModel.createExpression(UMO_OP_DEC_BOOL, {});
                 break;
             case UMO_TYPE_INT:
-                newId = linearModel.createExpression(UMO_OP_DEC_INT, {constantMInf, constantPInf});
+                newId = linearModel.createExpression(
+                    UMO_OP_DEC_INT, {constantMInf, constantPInf});
                 break;
             case UMO_TYPE_FLOAT:
-                newId = linearModel.createExpression(UMO_OP_DEC_FLOAT, {constantMInf, constantPInf});
+                newId = linearModel.createExpression(
+                    UMO_OP_DEC_FLOAT, {constantMInf, constantPInf});
                 break;
             default:
                 THROW_ERROR("Invalid type " << expr.type << " encountered");
@@ -112,31 +123,31 @@ void ToLinear::Transformer::linearize(uint32_t i) {
         return;
     umo_operator op = model.expression(i).op;
     switch (op) {
-        case UMO_OP_SUM:
-            linearizeSum(i);
-            break;
-        case UMO_OP_PROD:
-            linearizeProd(i);
-            break;
-        case UMO_OP_CMP_EQ:
-        case UMO_OP_CMP_NEQ:
-        case UMO_OP_CMP_LEQ:
-        case UMO_OP_CMP_GEQ:
-        case UMO_OP_CMP_LT:
-        case UMO_OP_CMP_GT:
-            linearizeCompare(i);
-            break;
-        case UMO_OP_AND:
-            linearizeAnd(i);
-            break;
-        case UMO_OP_OR:
-            linearizeOr(i);
-            break;
-        case UMO_OP_XOR:
-            linearizeXor(i);
-            break;
-        default:
-            THROW_ERROR("Operand type " << op << " not handled for linearization");
+    case UMO_OP_SUM:
+        linearizeSum(i);
+        break;
+    case UMO_OP_PROD:
+        linearizeProd(i);
+        break;
+    case UMO_OP_CMP_EQ:
+    case UMO_OP_CMP_NEQ:
+    case UMO_OP_CMP_LEQ:
+    case UMO_OP_CMP_GEQ:
+    case UMO_OP_CMP_LT:
+    case UMO_OP_CMP_GT:
+        linearizeCompare(i);
+        break;
+    case UMO_OP_AND:
+        linearizeAnd(i);
+        break;
+    case UMO_OP_OR:
+        linearizeOr(i);
+        break;
+    case UMO_OP_XOR:
+        linearizeXor(i);
+        break;
+    default:
+        THROW_ERROR("Operand type " << op << " not handled for linearization");
     }
 }
 
@@ -150,7 +161,7 @@ void ToLinear::Transformer::run() {
 
 ToLinear::Element ToLinear::Transformer::getElement(ExpressionId id) const {
     ExpressionId pid = linearModel.mapping().at(id.var());
-    assert (!pid.isNot() && !pid.isMinus());
+    assert(!pid.isNot() && !pid.isMinus());
     Element elt;
     elt.var = pid.var();
     elt.constant = 0.0;
@@ -167,7 +178,9 @@ ToLinear::Element ToLinear::Transformer::getElement(ExpressionId id) const {
     return elt;
 }
 
-void ToLinear::Transformer::constrainToSum(uint32_t i, const vector<ExpressionId> &ops, double lb, double ub) {
+void ToLinear::Transformer::constrainToSum(uint32_t i,
+                                           const vector<ExpressionId> &ops,
+                                           double lb, double ub) {
     vector<ExpressionId> operands;
     // Reserve space for the bounds
     operands.emplace_back();
@@ -179,8 +192,7 @@ void ToLinear::Transformer::constrainToSum(uint32_t i, const vector<ExpressionId
         if (model.isConstant(id.var())) {
             // Accumulate constants
             offset += model.getFloatValue(id);
-        }
-        else {
+        } else {
             // Other operands are given a coef
             Element elt = getElement(id);
             operands.push_back(linearModel.createConstant(elt.coef));
@@ -191,7 +203,7 @@ void ToLinear::Transformer::constrainToSum(uint32_t i, const vector<ExpressionId
     // Expression for the defined variable
     operands.push_back(linearModel.createConstant(-1.0));
     ExpressionId pi = linearModel.mapping().at(i);
-    assert (!pi.isNot() && !pi.isMinus());
+    assert(!pi.isNot() && !pi.isMinus());
     operands.push_back(ExpressionId(pi.var(), false, false));
     // Lower/upper bound of the constraint
     ExpressionId lbId = linearModel.createConstant(offset + lb);
@@ -199,11 +211,13 @@ void ToLinear::Transformer::constrainToSum(uint32_t i, const vector<ExpressionId
     operands[0] = lbId;
     operands[1] = ubId;
     // Constraint creation
-    ExpressionId linearized = linearModel.createExpression(UMO_OP_LINEARCOMP, operands);
+    ExpressionId linearized =
+        linearModel.createExpression(UMO_OP_LINEARCOMP, operands);
     linearModel.createConstraint(linearized);
 }
 
-void ToLinear::Transformer::constrainToProd(uint32_t i, ExpressionId op, double factor) {
+void ToLinear::Transformer::constrainToProd(uint32_t i, ExpressionId op,
+                                            double factor) {
     vector<ExpressionId> operands;
     // Reserve space for the bounds
     operands.emplace_back();
@@ -214,18 +228,20 @@ void ToLinear::Transformer::constrainToProd(uint32_t i, ExpressionId op, double 
     // Expression for the defined variable
     operands.push_back(linearModel.createConstant(-1.0));
     ExpressionId pi = linearModel.mapping().at(i);
-    assert (!pi.isNot() && !pi.isMinus());
+    assert(!pi.isNot() && !pi.isMinus());
     operands.push_back(ExpressionId(pi.var(), false, false));
     // Lower/upper bound of the constraint
     ExpressionId constantId = linearModel.createConstant(factor * elt.constant);
     operands[0] = constantId;
     operands[1] = constantId;
     // Constraint creation
-    ExpressionId linearized = linearModel.createExpression(UMO_OP_LINEARCOMP, operands);
+    ExpressionId linearized =
+        linearModel.createExpression(UMO_OP_LINEARCOMP, operands);
     linearModel.createConstraint(linearized);
 }
 
-void ToLinear::Transformer::linearizeConstrainedEq(ExpressionId op1, ExpressionId op2) {
+void ToLinear::Transformer::linearizeConstrainedEq(ExpressionId op1,
+                                                   ExpressionId op2) {
     Element elt1 = getElement(op2);
     Element elt2 = getElement(op1);
     vector<ExpressionId> operands;
@@ -237,15 +253,19 @@ void ToLinear::Transformer::linearizeConstrainedEq(ExpressionId op1, ExpressionI
     operands.push_back(linearModel.createConstant(-elt2.coef));
     operands.push_back(ExpressionId(elt2.var, false, false));
     // Lower/upper bound of the constraint
-    ExpressionId constantId = linearModel.createConstant(elt1.constant - elt2.constant);
+    ExpressionId constantId =
+        linearModel.createConstant(elt1.constant - elt2.constant);
     operands[0] = constantId;
     operands[1] = constantId;
     // Constraint creation
-    ExpressionId linearized = linearModel.createExpression(UMO_OP_LINEARCOMP, operands);
+    ExpressionId linearized =
+        linearModel.createExpression(UMO_OP_LINEARCOMP, operands);
     linearModel.createConstraint(linearized);
 }
 
-void ToLinear::Transformer::linearizeConstrainedLess(ExpressionId op1, ExpressionId op2, double tol) {
+void ToLinear::Transformer::linearizeConstrainedLess(ExpressionId op1,
+                                                     ExpressionId op2,
+                                                     double margin) {
     Element elt1 = getElement(op2);
     Element elt2 = getElement(op1);
     vector<ExpressionId> operands;
@@ -257,21 +277,26 @@ void ToLinear::Transformer::linearizeConstrainedLess(ExpressionId op1, Expressio
     operands.push_back(linearModel.createConstant(-elt2.coef));
     operands.push_back(ExpressionId(elt2.var, false, false));
     // Lower/upper bound of the constraint
-    ExpressionId lbId = linearModel.createConstant(-numeric_limits<double>::infinity());
-    ExpressionId ubId = linearModel.createConstant(elt1.constant - elt2.constant - tol);
+    ExpressionId lbId =
+        linearModel.createConstant(-numeric_limits<double>::infinity());
+    ExpressionId ubId =
+        linearModel.createConstant(elt1.constant - elt2.constant - margin);
     operands[0] = lbId;
     operands[1] = ubId;
     // Constraint creation
-    ExpressionId linearized = linearModel.createExpression(UMO_OP_LINEARCOMP, operands);
+    ExpressionId linearized =
+        linearModel.createExpression(UMO_OP_LINEARCOMP, operands);
     linearModel.createConstraint(linearized);
 }
 
-void ToLinear::Transformer::linearizeConstrainedLeq(ExpressionId op1, ExpressionId op2) {
+void ToLinear::Transformer::linearizeConstrainedLeq(ExpressionId op1,
+                                                    ExpressionId op2) {
     linearizeConstrainedLess(op1, op2, 0.0);
 }
 
-void ToLinear::Transformer::linearizeConstrainedLt(ExpressionId op1, ExpressionId op2) {
-    linearizeConstrainedLess(op1, op2, strictEqualityTol);
+void ToLinear::Transformer::linearizeConstrainedLt(ExpressionId op1,
+                                                   ExpressionId op2) {
+    linearizeConstrainedLess(op1, op2, strictEqualityMargin);
 }
 
 void ToLinear::Transformer::linearizeSum(uint32_t i) {
@@ -288,18 +313,16 @@ void ToLinear::Transformer::linearizeProd(uint32_t i) {
     for (ExpressionId id : expr.operands) {
         if (model.isConstant(id.var())) {
             constantProd *= model.getFloatValue(id);
-        }
-        else if (!variableProd.valid()) {
+        } else if (!variableProd.valid()) {
             variableProd = id;
-        }
-        else {
-            THROW_ERROR("Impossible to linearize product with multiple variables");
+        } else {
+            THROW_ERROR(
+                "Impossible to linearize product with multiple variables");
         }
     }
     if (variableProd.valid()) {
         constrainToProd(i, variableProd, constantProd);
-    }
-    else {
+    } else {
         constrainToSum(i, {}, -constantProd, -constantProd);
     }
 }
@@ -313,53 +336,52 @@ void ToLinear::Transformer::linearizeCompare(uint32_t i) {
     ExpressionId op2 = expr.operands[1];
 
     if (model.isConstraintPos(i)) {
-        switch(expr.op) {
-            case UMO_OP_CMP_EQ:
-                linearizeConstrainedEq(op1, op2);
-                break;
-            case UMO_OP_CMP_NEQ:
-                THROW_ERROR("Impossible to constraint not equal")
-                break;
-            case UMO_OP_CMP_LEQ:
-                linearizeConstrainedLeq(op1, op2);
-                break;
-            case UMO_OP_CMP_GEQ:
-                linearizeConstrainedLeq(op2, op1);
-                break;
-            case UMO_OP_CMP_LT:
-                linearizeConstrainedLt(op1, op2);
-                break;
-            case UMO_OP_CMP_GT:
-                linearizeConstrainedLt(op2, op1);
-                break;
-            default:
-                THROW_ERROR("Operator is not handled")
-                break;
+        switch (expr.op) {
+        case UMO_OP_CMP_EQ:
+            linearizeConstrainedEq(op1, op2);
+            break;
+        case UMO_OP_CMP_NEQ:
+            THROW_ERROR("Impossible to constraint not equal")
+            break;
+        case UMO_OP_CMP_LEQ:
+            linearizeConstrainedLeq(op1, op2);
+            break;
+        case UMO_OP_CMP_GEQ:
+            linearizeConstrainedLeq(op2, op1);
+            break;
+        case UMO_OP_CMP_LT:
+            linearizeConstrainedLt(op1, op2);
+            break;
+        case UMO_OP_CMP_GT:
+            linearizeConstrainedLt(op2, op1);
+            break;
+        default:
+            THROW_ERROR("Operator is not handled")
+            break;
         }
-    }
-    else {
-        switch(expr.op) {
-            case UMO_OP_CMP_EQ:
-                THROW_ERROR("Impossible to constraint not equal")
-                break;
-            case UMO_OP_CMP_NEQ:
-                linearizeConstrainedEq(op1, op2);
-                break;
-            case UMO_OP_CMP_LEQ:
-                linearizeConstrainedLt(op2, op1);
-                break;
-            case UMO_OP_CMP_GEQ:
-                linearizeConstrainedLt(op1, op2);
-                break;
-            case UMO_OP_CMP_LT:
-                linearizeConstrainedLeq(op2, op1);
-                break;
-            case UMO_OP_CMP_GT:
-                linearizeConstrainedLeq(op1, op2);
-                break;
-            default:
-                THROW_ERROR("Operator is not handled")
-                break;
+    } else {
+        switch (expr.op) {
+        case UMO_OP_CMP_EQ:
+            THROW_ERROR("Impossible to constraint not equal")
+            break;
+        case UMO_OP_CMP_NEQ:
+            linearizeConstrainedEq(op1, op2);
+            break;
+        case UMO_OP_CMP_LEQ:
+            linearizeConstrainedLt(op2, op1);
+            break;
+        case UMO_OP_CMP_GEQ:
+            linearizeConstrainedLt(op1, op2);
+            break;
+        case UMO_OP_CMP_LT:
+            linearizeConstrainedLeq(op2, op1);
+            break;
+        case UMO_OP_CMP_GT:
+            linearizeConstrainedLeq(op1, op2);
+            break;
+        default:
+            THROW_ERROR("Operator is not handled")
+            break;
         }
     }
 }
@@ -368,7 +390,8 @@ void ToLinear::Transformer::linearizeAnd(uint32_t i) {
     const auto &expr = model.expression(i);
     assert(expr.op == UMO_OP_AND);
     // all operands true ==> y; sum xi - y <= n-1
-    constrainToSum(i, expr.operands, -numeric_limits<double>::infinity(), expr.operands.size() - 1);
+    constrainToSum(i, expr.operands, -numeric_limits<double>::infinity(),
+                   expr.operands.size() - 1);
     // y ==> Any operand; xi - y >= 0
     for (ExpressionId op : expr.operands) {
         constrainToSum(i, {op}, 0.0, numeric_limits<double>::infinity());
