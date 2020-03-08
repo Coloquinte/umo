@@ -35,6 +35,9 @@ class ToLinear::Transformer {
     // Helper function: get affine coefficients for a compressed (not/minus)
     // expression
     Element getElement(ExpressionId expr) const;
+    // Helper function: direct expression of a constraint
+    void makeConstraint(const vector<double> &coefs, const vector<ExpressionId> &operands,
+                        double lb, double ub);
     // Helper function: constrain variable i to be within certain bounds of the
     // summed operands
     void constrainToSum(uint32_t i, const vector<ExpressionId> &operands,
@@ -75,7 +78,11 @@ void ToLinear::Transformer::createExpressions() {
     // Copy expressions
     for (uint32_t i = 0; i < model.nbExpressions(); ++i) {
         const auto &expr = model.expression(i);
-        if (model.isLeaf(i)) {
+        if (expr.op == UMO_OP_INVALID)
+            continue;
+        if (expr.op == UMO_OP_CONSTANT)
+            continue;
+        if (model.isDecision(i)) {
             ExpressionId newId;
             if (model.isConstraint(i)) {
                 throw runtime_error(
@@ -85,18 +92,15 @@ void ToLinear::Transformer::createExpressions() {
             } else if (expr.op == UMO_OP_DEC_INT ||
                        expr.op == UMO_OP_DEC_FLOAT) {
                 ExpressionId lb = linearModel.createConstant(
-                    model.getFloatValue(expr.operands[0]));
+                    model.getExpressionIdValue(expr.operands[0]));
                 ExpressionId ub = linearModel.createConstant(
-                    model.getFloatValue(expr.operands[1]));
+                    model.getExpressionIdValue(expr.operands[1]));
                 newId = linearModel.createExpression(expr.op, {lb, ub});
-            } else {
-                newId = linearModel.createConstant(model.value(i));
             }
             linearModel.mapping().emplace(i, newId);
         } else {
             // TODO: check if we can skip the additional variable (for
-            // constraints for example) Other type of variable; convert it to a
-            // decision
+            // constraints for example).
             ExpressionId newId;
             switch (expr.type) {
             case UMO_TYPE_BOOL:
@@ -178,36 +182,48 @@ ToLinear::Element ToLinear::Transformer::getElement(ExpressionId id) const {
     return elt;
 }
 
-void ToLinear::Transformer::constrainToSum(uint32_t i,
+void ToLinear::Transformer::makeConstraint(const vector<double> &coefs,
                                            const vector<ExpressionId> &ops,
                                            double lb, double ub) {
+    if (lb > ub) {
+        THROW_ERROR("Lower bound bigger than upper bound during linearization: the model is obviously inconsistent");
+    }
+    assert(coefs.size() == ops.size());
     vector<ExpressionId> operands;
     // Reserve space for the bounds
     operands.emplace_back();
     operands.emplace_back();
     // Overall offset for the constraint's bounds
     double offset = 0.0;
-    // Expressions for the operands
-    for (ExpressionId id : ops) {
-        if (model.isConstant(id.var())) {
-            // Accumulate constants
-            offset += model.getFloatValue(id);
-        } else {
-            // Other operands are given a coef
-            Element elt = getElement(id);
+    // Gather all operands; handle constants and compressed operands efficiently
+    for (uint32_t i = 0; i < coefs.size(); ++i) {
+        double coef = coefs[i];
+        if (model.isConstant(ops[i].var())) {
+            offset += coef * model.getExpressionIdValue(ops[i]);
+        }
+        else {
+            Element elt = getElement(ops[i]);
             operands.push_back(linearModel.createConstant(elt.coef));
             operands.push_back(ExpressionId(elt.var, false, false));
             offset += elt.constant;
         }
     }
-    // Expression for the defined variable
-    operands.push_back(linearModel.createConstant(-1.0));
-    ExpressionId pi = linearModel.mapping().at(i);
-    assert(!pi.isNot() && !pi.isMinus());
-    operands.push_back(ExpressionId(pi.var(), false, false));
     // Lower/upper bound of the constraint
-    ExpressionId lbId = linearModel.createConstant(offset + lb);
-    ExpressionId ubId = linearModel.createConstant(offset + ub);
+    lb += offset;
+    ub += offset;
+    if (operands.size() == 2) {
+        // TODO: add some margin here
+        if (lb > 0.0 || ub < 0.0) {
+            // Obviously invalid
+            THROW_ERROR("Constraint is obviously infeasible");
+        }
+        else {
+            // Obviously valid
+            return;
+        }
+    }
+    ExpressionId lbId = linearModel.createConstant(lb);
+    ExpressionId ubId = linearModel.createConstant(ub);
     operands[0] = lbId;
     operands[1] = ubId;
     // Constraint creation
@@ -216,77 +232,36 @@ void ToLinear::Transformer::constrainToSum(uint32_t i,
     linearModel.createConstraint(linearized);
 }
 
+void ToLinear::Transformer::constrainToSum(uint32_t i,
+                                           const vector<ExpressionId> &ops,
+                                           double lb, double ub) {
+    vector<double> coefs(ops.size(), 1.0);
+    coefs.push_back(-1.0);
+    vector<ExpressionId> operands = ops;
+    operands.push_back(ExpressionId(i, false, false));
+    makeConstraint(coefs, operands, lb, ub);
+}
+
 void ToLinear::Transformer::constrainToProd(uint32_t i, ExpressionId op,
                                             double factor) {
-    vector<ExpressionId> operands;
-    // Reserve space for the bounds
-    operands.emplace_back();
-    operands.emplace_back();
-    Element elt = getElement(op);
-    operands.push_back(linearModel.createConstant(factor * elt.coef));
-    operands.push_back(ExpressionId(elt.var, false, false));
-    // Expression for the defined variable
-    operands.push_back(linearModel.createConstant(-1.0));
-    ExpressionId pi = linearModel.mapping().at(i);
-    assert(!pi.isNot() && !pi.isMinus());
-    operands.push_back(ExpressionId(pi.var(), false, false));
-    // Lower/upper bound of the constraint
-    ExpressionId constantId = linearModel.createConstant(factor * elt.constant);
-    operands[0] = constantId;
-    operands[1] = constantId;
-    // Constraint creation
-    ExpressionId linearized =
-        linearModel.createExpression(UMO_OP_LINEARCOMP, operands);
-    linearModel.createConstraint(linearized);
+    vector<double> coefs = { factor, -1.0 };
+    vector<ExpressionId> ops = { op, ExpressionId(i, false, false) };
+    makeConstraint(coefs, ops, 0.0, 0.0);
 }
 
 void ToLinear::Transformer::linearizeConstrainedEq(ExpressionId op1,
                                                    ExpressionId op2) {
-    Element elt1 = getElement(op2);
-    Element elt2 = getElement(op1);
-    vector<ExpressionId> operands;
-    // Reserve space for the bounds
-    operands.emplace_back();
-    operands.emplace_back();
-    operands.push_back(linearModel.createConstant(elt1.coef));
-    operands.push_back(ExpressionId(elt1.var, false, false));
-    operands.push_back(linearModel.createConstant(-elt2.coef));
-    operands.push_back(ExpressionId(elt2.var, false, false));
-    // Lower/upper bound of the constraint
-    ExpressionId constantId =
-        linearModel.createConstant(elt1.constant - elt2.constant);
-    operands[0] = constantId;
-    operands[1] = constantId;
-    // Constraint creation
-    ExpressionId linearized =
-        linearModel.createExpression(UMO_OP_LINEARCOMP, operands);
-    linearModel.createConstraint(linearized);
+    vector<double> coefs = { 1.0, -1.0 };
+    vector<ExpressionId> ops = { op1, op2 };
+    makeConstraint(coefs, ops, 0.0, 0.0);
 }
 
 void ToLinear::Transformer::linearizeConstrainedLess(ExpressionId op1,
                                                      ExpressionId op2,
                                                      double margin) {
-    Element elt1 = getElement(op2);
-    Element elt2 = getElement(op1);
-    vector<ExpressionId> operands;
-    // Reserve space for the bounds
-    operands.emplace_back();
-    operands.emplace_back();
-    operands.push_back(linearModel.createConstant(elt1.coef));
-    operands.push_back(ExpressionId(elt1.var, false, false));
-    operands.push_back(linearModel.createConstant(-elt2.coef));
-    operands.push_back(ExpressionId(elt2.var, false, false));
-    // Lower/upper bound of the constraint
-    ExpressionId lbId =
-        linearModel.createConstant(-numeric_limits<double>::infinity());
-    ExpressionId ubId =
-        linearModel.createConstant(elt1.constant - elt2.constant - margin);
-    operands[0] = lbId;
-    operands[1] = ubId;
-    // Constraint creation
-    ExpressionId linearized =
-        linearModel.createExpression(UMO_OP_LINEARCOMP, operands);
-    linearModel.createConstraint(linearized);
+    vector<double> coefs = { 1.0, -1.0 };
+    vector<ExpressionId> ops = { op1, op2 };
+    makeConstraint(coefs, ops, -numeric_limits<double>::infinity(), -margin);
 }
 
 void ToLinear::Transformer::linearizeConstrainedLeq(ExpressionId op1,
@@ -312,7 +287,7 @@ void ToLinear::Transformer::linearizeProd(uint32_t i) {
     ExpressionId variableProd;
     for (ExpressionId id : expr.operands) {
         if (model.isConstant(id.var())) {
-            constantProd *= model.getFloatValue(id);
+            constantProd *= model.getExpressionIdValue(id);
         } else if (!variableProd.valid()) {
             variableProd = id;
         } else {
@@ -331,6 +306,8 @@ void ToLinear::Transformer::linearizeCompare(uint32_t i) {
     const auto &expr = model.expression(i);
     if (!model.isConstraint(i))
         THROW_ERROR("Comparisons that are not constraints are not handled yet");
+    if (model.isConstraintPos(i) && model.isConstraintNeg(i))
+        THROW_ERROR("The variable is constrained both ways. Model is obviousliy inconsistent");
 
     ExpressionId op1 = expr.operands[0];
     ExpressionId op2 = expr.operands[1];
@@ -341,7 +318,7 @@ void ToLinear::Transformer::linearizeCompare(uint32_t i) {
             linearizeConstrainedEq(op1, op2);
             break;
         case UMO_OP_CMP_NEQ:
-            THROW_ERROR("Impossible to constraint not equal")
+            THROW_ERROR("Impossible to constrain not equal")
             break;
         case UMO_OP_CMP_LEQ:
             linearizeConstrainedLeq(op1, op2);
@@ -362,7 +339,7 @@ void ToLinear::Transformer::linearizeCompare(uint32_t i) {
     } else {
         switch (expr.op) {
         case UMO_OP_CMP_EQ:
-            THROW_ERROR("Impossible to constraint not equal")
+            THROW_ERROR("Impossible to constrain not equal")
             break;
         case UMO_OP_CMP_NEQ:
             linearizeConstrainedEq(op1, op2);
