@@ -12,7 +12,9 @@ SET(SOURCES
   src/api/c_api.cpp
   src/api/cpp_api.cpp
   src/model/model.cpp
-  src/model/io.cpp
+  src/model/writer_umo.cpp
+  src/model/writer_lp.cpp
+  src/model/writer_cnf.cpp
   src/model/operator.cpp
   src/model/presolved_model.cpp
   src/presolve/presolve.cpp

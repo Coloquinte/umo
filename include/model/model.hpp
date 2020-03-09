@@ -73,10 +73,9 @@ class Model {
     umo_operator getExpressionIdOp(ExpressionId expr) const;
     double getExpressionIdValue(ExpressionId expr) const;
 
-    void write(std::ostream &) const;
+    void writeUmo(std::ostream &) const;
     void writeLp(std::ostream &) const;
     void writeCnf(std::ostream &) const;
-    void writeAmpl(std::ostream &) const;
 
   protected:
     void checkTypes() const;
@@ -122,7 +121,7 @@ struct Model::ExpressionData {
 };
 
 inline std::ostream &operator<<(std::ostream &os, const Model &model) {
-    model.write(os);
+    model.writeUmo(os);
     return os;
 }
 } // namespace umoi

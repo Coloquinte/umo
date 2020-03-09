@@ -13,28 +13,20 @@ using namespace std;
 
 namespace umoi {
 
-class ModelWriter {
+class ModelWriterLp {
   public:
-    ModelWriter(const Model &m, ostream &s);
+    ModelWriterLp(const Model &m, ostream &s);
 
     void write();
-    void writeLp();
-    void writeCnf();
-    void writeAmpl();
 
   protected:
     void initVarToId();
 
-    // Basic helpers
     string varName(uint32_t i) const;
     string exprName(ExpressionId id) const;
-
-    // Checkers
-    void checkLp() const;
-    void checkCnf() const;
-
-    // Helper writers
     void writeLpLinearExpression(uint32_t i);
+
+    void check() const;
 
   private:
     const Model &m_;
@@ -42,43 +34,13 @@ class ModelWriter {
     vector<uint32_t> varToId_;
 };
 
-ModelWriter::ModelWriter(const Model &m, ostream &s)
+ModelWriterLp::ModelWriterLp(const Model &m, ostream &s)
 : m_(m)
 , s_(s) {
 }
 
-void ModelWriter::write() {
-    initVarToId();
-    for (uint32_t i = 0; i < m_.nbExpressions(); ++i) {
-        const Model::ExpressionData &expr = m_.expression(i);
-        if (expr.op == UMO_OP_INVALID)
-            continue;
-        if (expr.op == UMO_OP_CONSTANT)
-            continue;
-        s_ << varName(i) << " <- " << Operator::get(expr.op).toString();
-        for (ExpressionId operand : expr.operands) {
-            s_ << " " << exprName(operand);
-        }
-        s_ << endl;
-    }
-    vector<ExpressionId> constraints(m_.constraints().begin(), m_.constraints().end());
-    sort(constraints.begin(), constraints.end());
-    for (ExpressionId constraint : constraints) {
-        s_ << "constraint " << exprName(constraint) << endl;
-    }
-    for (const auto obj : m_.objectives()) {
-        if (obj.second == UMO_OBJ_MAXIMIZE) {
-            s_ << "maximize ";
-        } else {
-            s_ << "minimize ";
-        }
-        s_ << exprName(obj.first) << endl;
-    }
-    s_ << endl;
-}
-
-void ModelWriter::writeLp() {
-    checkLp();
+void ModelWriterLp::write() {
+    check();
     initVarToId();
     // Write the objectives
     if (m_.nbObjectives() == 1) {
@@ -150,13 +112,7 @@ void ModelWriter::writeLp() {
     s_ << "End" << endl;
 }
 
-void ModelWriter::writeCnf() {
-}
-
-void ModelWriter::writeAmpl() {
-}
-
-void ModelWriter::initVarToId() {
+void ModelWriterLp::initVarToId() {
     varToId_.assign(m_.nbExpressions(), -1);
     uint32_t id = 0;
     for (uint32_t i = 0; i < m_.nbExpressions(); ++i) {
@@ -169,7 +125,7 @@ void ModelWriter::initVarToId() {
     }
 }
 
-string ModelWriter::varName(uint32_t i) const {
+string ModelWriterLp::varName(uint32_t i) const {
     if (varToId_[i] == (uint32_t) -1) {
         THROW_ERROR("Expression " << i << " (operator " << m_.expression(i).op << ") hasn't been assigned a name");
     }
@@ -178,7 +134,7 @@ string ModelWriter::varName(uint32_t i) const {
     return s.str();
 }
 
-string ModelWriter::exprName(ExpressionId id) const {
+string ModelWriterLp::exprName(ExpressionId id) const {
     stringstream s;
     s << (id.isMinus() ? "-" : "");
     s << (id.isNot() ? "!" : "");
@@ -192,7 +148,7 @@ string ModelWriter::exprName(ExpressionId id) const {
     return s.str();
 }
 
-void ModelWriter::checkLp() const {
+void ModelWriterLp::check() const {
     if (m_.nbObjectives() > 1) {
         THROW_ERROR("Multiple objectives are not supported by the LP file writer");
     }
@@ -225,33 +181,7 @@ void ModelWriter::checkLp() const {
     }
 }
 
-void ModelWriter::checkCnf() const {
-    if (m_.nbObjectives() > 0) {
-        THROW_ERROR("Objectives are not supported by the CNF file writer");
-    }
-    for (uint32_t i = 0; i < m_.nbExpressions(); ++i) {
-        umo_operator op = m_.expression(i).op;
-        if (op == UMO_OP_INVALID)
-            continue;
-        if (op == UMO_OP_CONSTANT)
-            continue;
-        if (op == UMO_OP_DEC_BOOL) {
-            if (m_.isConstraint(i)) {
-                THROW_ERROR("Variables cannot be constraints for the CNF file writer");
-            }
-            continue;
-        }
-        if (op == UMO_OP_OR) {
-            if (m_.isConstraintNeg(i) || !m_.isConstraintPos(i)) {
-                THROW_ERROR("All comparisons must be constraints for the CNF file writer");
-            }
-            continue;
-        }
-        THROW_ERROR("Operator " << op << " is not handled by the CNF file writer");
-    }
-}
-
-void ModelWriter::writeLpLinearExpression(uint32_t i) {
+void ModelWriterLp::writeLpLinearExpression(uint32_t i) {
     const Model::ExpressionData &expr = m_.expression(i);
     for (uint32_t j = 1; 2 * j + 1 < expr.operands.size(); ++j) {
         double val = m_.value(expr.operands[2*j].var());
@@ -266,31 +196,10 @@ void ModelWriter::writeLpLinearExpression(uint32_t i) {
     }
 }
 
-void Model::write(ostream &os) const {
-    /*
-     * Write the model in a textual format for debug purposes
-     */
-    ModelWriter(*this, os).write();
-}
-
 void Model::writeLp(ostream &os) const {
     /*
      * Write the model in LP format for compatibility with MILP solvers
      */
-    ModelWriter(*this, os).writeLp();
-}
-
-void Model::writeCnf(ostream &os) const {
-    /*
-     * Write the model in CNF format for compatibility with SAT solvers
-     */
-    ModelWriter(*this, os).writeCnf();
-}
-
-void Model::writeAmpl(ostream &os) const {
-    /*
-     * Write the model in AMPL format for compatibility with MINLP solvers
-     */
-    ModelWriter(*this, os).writeAmpl();
+    ModelWriterLp(*this, os).write();
 }
 } // namespace umoi
