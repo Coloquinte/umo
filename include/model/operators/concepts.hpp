@@ -158,6 +158,8 @@ class ComparisonOp : public OutBoolOp {
         return op1 >= op2 || compareEq(op1, op2);
     }
 
+    bool isComparison() const final override { return true; }
+
     // TODO: make tolerance a runtime parameter
     const double absTol = 1.0e-8;
     const double relTol = 1.0e-6;

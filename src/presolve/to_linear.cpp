@@ -82,12 +82,21 @@ void ToLinear::Transformer::createExpressions() {
             continue;
         if (expr.op == UMO_OP_CONSTANT)
             continue;
-        if (model.isDecision(i)) {
-            ExpressionId newId;
-            if (model.isConstraint(i)) {
+        if (model.isConstraint(i)) {
+            if (!model.isConstraintPos(i)) {
+                linearModel.mapping().emplace(i, constantZero);
+            }
+            else if (!model.isConstraintNeg(i)) {
+                linearModel.mapping().emplace(i, constantPOne);
+            }
+            else {
                 throw runtime_error(
-                    "Constraints on leaf expressions are not supported yet");
-            } else if (expr.op == UMO_OP_DEC_BOOL) {
+                    "Inconsistent opposite constraints are not supported yet");
+            }
+        }
+        else if (model.isDecision(i)) {
+            ExpressionId newId;
+            if (expr.op == UMO_OP_DEC_BOOL) {
                 newId = linearModel.createExpression(UMO_OP_DEC_BOOL, {});
             } else if (expr.op == UMO_OP_DEC_INT ||
                        expr.op == UMO_OP_DEC_FLOAT) {
@@ -99,8 +108,6 @@ void ToLinear::Transformer::createExpressions() {
             }
             linearModel.mapping().emplace(i, newId);
         } else {
-            // TODO: check if we can skip the additional variable (for
-            // constraints for example).
             ExpressionId newId;
             switch (expr.type) {
             case UMO_TYPE_BOOL:
@@ -203,9 +210,15 @@ void ToLinear::Transformer::makeConstraint(const vector<double> &coefs,
         }
         else {
             Element elt = getElement(ops[i]);
-            operands.push_back(linearModel.createConstant(elt.coef));
-            operands.push_back(ExpressionId(elt.var, false, false));
-            offset += elt.constant;
+            if (linearModel.isConstant(elt.var)) {
+                // Constant in the linear model (happens for example when replacing a constraint)
+                offset += elt.constant + elt.coef * linearModel.value(elt.var);
+            }
+            else {
+                operands.push_back(linearModel.createConstant(coef * elt.coef));
+                operands.push_back(ExpressionId(elt.var, false, false));
+                offset += coef * elt.constant;
+            }
         }
     }
     // Lower/upper bound of the constraint

@@ -44,6 +44,8 @@ class Operator {
     virtual bool isAssociative() const { return false; }
     // Is an idempotent operation: can remove duplicates
     virtual bool isIdempotent() const { return false; }
+    // Is a comparison
+    virtual bool isComparison() const { return false; }
 
     // TODO:
     // Bound computation
