@@ -22,6 +22,15 @@ BOOST_AUTO_TEST_CASE(SimpleModel) {
     model.check();
 }
 
+BOOST_AUTO_TEST_CASE(UnboundedDecisions) {
+    Model model;
+    FloatExpression fdec = model.floatVar();
+    IntExpression idec = model.intVar();
+    maximize(fdec * idec);
+    constraint(fdec <= idec);
+    model.check();
+}
+
 BOOST_AUTO_TEST_CASE(FloatOps) {
     Model model;
     FloatExpression fdec1 = model.floatVar(-10.0, 10.0);

@@ -20,6 +20,7 @@ umo_type computeType(double value) {
         return UMO_TYPE_BOOL;
     }
     if (value == round(value)) {
+        // Includes infinities
         return UMO_TYPE_INT;
     }
     return UMO_TYPE_FLOAT;

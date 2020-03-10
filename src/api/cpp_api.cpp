@@ -2,6 +2,7 @@
 #include <cassert>
 #include <cstdlib>
 #include <stdexcept>
+#include <limits>
 
 #include "api/umo.h"
 #include "api/umo.hpp"
@@ -162,10 +163,22 @@ BoolExpression Model::constant(bool val) {
     return BoolExpression(ptr_, v);
 }
 
+FloatExpression Model::floatVar() {
+    FloatExpression lbe = constant(-numeric_limits<double>::infinity());
+    FloatExpression ube = constant(numeric_limits<double>::infinity());
+    return binaryOp<FloatExpression>(UMO_OP_DEC_FLOAT, lbe, ube);
+}
+
 FloatExpression Model::floatVar(double lb, double ub) {
     FloatExpression lbe = constant(lb);
     FloatExpression ube = constant(ub);
     return binaryOp<FloatExpression>(UMO_OP_DEC_FLOAT, lbe, ube);
+}
+
+IntExpression Model::intVar() {
+    FloatExpression lbe = constant(-numeric_limits<double>::infinity());
+    FloatExpression ube = constant(numeric_limits<double>::infinity());
+    return binaryOp<IntExpression>(UMO_OP_DEC_INT, lbe, ube);
 }
 
 IntExpression Model::intVar(long long lb, long long ub) {
