@@ -67,15 +67,22 @@ void ModelWriterLp::write() {
             continue;
         double lb = m_.value(expr.operands[0].var());
         double ub = m_.value(expr.operands[1].var());
-        if (isfinite(lb)) {
+        if (lb == ub && isfinite(lb)) {
             s_ << "\t";
             writeLpLinearExpression(i);
-            s_ << " >= " << lb << endl;
+            s_ << " = " << lb << endl;
         }
-        if (isfinite(ub)) {
-            s_ << "\t";
-            writeLpLinearExpression(i);
-            s_ << " <= " << ub << endl;
+        else {
+            if (isfinite(lb)) {
+                s_ << "\t";
+                writeLpLinearExpression(i);
+                s_ << " >= " << lb << endl;
+            }
+            if (isfinite(ub)) {
+                s_ << "\t";
+                writeLpLinearExpression(i);
+                s_ << " <= " << ub << endl;
+            }
         }
     }
     // Write the bounds
