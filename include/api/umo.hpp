@@ -3,6 +3,7 @@
 #define UMO_HPP
 
 #include <string>
+#include <vector>
 
 extern "C" {
 struct umo_model;
@@ -46,6 +47,27 @@ class Model {
 
     double getTimeLimit();
     void setTimeLimit(double limit);
+
+    // N-ary operations
+    FloatExpression sum(const std::vector<FloatExpression> &);
+    FloatExpression prod(const std::vector<FloatExpression> &);
+    FloatExpression min(const std::vector<FloatExpression> &);
+    FloatExpression max(const std::vector<FloatExpression> &);
+
+    IntExpression sum(const std::vector<IntExpression> &);
+    IntExpression prod(const std::vector<IntExpression> &);
+    IntExpression min(const std::vector<IntExpression> &);
+    IntExpression max(const std::vector<IntExpression> &);
+
+    IntExpression sum(const std::vector<BoolExpression> &);
+    BoolExpression prod(const std::vector<BoolExpression> &);
+    BoolExpression min(const std::vector<BoolExpression> &);
+    BoolExpression max(const std::vector<BoolExpression> &);
+    BoolExpression logical_or(const std::vector<BoolExpression> &);
+    BoolExpression logical_and(const std::vector<BoolExpression> &);
+    BoolExpression logical_xor(const std::vector<BoolExpression> &);
+
+    umo_model *rawPtr() const { return ptr_; }
 
   private:
     // TODO: switch everything to a shared pointer
@@ -224,6 +246,25 @@ FloatExpression atan(const FloatExpression &);
 FloatExpression acosh(const FloatExpression &);
 FloatExpression asinh(const FloatExpression &);
 FloatExpression atanh(const FloatExpression &);
+
+// N-ary operations
+FloatExpression sum(const std::vector<FloatExpression> &);
+FloatExpression prod(const std::vector<FloatExpression> &);
+FloatExpression min(const std::vector<FloatExpression> &);
+FloatExpression max(const std::vector<FloatExpression> &);
+
+IntExpression sum(const std::vector<IntExpression> &);
+IntExpression prod(const std::vector<IntExpression> &);
+IntExpression min(const std::vector<IntExpression> &);
+IntExpression max(const std::vector<IntExpression> &);
+
+IntExpression sum(const std::vector<BoolExpression> &);
+BoolExpression prod(const std::vector<BoolExpression> &);
+BoolExpression min(const std::vector<BoolExpression> &);
+BoolExpression max(const std::vector<BoolExpression> &);
+BoolExpression logical_or(const std::vector<BoolExpression> &);
+BoolExpression logical_and(const std::vector<BoolExpression> &);
+BoolExpression logical_xor(const std::vector<BoolExpression> &);
 
 } // namespace umo
 

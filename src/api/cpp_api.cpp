@@ -1,8 +1,8 @@
 
 #include <cassert>
 #include <cstdlib>
-#include <stdexcept>
 #include <limits>
+#include <stdexcept>
 
 #include "api/umo.h"
 #include "api/umo.hpp"
@@ -55,6 +55,14 @@ long long makeTernaryOp(umo_model *model, umo_operator op, long long op1,
     long long tmp;
     UNWRAP_EXCEPTIONS(tmp =
                           umo_create_expression(model, op, 3, operands, &err););
+    return tmp;
+}
+
+long long makeNaryOp(umo_model *model, umo_operator op, int nbOperands,
+                     long long *operands) {
+    long long tmp;
+    UNWRAP_EXCEPTIONS(
+        tmp = umo_create_expression(model, op, nbOperands, operands, &err););
     return tmp;
 }
 
@@ -816,6 +824,150 @@ FloatExpression asinh(const FloatExpression &op1) {
 
 FloatExpression atanh(const FloatExpression &op1) {
     return unaryOp<FloatExpression, FloatExpression>(UMO_OP_ATANH, op1);
+}
+
+template <typename ExpressionType>
+ExpressionType naryOp(umo_operator op, const vector<ExpressionType> &operands) {
+    if (operands.empty()) {
+        // TODO: support constant expressions without an attached model
+        throw std::runtime_error(
+            "N-ary operations must receive at least one operand. To support "
+            "empty operations, use the corresponding Model method instead.");
+    }
+    umo_model *model = operands[0].rawPtr();
+    return naryOp(op, model, operands);
+}
+
+template <typename ExpressionType>
+ExpressionType naryOp(umo_operator op, umo_model *model,
+                      const vector<ExpressionType> &operands) {
+    vector<long long> ops;
+    ops.reserve(operands.size());
+    for (ExpressionType expr : operands) {
+        ops.push_back(expr.rawId());
+    }
+    long long v = makeNaryOp(model, op, ops.size(), ops.data());
+    return ExpressionType(model, v);
+}
+
+FloatExpression Model::sum(const std::vector<FloatExpression> &ops) {
+    return naryOp(UMO_OP_SUM, rawPtr(), ops);
+}
+
+FloatExpression Model::prod(const std::vector<FloatExpression> &ops) {
+    return naryOp(UMO_OP_PROD, rawPtr(), ops);
+}
+
+FloatExpression Model::min(const std::vector<FloatExpression> &ops) {
+    return naryOp(UMO_OP_MIN, rawPtr(), ops);
+}
+
+FloatExpression Model::max(const std::vector<FloatExpression> &ops) {
+    return naryOp(UMO_OP_MAX, rawPtr(), ops);
+}
+
+IntExpression Model::sum(const std::vector<IntExpression> &ops) {
+    return naryOp(UMO_OP_SUM, rawPtr(), ops);
+}
+
+IntExpression Model::prod(const std::vector<IntExpression> &ops) {
+    return naryOp(UMO_OP_PROD, rawPtr(), ops);
+}
+
+IntExpression Model::min(const std::vector<IntExpression> &ops) {
+    return naryOp(UMO_OP_MIN, rawPtr(), ops);
+}
+
+IntExpression Model::max(const std::vector<IntExpression> &ops) {
+    return naryOp(UMO_OP_MAX, rawPtr(), ops);
+}
+
+IntExpression Model::sum(const std::vector<BoolExpression> &ops) {
+    return naryOp(UMO_OP_SUM, rawPtr(), ops);
+}
+
+BoolExpression Model::prod(const std::vector<BoolExpression> &ops) {
+    return naryOp(UMO_OP_PROD, rawPtr(), ops);
+}
+
+BoolExpression Model::min(const std::vector<BoolExpression> &ops) {
+    return naryOp(UMO_OP_MIN, rawPtr(), ops);
+}
+
+BoolExpression Model::max(const std::vector<BoolExpression> &ops) {
+    return naryOp(UMO_OP_MAX, rawPtr(), ops);
+}
+
+BoolExpression Model::logical_or(const std::vector<BoolExpression> &ops) {
+    return naryOp(UMO_OP_OR, rawPtr(), ops);
+}
+
+BoolExpression Model::logical_and(const std::vector<BoolExpression> &ops) {
+    return naryOp(UMO_OP_AND, rawPtr(), ops);
+}
+
+BoolExpression Model::logical_xor(const std::vector<BoolExpression> &ops) {
+    return naryOp(UMO_OP_XOR, rawPtr(), ops);
+}
+
+FloatExpression sum(const std::vector<FloatExpression> &ops) {
+    return naryOp(UMO_OP_SUM, ops);
+}
+
+FloatExpression prod(const std::vector<FloatExpression> &ops) {
+    return naryOp(UMO_OP_PROD, ops);
+}
+
+FloatExpression min(const std::vector<FloatExpression> &ops) {
+    return naryOp(UMO_OP_MIN, ops);
+}
+
+FloatExpression max(const std::vector<FloatExpression> &ops) {
+    return naryOp(UMO_OP_MAX, ops);
+}
+
+IntExpression sum(const std::vector<IntExpression> &ops) {
+    return naryOp(UMO_OP_SUM, ops);
+}
+
+IntExpression prod(const std::vector<IntExpression> &ops) {
+    return naryOp(UMO_OP_PROD, ops);
+}
+
+IntExpression min(const std::vector<IntExpression> &ops) {
+    return naryOp(UMO_OP_MIN, ops);
+}
+
+IntExpression max(const std::vector<IntExpression> &ops) {
+    return naryOp(UMO_OP_MAX, ops);
+}
+
+IntExpression sum(const std::vector<BoolExpression> &ops) {
+    return naryOp(UMO_OP_SUM, ops);
+}
+
+BoolExpression prod(const std::vector<BoolExpression> &ops) {
+    return naryOp(UMO_OP_PROD, ops);
+}
+
+BoolExpression min(const std::vector<BoolExpression> &ops) {
+    return naryOp(UMO_OP_MIN, ops);
+}
+
+BoolExpression max(const std::vector<BoolExpression> &ops) {
+    return naryOp(UMO_OP_MAX, ops);
+}
+
+BoolExpression logical_or(const std::vector<BoolExpression> &ops) {
+    return naryOp(UMO_OP_OR, ops);
+}
+
+BoolExpression logical_and(const std::vector<BoolExpression> &ops) {
+    return naryOp(UMO_OP_AND, ops);
+}
+
+BoolExpression logical_xor(const std::vector<BoolExpression> &ops) {
+    return naryOp(UMO_OP_XOR, ops);
 }
 
 } // namespace umo

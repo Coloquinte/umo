@@ -6,6 +6,8 @@
 #include "api/umo.hpp"
 
 #include <cmath>
+#include <vector>
+#include <algorithm>
 
 using namespace umo;
 
@@ -185,4 +187,55 @@ BOOST_AUTO_TEST_CASE(ModelStatus) {
     BOOST_CHECK(model.getStatus() == Status::Invalid);
     dec.setValue(true);
     BOOST_CHECK(model.getStatus() == Status::Valid);
+}
+
+BOOST_AUTO_TEST_CASE(IntNary) {
+    Model model;
+    IntExpression dec1 = model.intVar();
+    IntExpression dec2 = model.intVar();
+    IntExpression dec3 = model.intVar();
+    std::vector<IntExpression> vec{dec1, dec2, dec3};
+    IntExpression x01 = sum(vec);
+    IntExpression x02 = prod(vec);
+    IntExpression x03 = min(vec);
+    IntExpression x04 = max(vec);
+    for (long long val1 : {5, -4, 0}) {
+        for (long long val2 : {-7, 2, 8}) {
+            for (long long val3 : {-17, -5, 0, 4}) {
+                dec1.setValue(val1);
+                dec2.setValue(val2);
+                dec3.setValue(val3);
+                std::vector<long long> vals{val1, val2, val3};
+                BOOST_CHECK_EQUAL(x01.getValue(), val1 + val2 + val3);
+                BOOST_CHECK_EQUAL(x02.getValue(), val1 * val2 * val3);
+                BOOST_CHECK_EQUAL(x03.getValue(), *std::min_element(vals.begin(), vals.end()));
+                BOOST_CHECK_EQUAL(x04.getValue(), *std::max_element(vals.begin(), vals.end()));
+            }
+        }
+    }
+    model.check();
+}
+
+BOOST_AUTO_TEST_CASE(BoolNary) {
+    Model model;
+    BoolExpression dec1 = model.boolVar();
+    BoolExpression dec2 = model.boolVar();
+    BoolExpression dec3 = model.boolVar();
+    std::vector<BoolExpression> vec{dec1, dec2, dec3};
+    BoolExpression x01 = logical_or(vec);
+    BoolExpression x02 = logical_and(vec);
+    BoolExpression x03 = logical_xor(vec);
+    for (long long val1 : {false, true}) {
+        for (long long val2 : {false, true}) {
+            for (long long val3 : {false, true}) {
+                dec1.setValue(val1);
+                dec2.setValue(val2);
+                dec3.setValue(val3);
+                BOOST_CHECK_EQUAL(x01.getValue(), val1 || val2 || val3);
+                BOOST_CHECK_EQUAL(x02.getValue(), val1 && val2 && val3);
+                BOOST_CHECK_EQUAL(x03.getValue(), val1 ^ val2 ^ val3);
+            }
+        }
+    }
+    model.check();
 }

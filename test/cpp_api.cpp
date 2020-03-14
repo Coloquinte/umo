@@ -7,6 +7,7 @@
 
 #include <cmath>
 #include <limits>
+#include <vector>
 
 using namespace umo;
 
@@ -289,3 +290,73 @@ BOOST_AUTO_TEST_CASE(CompoundBool) {
     dec1 ^= true;
     model.check();
 }
+
+BOOST_AUTO_TEST_CASE(NaryFloat) {
+    Model model;
+    FloatExpression dec1 = model.floatVar();
+    FloatExpression dec2 = model.floatVar();
+    FloatExpression dec3 = model.floatVar();
+    sum(std::vector<FloatExpression>{dec1, dec2, dec3});
+    prod(std::vector<FloatExpression>{dec1, dec2, dec3});
+    min(std::vector<FloatExpression>{dec1, dec2, dec3});
+    max(std::vector<FloatExpression>{dec1, dec2, dec3});
+    BOOST_CHECK_THROW(sum(std::vector<FloatExpression>()), std::runtime_error);
+    BOOST_CHECK_THROW(prod(std::vector<FloatExpression>()), std::runtime_error);
+    BOOST_CHECK_THROW(max(std::vector<FloatExpression>()), std::runtime_error);
+    BOOST_CHECK_THROW(min(std::vector<FloatExpression>()), std::runtime_error);
+    model.sum(std::vector<FloatExpression>());
+    model.prod(std::vector<FloatExpression>());
+    model.max(std::vector<FloatExpression>());
+    model.min(std::vector<FloatExpression>());
+    model.check();
+}
+
+BOOST_AUTO_TEST_CASE(NaryInt) {
+    Model model;
+    IntExpression dec1 = model.intVar();
+    IntExpression dec2 = model.intVar();
+    IntExpression dec3 = model.intVar();
+    sum(std::vector<IntExpression>{dec1, dec2, dec3});
+    prod(std::vector<IntExpression>{dec1, dec2, dec3});
+    min(std::vector<IntExpression>{dec1, dec2, dec3});
+    max(std::vector<IntExpression>{dec1, dec2, dec3});
+    BOOST_CHECK_THROW(sum(std::vector<IntExpression>()), std::runtime_error);
+    BOOST_CHECK_THROW(prod(std::vector<IntExpression>()), std::runtime_error);
+    BOOST_CHECK_THROW(max(std::vector<IntExpression>()), std::runtime_error);
+    BOOST_CHECK_THROW(min(std::vector<IntExpression>()), std::runtime_error);
+    model.sum(std::vector<IntExpression>());
+    model.prod(std::vector<IntExpression>());
+    model.max(std::vector<IntExpression>());
+    model.min(std::vector<IntExpression>());
+    model.check();
+}
+
+BOOST_AUTO_TEST_CASE(NaryBool) {
+    Model model;
+    BoolExpression dec1 = model.boolVar();
+    BoolExpression dec2 = model.boolVar();
+    BoolExpression dec3 = model.boolVar();
+    logical_or(std::vector<BoolExpression>{dec1, dec2, dec3});
+    logical_and(std::vector<BoolExpression>{dec1, dec2, dec3});
+    logical_xor(std::vector<BoolExpression>{dec1, dec2, dec3});
+    sum(std::vector<BoolExpression>{dec1, dec2, dec3});
+    prod(std::vector<BoolExpression>{dec1, dec2, dec3});
+    min(std::vector<BoolExpression>{dec1, dec2, dec3});
+    max(std::vector<BoolExpression>{dec1, dec2, dec3});
+    BOOST_CHECK_THROW(sum(std::vector<BoolExpression>()), std::runtime_error);
+    BOOST_CHECK_THROW(prod(std::vector<BoolExpression>()), std::runtime_error);
+    BOOST_CHECK_THROW(max(std::vector<BoolExpression>()), std::runtime_error);
+    BOOST_CHECK_THROW(min(std::vector<BoolExpression>()), std::runtime_error);
+    BOOST_CHECK_THROW(logical_or(std::vector<BoolExpression>()), std::runtime_error);
+    BOOST_CHECK_THROW(logical_and(std::vector<BoolExpression>()), std::runtime_error);
+    BOOST_CHECK_THROW(logical_xor(std::vector<BoolExpression>()), std::runtime_error);
+    model.sum(std::vector<BoolExpression>());
+    model.prod(std::vector<BoolExpression>());
+    model.max(std::vector<BoolExpression>());
+    model.min(std::vector<BoolExpression>());
+    model.logical_or(std::vector<BoolExpression>());
+    model.logical_and(std::vector<BoolExpression>());
+    model.logical_xor(std::vector<BoolExpression>());
+    model.check();
+}
+
