@@ -7,6 +7,7 @@
 
 #include <cmath>
 #include <stdexcept>
+#include <vector>
 
 using namespace umo;
 
@@ -127,6 +128,28 @@ BOOST_AUTO_TEST_CASE(LinearizationProd3) {
     model.solve();
 }
 
+BOOST_AUTO_TEST_CASE(LinearizationAnd1) {
+    Model model;
+    BoolExpression dec1 = model.boolVar();
+    BoolExpression dec2 = model.boolVar();
+    BoolExpression dec3 = model.boolVar();
+    std::vector<BoolExpression> vec{dec1, dec2, dec3};
+    maximize(dec1 && dec2);
+    logical_and(vec);
+    model.solve();
+}
+
+BOOST_AUTO_TEST_CASE(LinearizationOr1) {
+    Model model;
+    BoolExpression dec1 = model.boolVar();
+    BoolExpression dec2 = model.boolVar();
+    BoolExpression dec3 = model.boolVar();
+    std::vector<BoolExpression> vec{dec1, dec2, dec3};
+    maximize(dec1 || dec2);
+    logical_or(vec);
+    model.solve();
+}
+
 BOOST_AUTO_TEST_CASE(LinearizationXor1) {
     Model model;
     BoolExpression dec1 = model.boolVar();
@@ -137,16 +160,16 @@ BOOST_AUTO_TEST_CASE(LinearizationXor1) {
 
 BOOST_AUTO_TEST_CASE(LinearizationMax1) {
     Model model;
-    FloatExpression dec1 = model.floatVar(0.0, 10.0);
-    FloatExpression dec2 = model.floatVar(-50.0, 10.0);
+    FloatExpression dec1 = model.floatVar();
+    FloatExpression dec2 = model.floatVar();
     maximize(umo::max(dec1, dec2));
     BOOST_CHECK_THROW(model.solve(), std::runtime_error);
 }
 
 BOOST_AUTO_TEST_CASE(LinearizationMin1) {
     Model model;
-    FloatExpression dec1 = model.floatVar(0.0, 10.0);
-    FloatExpression dec2 = model.floatVar(-50.0, 10.0);
+    FloatExpression dec1 = model.floatVar();
+    FloatExpression dec2 = model.floatVar();
     maximize(umo::min(dec1, dec2));
     BOOST_CHECK_THROW(model.solve(), std::runtime_error);
 }

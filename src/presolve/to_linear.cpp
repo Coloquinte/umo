@@ -36,8 +36,9 @@ class ToLinear::Transformer {
     // expression
     Element getElement(ExpressionId expr) const;
     // Helper function: direct expression of a constraint
-    void makeConstraint(const vector<double> &coefs, const vector<ExpressionId> &operands,
-                        double lb, double ub);
+    void makeConstraint(const vector<double> &coefs,
+                        const vector<ExpressionId> &operands, double lb,
+                        double ub);
     // Helper function: constrain variable i to be within certain bounds of the
     // summed operands
     void constrainToSum(uint32_t i, const vector<ExpressionId> &operands,
@@ -55,7 +56,7 @@ class ToLinear::Transformer {
     ExpressionId constantPOne;
     ExpressionId constantMOne;
 
-    const double strictEqualityMargin= 1.0e-6;
+    const double strictEqualityMargin = 1.0e-6;
 };
 
 struct ToLinear::Element {
@@ -85,16 +86,13 @@ void ToLinear::Transformer::createExpressions() {
         if (model.isConstraint(i)) {
             if (!model.isConstraintPos(i)) {
                 linearModel.mapping().emplace(i, constantZero);
-            }
-            else if (!model.isConstraintNeg(i)) {
+            } else if (!model.isConstraintNeg(i)) {
                 linearModel.mapping().emplace(i, constantPOne);
-            }
-            else {
+            } else {
                 throw runtime_error(
                     "Inconsistent opposite constraints are not supported yet");
             }
-        }
-        else if (model.isDecision(i)) {
+        } else if (model.isDecision(i)) {
             ExpressionId newId;
             if (expr.op == UMO_OP_DEC_BOOL) {
                 newId = linearModel.createExpression(UMO_OP_DEC_BOOL, {});
@@ -193,7 +191,10 @@ void ToLinear::Transformer::makeConstraint(const vector<double> &coefs,
                                            const vector<ExpressionId> &ops,
                                            double lb, double ub) {
     if (lb > ub) {
-        THROW_ERROR("Lower bound bigger than upper bound during linearization: the model is obviously inconsistent");
+        THROW_ERROR(
+            "Lower bound ("
+            << lb << ") bigger than upper bound (" << ub
+            << ") during linearization: the model is obviously inconsistent");
     }
     assert(coefs.size() == ops.size());
     vector<ExpressionId> operands;
@@ -207,14 +208,13 @@ void ToLinear::Transformer::makeConstraint(const vector<double> &coefs,
         double coef = coefs[i];
         if (model.isConstant(ops[i].var())) {
             offset += coef * model.getExpressionIdValue(ops[i]);
-        }
-        else {
+        } else {
             Element elt = getElement(ops[i]);
             if (linearModel.isConstant(elt.var)) {
-                // Constant in the linear model (happens for example when replacing a constraint)
+                // Constant in the linear model (happens for example when
+                // replacing a constraint)
                 offset += elt.constant + elt.coef * linearModel.value(elt.var);
-            }
-            else {
+            } else {
                 operands.push_back(linearModel.createConstant(coef * elt.coef));
                 operands.push_back(ExpressionId(elt.var, false, false));
                 offset += coef * elt.constant;
@@ -229,8 +229,7 @@ void ToLinear::Transformer::makeConstraint(const vector<double> &coefs,
         if (lb > 0.0 || ub < 0.0) {
             // Obviously invalid
             THROW_ERROR("Constraint is obviously infeasible");
-        }
-        else {
+        } else {
             // Obviously valid
             return;
         }
@@ -257,23 +256,23 @@ void ToLinear::Transformer::constrainToSum(uint32_t i,
 
 void ToLinear::Transformer::constrainToProd(uint32_t i, ExpressionId op,
                                             double factor) {
-    vector<double> coefs = { factor, -1.0 };
-    vector<ExpressionId> ops = { op, ExpressionId(i, false, false) };
+    vector<double> coefs = {factor, -1.0};
+    vector<ExpressionId> ops = {op, ExpressionId(i, false, false)};
     makeConstraint(coefs, ops, 0.0, 0.0);
 }
 
 void ToLinear::Transformer::linearizeConstrainedEq(ExpressionId op1,
                                                    ExpressionId op2) {
-    vector<double> coefs = { 1.0, -1.0 };
-    vector<ExpressionId> ops = { op1, op2 };
+    vector<double> coefs = {1.0, -1.0};
+    vector<ExpressionId> ops = {op1, op2};
     makeConstraint(coefs, ops, 0.0, 0.0);
 }
 
 void ToLinear::Transformer::linearizeConstrainedLess(ExpressionId op1,
                                                      ExpressionId op2,
                                                      double margin) {
-    vector<double> coefs = { 1.0, -1.0 };
-    vector<ExpressionId> ops = { op1, op2 };
+    vector<double> coefs = {1.0, -1.0};
+    vector<ExpressionId> ops = {op1, op2};
     makeConstraint(coefs, ops, -numeric_limits<double>::infinity(), -margin);
 }
 
@@ -320,7 +319,8 @@ void ToLinear::Transformer::linearizeCompare(uint32_t i) {
     if (!model.isConstraint(i))
         THROW_ERROR("Comparisons that are not constraints are not handled yet");
     if (model.isConstraintPos(i) && model.isConstraintNeg(i))
-        THROW_ERROR("The variable is constrained both ways. Model is obviousliy inconsistent");
+        THROW_ERROR("The variable is constrained both ways. Model is "
+                    "obviousliy inconsistent");
 
     ExpressionId op1 = expr.operands[0];
     ExpressionId op2 = expr.operands[1];
@@ -392,10 +392,10 @@ void ToLinear::Transformer::linearizeOr(uint32_t i) {
     const auto &expr = model.expression(i);
     assert(expr.op == UMO_OP_OR);
     // No operand true ==> !i; sum xi - y >= 0
-    constrainToSum(i, expr.operands, 0.0, -numeric_limits<double>::infinity());
+    constrainToSum(i, expr.operands, 0.0, numeric_limits<double>::infinity());
     // Any operand ==> i; xi - y <= 0
     for (ExpressionId op : expr.operands) {
-        constrainToSum(i, {op}, numeric_limits<double>::infinity(), 0.0);
+        constrainToSum(i, {op}, -numeric_limits<double>::infinity(), 0.0);
     }
 }
 
