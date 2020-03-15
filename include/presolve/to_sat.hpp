@@ -11,6 +11,8 @@ class ToSat final : public PresolverPass {
     std::string toString() const override { return "toSat"; }
 
     void run(PresolvedModel &model) override;
+
+    class Transformer;
 };
 } // namespace presolve
 } // namespace umoi

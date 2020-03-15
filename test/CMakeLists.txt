@@ -7,7 +7,8 @@ SET(TESTS
     operators
     compute
     small_models
-    linearization
+#    linearize
+    satify
 )
 
 FOREACH(TEST IN LISTS TESTS)

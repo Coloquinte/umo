@@ -170,7 +170,7 @@ void ToLinear::Transformer::run() {
 
 ToLinear::Element ToLinear::Transformer::getElement(ExpressionId id) const {
     ExpressionId pid = linearModel.mapping().at(id.var());
-    assert(!pid.isNot() && !pid.isMinus());
+    assert(pid.isVar());
     Element elt;
     elt.var = pid.var();
     elt.constant = 0.0;

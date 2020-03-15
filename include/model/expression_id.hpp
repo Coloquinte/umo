@@ -29,6 +29,8 @@ class ExpressionId {
     bool isMinus() const { return v & 0x02; }
     ExpressionId getMinus() const { return fromRaw(v ^ 0x02); }
 
+    bool isVar() const { return !isNot() && !isMinus(); }
+
     // Index of the variable
     std::uint32_t var() const { return v >> 2; }
 
@@ -37,6 +39,9 @@ class ExpressionId {
 
     // Construct from raw integer representation
     static ExpressionId fromRaw(std::uint32_t raw) { return ExpressionId(raw); }
+
+    // Construct from just a variable
+    static ExpressionId fromVar(std::uint32_t var) { return ExpressionId(var, false, false); }
 
     bool operator==(const ExpressionId &o) const { return v == o.v; }
     bool operator!=(const ExpressionId &o) const { return v != o.v; }
