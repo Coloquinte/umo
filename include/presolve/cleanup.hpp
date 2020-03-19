@@ -10,7 +10,7 @@ class Cleanup final : public PresolverPass {
   public:
     std::string toString() const override { return "cleanup"; }
 
-    void run(PresolvedModel &model) override;
+    void run(PresolvedModel &model) const override;
 };
 } // namespace presolve
 } // namespace umoi

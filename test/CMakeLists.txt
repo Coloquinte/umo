@@ -7,7 +7,7 @@ SET(TESTS
     operators
     compute
     small_models
-#    linearize
+    linearize
     satify
 )
 

@@ -10,7 +10,8 @@ class ToSat final : public PresolverPass {
   public:
     std::string toString() const override { return "toSat"; }
 
-    void run(PresolvedModel &model) override;
+    bool valid(const PresolvedModel &model) const;
+    void run(PresolvedModel &model) const override;
 
     class Transformer;
 };

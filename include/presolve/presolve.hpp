@@ -13,7 +13,7 @@ class PresolverPass {
   public:
     virtual std::string toString() const = 0;
 
-    virtual void run(PresolvedModel &model) = 0;
+    virtual void run(PresolvedModel &model) const = 0;
 };
 
 PresolvedModel run(const Model &model);

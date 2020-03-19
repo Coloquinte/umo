@@ -10,7 +10,7 @@ class Flatten final : public PresolverPass {
   public:
     std::string toString() const override { return "flatten"; }
 
-    void run(PresolvedModel &model) override;
+    void run(PresolvedModel &model) const override;
     std::vector<ExpressionId> gatherFlattenedInputs(std::uint32_t var) const;
 };
 } // namespace presolve

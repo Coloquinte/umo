@@ -10,7 +10,8 @@ class ToLinear final : public PresolverPass {
   public:
     std::string toString() const override { return "toLinear"; }
 
-    void run(PresolvedModel &model) override;
+    bool valid(const PresolvedModel &model) const;
+    void run(PresolvedModel &model) const override;
 
     class Transformer;
     struct Element;

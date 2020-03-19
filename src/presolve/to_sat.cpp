@@ -70,7 +70,7 @@ void ToSat::Transformer::createExpressions() {
                 throw runtime_error("Only boolean expressions are supported");
             }
             if (model.isConstraint(i)) {
-                // All constraints are satified directly and can be skipped
+                // All constraints are converted without additional variables
                 continue;
             }
             ExpressionId newId = satModel.createExpression(UMO_OP_DEC_BOOL, {});
@@ -261,7 +261,24 @@ void ToSat::Transformer::run() {
     model.apply(satModel);
 }
 
-void ToSat::run(PresolvedModel &model) {
+bool ToSat::valid(const PresolvedModel &model) const {
+    for (uint32_t i = 0; i < model.nbExpressions(); ++i) {
+        const auto &expr = model.expression(i);
+        switch (expr.op) {
+            case UMO_OP_INVALID:
+            case UMO_OP_CONSTANT:
+            case UMO_OP_DEC_BOOL:
+            case UMO_OP_AND:
+            case UMO_OP_OR:
+                continue;
+            default:
+                return false;
+        }
+    }
+    return true;
+}
+
+void ToSat::run(PresolvedModel &model) const {
     Transformer tf(model);
     tf.run();
 }
