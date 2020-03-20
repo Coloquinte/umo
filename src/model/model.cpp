@@ -10,7 +10,6 @@
 #include "model/operator.hpp"
 #include "presolve/presolve.hpp"
 
-using namespace umoi;
 using namespace std;
 
 namespace umoi {

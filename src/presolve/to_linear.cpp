@@ -410,28 +410,28 @@ bool ToLinear::valid(const PresolvedModel &model) const {
     for (uint32_t i = 0; i < model.nbExpressions(); ++i) {
         const auto &expr = model.expression(i);
         switch (expr.op) {
-            case UMO_OP_INVALID:
-            case UMO_OP_CONSTANT:
-            case UMO_OP_DEC_BOOL:
-            case UMO_OP_DEC_INT:
-            case UMO_OP_DEC_FLOAT:
-            case UMO_OP_AND:
-            case UMO_OP_OR:
-            case UMO_OP_SUM:
-                continue;
-            case UMO_OP_PROD:
-                // TODO: check constant prod
-                continue;
-            case UMO_OP_CMP_EQ:
-            case UMO_OP_CMP_NEQ:
-            case UMO_OP_CMP_LEQ:
-            case UMO_OP_CMP_GEQ:
-            case UMO_OP_CMP_LT:
-            case UMO_OP_CMP_GT:
-                // TODO: check constrained
-                continue;
-            default:
-                return false;
+        case UMO_OP_INVALID:
+        case UMO_OP_CONSTANT:
+        case UMO_OP_DEC_BOOL:
+        case UMO_OP_DEC_INT:
+        case UMO_OP_DEC_FLOAT:
+        case UMO_OP_AND:
+        case UMO_OP_OR:
+        case UMO_OP_SUM:
+            continue;
+        case UMO_OP_PROD:
+            // TODO: check constant prod
+            continue;
+        case UMO_OP_CMP_EQ:
+        case UMO_OP_CMP_NEQ:
+        case UMO_OP_CMP_LEQ:
+        case UMO_OP_CMP_GEQ:
+        case UMO_OP_CMP_LT:
+        case UMO_OP_CMP_GT:
+            // TODO: check constrained
+            continue;
+        default:
+            return false;
         }
     }
     return true;

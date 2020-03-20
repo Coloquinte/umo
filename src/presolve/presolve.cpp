@@ -15,23 +15,21 @@ namespace umoi {
 namespace presolve {
 
 PresolvedModel run(const Model &m) {
-    //m.writeUmo(cout);
+    // m.writeUmo(cout);
     PresolvedModel model = m;
     Cleanup().run(model);
     Flatten().run(model);
     PropagateConstants().run(model);
     if (ToSat().valid(model)) {
         ToSat().run(model);
-        //model.writeCnf(cout);
-    }
-    else if (ToLinear().valid(model)) {
+        // model.writeCnf(cout);
+    } else if (ToLinear().valid(model)) {
         ToLinear().run(model);
-        //model.writeLp(cout);
-    }
-    else {
+        // model.writeLp(cout);
+    } else {
         throw std::runtime_error("The model cannot be converted to SAT or MIP");
     }
-    //model.writeUmo(cout);
+    // model.writeUmo(cout);
     return model;
 }
 

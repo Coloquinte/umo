@@ -124,8 +124,7 @@ void ToSat::Transformer::satify(uint32_t i) {
                 THROW_ERROR("Operand type " << op << " not handled by SAT");
             }
         }
-    }
-    else {
+    } else {
         switch (op) {
         case UMO_OP_DEC_BOOL:
             break;
@@ -188,7 +187,8 @@ void ToSat::Transformer::satifyConstrainedNXor(uint32_t i) {
     THROW_ERROR("Xor is not handled yet");
 }
 
-void ToSat::Transformer::satifyConstrainedGeneralized(uint32_t i, bool inInv, bool outInv) {
+void ToSat::Transformer::satifyConstrainedGeneralized(uint32_t i, bool inInv,
+                                                      bool outInv) {
     const Model::ExpressionData &expr = model.expression(i);
     if (outInv) {
         // Case of a or (single clause)
@@ -199,8 +199,7 @@ void ToSat::Transformer::satifyConstrainedGeneralized(uint32_t i, bool inInv, bo
             operands.push_back(op);
         }
         makeClause(operands);
-    }
-    else {
+    } else {
         // Case of a and (all constrained)
         for (ExpressionId id : expr.operands) {
             ExpressionId op = inInv ? id.getNot() : id;
@@ -209,7 +208,8 @@ void ToSat::Transformer::satifyConstrainedGeneralized(uint32_t i, bool inInv, bo
     }
 }
 
-void ToSat::Transformer::satifyGeneralized(uint32_t i, bool inInv, bool outInv) {
+void ToSat::Transformer::satifyGeneralized(uint32_t i, bool inInv,
+                                           bool outInv) {
     const Model::ExpressionData &expr = model.expression(i);
     ExpressionId idOut = ExpressionId::fromVar(i);
     // Output --> Input implication
@@ -236,20 +236,20 @@ void ToSat::Transformer::makeClause(const vector<ExpressionId> &operands) {
     for (ExpressionId id : operands) {
         if (model.isConstant(id.var())) {
             forceOne |= (model.getExpressionIdValue(id) != 0.0);
-        }
-        else {
+        } else {
             nonConstantOperands.push_back(getMapping(id));
         }
     }
     if (!forceOne && !nonConstantOperands.empty()) {
-        ExpressionId expr = satModel.createExpression(UMO_OP_OR, nonConstantOperands);
+        ExpressionId expr =
+            satModel.createExpression(UMO_OP_OR, nonConstantOperands);
         satModel.createConstraint(expr);
     }
 }
 
 ExpressionId ToSat::Transformer::getMapping(ExpressionId id) const {
     ExpressionId pid = satModel.mapping().at(id.var());
-    assert (pid.isVar());
+    assert(pid.isVar());
     return id.isNot() ? pid.getNot() : pid;
 }
 
@@ -265,14 +265,14 @@ bool ToSat::valid(const PresolvedModel &model) const {
     for (uint32_t i = 0; i < model.nbExpressions(); ++i) {
         const auto &expr = model.expression(i);
         switch (expr.op) {
-            case UMO_OP_INVALID:
-            case UMO_OP_CONSTANT:
-            case UMO_OP_DEC_BOOL:
-            case UMO_OP_AND:
-            case UMO_OP_OR:
-                continue;
-            default:
-                return false;
+        case UMO_OP_INVALID:
+        case UMO_OP_CONSTANT:
+        case UMO_OP_DEC_BOOL:
+        case UMO_OP_AND:
+        case UMO_OP_OR:
+            continue;
+        default:
+            return false;
         }
     }
     return true;

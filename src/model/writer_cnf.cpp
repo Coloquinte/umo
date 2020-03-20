@@ -4,11 +4,10 @@
 #include "model/utils.hpp"
 
 #include <algorithm>
+#include <cmath>
 #include <iostream>
 #include <sstream>
-#include <cmath>
 
-using namespace umoi;
 using namespace std;
 
 namespace umoi {
@@ -18,6 +17,7 @@ class ModelWriterCnf {
     ModelWriterCnf(const Model &m, ostream &s);
 
     void write();
+    static vector<uint32_t> getVarToId(const Model &m);
 
   protected:
     void initVarToId();
@@ -33,10 +33,7 @@ class ModelWriterCnf {
     vector<uint32_t> varToId_;
 };
 
-ModelWriterCnf::ModelWriterCnf(const Model &m, ostream &s)
-: m_(m)
-, s_(s) {
-}
+ModelWriterCnf::ModelWriterCnf(const Model &m, ostream &s) : m_(m), s_(s) {}
 
 void ModelWriterCnf::write() {
     check();
@@ -54,16 +51,19 @@ void ModelWriterCnf::write() {
     }
 }
 
-void ModelWriterCnf::initVarToId() {
-    varToId_.assign(m_.nbExpressions(), -1);
+vector<uint32_t> ModelWriterCnf::getVarToId(const Model &m) {
+    vector<uint32_t> varToId(m.nbExpressions(), -1);
     // Start at one to make it simpler
     uint32_t id = 1;
-    for (uint32_t i = 0; i < m_.nbExpressions(); ++i) {
-        const Model::ExpressionData &expr = m_.expression(i);
+    for (uint32_t i = 0; i < m.nbExpressions(); ++i) {
+        const Model::ExpressionData &expr = m.expression(i);
         if (expr.op == UMO_OP_DEC_BOOL)
-            varToId_[i] = id++;
+            varToId[i] = id++;
     }
+    return varToId;
 }
+
+void ModelWriterCnf::initVarToId() { varToId_ = getVarToId(m_); }
 
 uint32_t ModelWriterCnf::countClauses() const {
     uint32_t cnt = 0;
@@ -97,25 +97,34 @@ void ModelWriterCnf::check() const {
             continue;
         if (op == UMO_OP_DEC_BOOL) {
             if (m_.isConstraint(i)) {
-                THROW_ERROR("Variables cannot be constraints for the CNF file writer");
+                THROW_ERROR(
+                    "Variables cannot be constraints for the CNF file writer");
             }
             continue;
         }
         if (op == UMO_OP_OR) {
             if (m_.isConstraintNeg(i) || !m_.isConstraintPos(i)) {
-                THROW_ERROR("All clauses must be constraints for the CNF file writer");
+                THROW_ERROR(
+                    "All clauses must be constraints for the CNF file writer");
             }
             continue;
         }
-        THROW_ERROR("Operator " << op << " is not handled by the CNF file writer");
+        THROW_ERROR("Operator " << op
+                                << " is not handled by the CNF file writer");
     }
 }
 
 void Model::writeCnf(ostream &os) const {
     /*
-     * Write the model in CNF format for compatibility with SAT solvers
+     * Write the model in Dimacs CNF format for compatibility with SAT solvers
      */
     ModelWriterCnf(*this, os).write();
 }
 
+void Model::readCnfSol(istream &os) {
+    /*
+     * Read the solution in Dimacs CNF solution format
+     */
+    // TODO
+}
 } // namespace umoi

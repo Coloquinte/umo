@@ -4,11 +4,10 @@
 #include "model/utils.hpp"
 
 #include <algorithm>
+#include <cmath>
 #include <iostream>
 #include <sstream>
-#include <cmath>
 
-using namespace umoi;
 using namespace std;
 
 namespace umoi {
@@ -31,10 +30,7 @@ class ModelWriterUmo {
     vector<uint32_t> varToId_;
 };
 
-ModelWriterUmo::ModelWriterUmo(const Model &m, ostream &s)
-: m_(m)
-, s_(s) {
-}
+ModelWriterUmo::ModelWriterUmo(const Model &m, ostream &s) : m_(m), s_(s) {}
 
 void ModelWriterUmo::write() {
     initVarToId();
@@ -50,7 +46,8 @@ void ModelWriterUmo::write() {
         }
         s_ << endl;
     }
-    vector<ExpressionId> constraints(m_.constraints().begin(), m_.constraints().end());
+    vector<ExpressionId> constraints(m_.constraints().begin(),
+                                     m_.constraints().end());
     sort(constraints.begin(), constraints.end());
     for (ExpressionId constraint : constraints) {
         s_ << "constraint " << exprName(constraint) << endl;
@@ -80,8 +77,9 @@ void ModelWriterUmo::initVarToId() {
 }
 
 string ModelWriterUmo::varName(uint32_t i) const {
-    if (varToId_[i] == (uint32_t) -1) {
-        THROW_ERROR("Expression " << i << " (operator " << m_.expression(i).op << ") hasn't been assigned a name");
+    if (varToId_[i] == (uint32_t)-1) {
+        THROW_ERROR("Expression " << i << " (operator " << m_.expression(i).op
+                                  << ") hasn't been assigned a name");
     }
     stringstream s;
     s << "x" << varToId_[i];
@@ -95,8 +93,7 @@ string ModelWriterUmo::exprName(ExpressionId id) const {
     umo_operator operandOp = m_.expression(id.var()).op;
     if (operandOp == UMO_OP_CONSTANT) {
         s << m_.value(id.var());
-    }
-    else {
+    } else {
         s << "x" << varToId_[id.var()];
     }
     return s.str();

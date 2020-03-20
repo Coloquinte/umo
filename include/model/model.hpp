@@ -76,6 +76,8 @@ class Model {
     void writeUmo(std::ostream &) const;
     void writeLp(std::ostream &) const;
     void writeCnf(std::ostream &) const;
+    void readLpSol(std::istream &);
+    void readCnfSol(std::istream &);
 
   protected:
     void checkTypes() const;
