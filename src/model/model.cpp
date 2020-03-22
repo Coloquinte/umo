@@ -119,7 +119,6 @@ double Model::getFloatValue(ExpressionId expr) {
 }
 
 void Model::setFloatValue(ExpressionId expr, double value) {
-    computed_ = false;
     checkExpressionId(expr);
     umo_operator varOp = getExpressionIdOp(expr);
     if (varOp != UMO_OP_DEC_BOOL && varOp != UMO_OP_DEC_INT &&
@@ -128,6 +127,7 @@ void Model::setFloatValue(ExpressionId expr, double value) {
     umo_type varType = expressions_[expr.var()].type;
     if (!isTypeCompatible(varType, value))
         throw runtime_error("Setting a value of the wrong type");
+    computed_ = false;
     values_[expr.var()] = value;
 }
 
@@ -139,6 +139,7 @@ umo_solution_status Model::getStatus() {
 
 void Model::solve() {
     check();
+    // TODO: separate solve and presolve
     PresolvedModel presolved = presolve::run(*this);
     presolved.check();
 }

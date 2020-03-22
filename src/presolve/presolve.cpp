@@ -7,6 +7,8 @@
 #include "presolve/to_linear.hpp"
 #include "presolve/to_sat.hpp"
 
+#include "solver/external_solvers.hpp"
+
 #include <iostream>
 
 using namespace std;
@@ -14,7 +16,7 @@ using namespace std;
 namespace umoi {
 namespace presolve {
 
-PresolvedModel run(const Model &m) {
+PresolvedModel run(Model &m) {
     // m.writeUmo(cout);
     PresolvedModel model = m;
     Cleanup().run(model);
@@ -23,9 +25,13 @@ PresolvedModel run(const Model &m) {
     if (ToSat().valid(model)) {
         ToSat().run(model);
         // model.writeCnf(cout);
+        MinisatSolver().run(model);
+        model.push(m);
     } else if (ToLinear().valid(model)) {
         ToLinear().run(model);
         // model.writeLp(cout);
+        CbcSolver().run(model);
+        model.push(m);
     } else {
         throw std::runtime_error("The model cannot be converted to SAT or MIP");
     }

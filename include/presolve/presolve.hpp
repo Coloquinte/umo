@@ -16,7 +16,7 @@ class PresolverPass {
     virtual void run(PresolvedModel &model) const = 0;
 };
 
-PresolvedModel run(const Model &model);
+PresolvedModel run(Model &model);
 
 } // namespace presolve
 } // namespace umoi

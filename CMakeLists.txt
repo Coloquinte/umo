@@ -23,6 +23,8 @@ SET(SOURCES
   src/presolve/propagate_constants.cpp
   src/presolve/to_linear.cpp
   src/presolve/to_sat.cpp
+  src/solver/solver.cpp
+  src/solver/external_solvers.cpp
 )
 
 add_library(umo STATIC ${SOURCES})

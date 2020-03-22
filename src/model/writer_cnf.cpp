@@ -44,7 +44,7 @@ void ModelWriterCnf::write() {
         const Model::ExpressionData &expr = m_.expression(i);
         if (expr.op == UMO_OP_OR) {
             for (ExpressionId id : expr.operands) {
-                s_ << (id.isNot() ? "-" : "") << id.var() << " ";
+                s_ << (id.isNot() ? "-" : "") << varToId_[id.var()] << " ";
             }
             s_ << "0" << endl;
         }
@@ -52,7 +52,7 @@ void ModelWriterCnf::write() {
 }
 
 vector<uint32_t> ModelWriterCnf::getVarToId(const Model &m) {
-    vector<uint32_t> varToId(m.nbExpressions(), -1);
+    vector<uint32_t> varToId(m.nbExpressions(), 0);
     // Start at one to make it simpler
     uint32_t id = 1;
     for (uint32_t i = 0; i < m.nbExpressions(); ++i) {
@@ -121,10 +121,44 @@ void Model::writeCnf(ostream &os) const {
     ModelWriterCnf(*this, os).write();
 }
 
-void Model::readCnfSol(istream &os) {
+void Model::readCnfSol(istream &is) {
     /*
      * Read the solution in Dimacs CNF solution format
      */
-    // TODO
+    vector<uint32_t> varToId = ModelWriterCnf::getVarToId(*this);
+    uint32_t maxId = *max_element(varToId.begin(), varToId.end());
+    vector<char> polarities(maxId + 1);
+    // Read the status
+    string firstLine;
+    getline(is, firstLine);
+    if (firstLine == "UNSAT") {
+        status_ = UMO_STATUS_INFEASIBLE;
+        return;
+    }
+    // Read the variable values
+    while (is.good()) {
+        long long v;
+        is >> v;
+        if (v == 0) break;
+        if (v > 0) {
+            polarities.at(v) = 1;
+        }
+        else {
+            polarities.at(-v) = -1;
+        }
+    }
+    // Update the model
+    for (uint32_t i = 0; i < nbExpressions(); ++i) {
+        uint32_t id = varToId.at(i);
+        if (id != 0) {
+            char polarity = polarities[id];
+            if (polarity < 0) {
+                setFloatValue(ExpressionId::fromVar(i), 0.0);
+            }
+            else if (polarity > 0) {
+                setFloatValue(ExpressionId::fromVar(i), 1.0);
+            }
+        }
+    }
 }
 } // namespace umoi
