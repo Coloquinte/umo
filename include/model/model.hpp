@@ -32,6 +32,7 @@ class Model {
     double getFloatValue(ExpressionId expr);
     void setFloatValue(ExpressionId expr, double value);
     umo_solution_status getStatus();
+    void setStatus(umo_solution_status status);
 
     void solve();
     void check() const;
@@ -91,6 +92,7 @@ class Model {
     std::vector<umo_operator> getOperandOps(const ExpressionData &expr) const;
 
     void compute();
+    void computeStatus();
 
     void initDefaultParameters();
 
@@ -107,8 +109,9 @@ class Model {
     std::unordered_map<double, std::uint32_t> constants_;
 
     std::vector<double> values_;
-    bool computed_;
     umo_solution_status status_;
+    bool computed_;
+    bool statusComputed_;
 
     std::unordered_map<std::string, std::string> stringParams_;
     std::unordered_map<std::string, double> floatParams_;

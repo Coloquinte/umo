@@ -21,6 +21,24 @@ BOOST_AUTO_TEST_CASE(SatifyBoolDec) {
     BOOST_CHECK(model.getStatus() == Status::Valid);
 }
 
+BOOST_AUTO_TEST_CASE(SatifyVarConstrainedPos) {
+    Model model;
+    BoolExpression x1 = model.boolVar();
+    constraint(x1);
+    model.solve();
+    BOOST_CHECK(x1.getValue());
+    BOOST_CHECK(model.getStatus() == Status::Valid);
+}
+
+BOOST_AUTO_TEST_CASE(SatifyVarConstrainedNeg) {
+    Model model;
+    BoolExpression x1 = model.boolVar();
+    constraint(!x1);
+    model.solve();
+    BOOST_CHECK(!x1.getValue());
+    BOOST_CHECK(model.getStatus() == Status::Valid);
+}
+
 BOOST_AUTO_TEST_CASE(SatifyConstrainedAnd) {
     Model model;
     BoolExpression x1 = model.boolVar();
@@ -215,3 +233,15 @@ BOOST_AUTO_TEST_CASE(SatifyBigNand) {
     }
     BOOST_CHECK(cnt < nVars);
 }
+
+BOOST_AUTO_TEST_CASE(SatifyUnsat) {
+    Model model;
+    BoolExpression x1 = model.boolVar();
+    BoolExpression x2 = model.boolVar();
+    constraint(x1 && x2);
+    constraint(!(x1 && x2));
+    model.solve();
+    BOOST_CHECK_EQUAL(model.getStatus(), Status::Infeasible);
+}
+
+

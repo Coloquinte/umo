@@ -21,6 +21,8 @@ void PresolvedModel::push(Model &model) {
         double val = getFloatValue(p.second);
         model.setFloatValue(ExpressionId(p.first, false, false), val);
     }
+    // Push status for a model declared optimal or unfeasible
+    model.setStatus(getStatus());
 }
 
 void PresolvedModel::pull(Model &model) {

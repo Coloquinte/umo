@@ -43,6 +43,7 @@ bool isTypeCompatible(umo_type varType, double value) {
 
 Model::Model() {
     computed_ = false;
+    statusComputed_ = false;
     initDefaultParameters();
 }
 
@@ -75,6 +76,7 @@ ExpressionId Model::createExpression(umo_operator op,
     }
 
     computed_ = false;
+    statusComputed_ = false;
     // Gather operands with type info
     ExpressionData expr(op);
     expr.operands = operands;
@@ -103,12 +105,12 @@ ExpressionId Model::createExpression(umo_operator op,
 }
 
 void Model::createConstraint(ExpressionId expr) {
-    computed_ = false;
+    statusComputed_ = false;
     constraints_.insert(expr);
 }
 
 void Model::createObjective(ExpressionId expr, umo_objective_direction dir) {
-    computed_ = false;
+    statusComputed_ = false;
     objectives_.emplace_back(expr, dir);
 }
 
@@ -128,13 +130,19 @@ void Model::setFloatValue(ExpressionId expr, double value) {
     if (!isTypeCompatible(varType, value))
         throw runtime_error("Setting a value of the wrong type");
     computed_ = false;
+    statusComputed_ = false;
     values_[expr.var()] = value;
 }
 
 umo_solution_status Model::getStatus() {
-    if (!computed_)
-        compute();
+    if (!statusComputed_)
+        computeStatus();
     return status_;
+}
+
+void Model::setStatus(umo_solution_status status) {
+    statusComputed_ = true;
+    status_ = status;
 }
 
 void Model::solve() {
@@ -310,6 +318,7 @@ void Model::checkCompressedOperands() const {
 }
 
 void Model::compute() {
+    // Compute all expressions
     for (uint32_t i = 0; i < nbExpressions(); ++i) {
         const ExpressionData &expr = expressions_[i];
         const Operator &op = Operator::get(expr.op);
@@ -321,14 +330,22 @@ void Model::compute() {
         }
         values_[i] = op.compute(operands.size(), operands.data());
     }
+    computed_ = true;
+}
+
+void Model::computeStatus() {
+    if (!computed_)
+        compute();
+    // Compute all constraints
     bool constraintViolated = false;
     for (ExpressionId constraint : constraints_) {
         double val = getExpressionIdValue(constraint);
         if (val == 0.0)
             constraintViolated = true;
     }
+    // Update the status
     status_ = constraintViolated ? UMO_STATUS_INVALID : UMO_STATUS_VALID;
-    computed_ = true;
+    statusComputed_ = true;
 }
 
 void Model::initDefaultParameters() {

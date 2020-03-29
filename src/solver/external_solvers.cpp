@@ -32,7 +32,10 @@ void MinisatSolver::run(Model &m) const {
     ofstream modf(tmpModName);
     m.writeCnf(modf);
     stringstream command;
-    command << "minisat " << tmpModName << " " << tmpSolName << endl;
+    command << "minisat ";
+    command << "-verb=0 ";
+    command << tmpModName << " " << tmpSolName;
+    command << endl;
     system(command.str().c_str());
     ifstream solf(tmpSolName);
     m.readCnfSol(solf);

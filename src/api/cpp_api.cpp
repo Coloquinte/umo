@@ -3,6 +3,7 @@
 #include <cstdlib>
 #include <limits>
 #include <stdexcept>
+#include <ostream>
 
 #include "api/umo.h"
 #include "api/umo.hpp"
@@ -970,4 +971,24 @@ BoolExpression logical_xor(const std::vector<BoolExpression> &ops) {
     return naryOp(UMO_OP_XOR, ops);
 }
 
+std::ostream &operator<<(std::ostream &os, const Status &status) {
+    switch(status) {
+        case Status::Infeasible:
+            os << "Infeasible";
+            break;
+        case Status::Invalid:
+            os << "Invalid";
+            break;
+        case Status::Valid:
+            os << "Valid";
+            break;
+        case Status::Optimal:
+            os << "Optimal";
+            break;
+        default:
+            os << "UnknownStatus";
+            break;
+    }
+    return os;
+}
 } // namespace umo

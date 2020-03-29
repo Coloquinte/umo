@@ -4,6 +4,7 @@
 
 #include <string>
 #include <vector>
+#include <iosfwd>
 
 extern "C" {
 struct umo_model;
@@ -265,6 +266,8 @@ BoolExpression max(const std::vector<BoolExpression> &);
 BoolExpression logical_or(const std::vector<BoolExpression> &);
 BoolExpression logical_and(const std::vector<BoolExpression> &);
 BoolExpression logical_xor(const std::vector<BoolExpression> &);
+
+std::ostream &operator<<(std::ostream&, const Status&);
 
 } // namespace umo
 

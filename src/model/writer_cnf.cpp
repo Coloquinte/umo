@@ -5,7 +5,6 @@
 
 #include <algorithm>
 #include <cmath>
-#include <iostream>
 #include <sstream>
 
 using namespace std;
@@ -132,7 +131,7 @@ void Model::readCnfSol(istream &is) {
     string firstLine;
     getline(is, firstLine);
     if (firstLine == "UNSAT") {
-        status_ = UMO_STATUS_INFEASIBLE;
+        setStatus(UMO_STATUS_INFEASIBLE);
         return;
     }
     // Read the variable values
