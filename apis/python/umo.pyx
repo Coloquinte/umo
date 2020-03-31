@@ -188,11 +188,11 @@ cdef class Model:
 
     @property
     def time_limit(self):
-        return self.get_param("umo_time_limit")
+        return self.get_param("time_limit")
 
     @time_limit.setter
     def time_limit(self, value):
-        self.set_param("umo_time_limit", value)
+        self.set_param("time_limit", value)
 
     def solve(self):
         cdef const char *err = NULL

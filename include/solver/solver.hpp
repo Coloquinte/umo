@@ -7,9 +7,10 @@
 namespace umoi {
 class Solver {
   public:
-    virtual void run(Model &) const =0;
+    virtual void run(Model &) const = 0;
 
-    static std::string temporaryFilename(const std::string &prefix, const std::string &suffix);
+    static std::string temporaryFilename(const std::string &prefix,
+                                         const std::string &suffix);
 };
 } // namespace umoi
 

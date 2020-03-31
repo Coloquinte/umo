@@ -349,6 +349,7 @@ void Model::computeStatus() {
 }
 
 void Model::initDefaultParameters() {
-    setFloatParameter("umo_time_limit", numeric_limits<double>::infinity());
+    setFloatParameter("time_limit", numeric_limits<double>::infinity());
+    setStringParameter("solver", "auto");
 }
 } // namespace umoi

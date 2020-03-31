@@ -138,11 +138,11 @@ void Model::readCnfSol(istream &is) {
     while (is.good()) {
         long long v;
         is >> v;
-        if (v == 0) break;
+        if (v == 0)
+            break;
         if (v > 0) {
             polarities.at(v) = 1;
-        }
-        else {
+        } else {
             polarities.at(-v) = -1;
         }
     }
@@ -153,8 +153,7 @@ void Model::readCnfSol(istream &is) {
             char polarity = polarities[id];
             if (polarity < 0) {
                 setFloatValue(ExpressionId::fromVar(i), 0.0);
-            }
-            else if (polarity > 0) {
+            } else if (polarity > 0) {
                 setFloatValue(ExpressionId::fromVar(i), 1.0);
             }
         }

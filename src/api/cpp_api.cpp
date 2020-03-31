@@ -2,8 +2,8 @@
 #include <cassert>
 #include <cstdlib>
 #include <limits>
-#include <stdexcept>
 #include <ostream>
+#include <stdexcept>
 
 #include "api/umo.h"
 #include "api/umo.hpp"
@@ -233,10 +233,14 @@ void Model::setFloatParam(const std::string &param, double val) {
     UNWRAP_EXCEPTIONS(umo_set_float_parameter(ptr_, param.c_str(), val, &err););
 }
 
-double Model::getTimeLimit() { return getFloatParam("umo_time_limit"); }
+double Model::getTimeLimit() { return getFloatParam("time_limit"); }
 
-void Model::setTimeLimit(double limit) {
-    setFloatParam("umo_time_limit", limit);
+void Model::setTimeLimit(double limit) { setFloatParam("time_limit", limit); }
+
+std::string Model::getSolver() { return getStringParam("solver"); }
+
+void Model::setSolver(const std::string &solver) {
+    setStringParam("solver", solver);
 }
 
 std::string Model::getStringParam(const std::string &param) {
@@ -972,22 +976,22 @@ BoolExpression logical_xor(const std::vector<BoolExpression> &ops) {
 }
 
 std::ostream &operator<<(std::ostream &os, const Status &status) {
-    switch(status) {
-        case Status::Infeasible:
-            os << "Infeasible";
-            break;
-        case Status::Invalid:
-            os << "Invalid";
-            break;
-        case Status::Valid:
-            os << "Valid";
-            break;
-        case Status::Optimal:
-            os << "Optimal";
-            break;
-        default:
-            os << "UnknownStatus";
-            break;
+    switch (status) {
+    case Status::Infeasible:
+        os << "Infeasible";
+        break;
+    case Status::Invalid:
+        os << "Invalid";
+        break;
+    case Status::Valid:
+        os << "Valid";
+        break;
+    case Status::Optimal:
+        os << "Optimal";
+        break;
+    default:
+        os << "UnknownStatus";
+        break;
     }
     return os;
 }

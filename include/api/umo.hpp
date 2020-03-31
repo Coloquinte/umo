@@ -48,6 +48,8 @@ class Model {
 
     double getTimeLimit();
     void setTimeLimit(double limit);
+    std::string getSolver();
+    void setSolver(const std::string &solver);
 
     // N-ary operations
     FloatExpression sum(const std::vector<FloatExpression> &);

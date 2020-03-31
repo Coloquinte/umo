@@ -41,7 +41,9 @@ class ExpressionId {
     static ExpressionId fromRaw(std::uint32_t raw) { return ExpressionId(raw); }
 
     // Construct from just a variable
-    static ExpressionId fromVar(std::uint32_t var) { return ExpressionId(var, false, false); }
+    static ExpressionId fromVar(std::uint32_t var) {
+        return ExpressionId(var, false, false);
+    }
 
     bool operator==(const ExpressionId &o) const { return v == o.v; }
     bool operator!=(const ExpressionId &o) const { return v != o.v; }
