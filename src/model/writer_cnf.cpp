@@ -13,6 +13,9 @@ namespace umoi {
 
 class ModelWriterCnf {
   public:
+    static constexpr uint32_t InvalidId = 0;
+
+  public:
     ModelWriterCnf(const Model &m, ostream &s);
 
     void write();
@@ -31,6 +34,8 @@ class ModelWriterCnf {
     ostream &s_;
     vector<uint32_t> varToId_;
 };
+
+constexpr uint32_t ModelWriterCnf::InvalidId;
 
 ModelWriterCnf::ModelWriterCnf(const Model &m, ostream &s) : m_(m), s_(s) {}
 
@@ -51,7 +56,7 @@ void ModelWriterCnf::write() {
 }
 
 vector<uint32_t> ModelWriterCnf::getVarToId(const Model &m) {
-    vector<uint32_t> varToId(m.nbExpressions(), 0);
+    vector<uint32_t> varToId(m.nbExpressions(), InvalidId);
     // Start at one to make it simpler
     uint32_t id = 1;
     for (uint32_t i = 0; i < m.nbExpressions(); ++i) {
@@ -149,8 +154,8 @@ void Model::readCnfSol(istream &is) {
     // Update the model
     for (uint32_t i = 0; i < nbExpressions(); ++i) {
         uint32_t id = varToId.at(i);
-        if (id != 0) {
-            char polarity = polarities[id];
+        if (id != ModelWriterCnf::InvalidId) {
+            char polarity = polarities.at(id);
             if (polarity < 0) {
                 setFloatValue(ExpressionId::fromVar(i), 0.0);
             } else if (polarity > 0) {

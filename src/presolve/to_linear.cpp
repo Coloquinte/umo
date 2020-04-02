@@ -17,6 +17,9 @@ class ToLinear::Transformer {
     void run();
 
     void createExpressions();
+    void createObjectives();
+    void linearizeExpressions();
+
     void linearize(uint32_t i);
 
     void linearizeSum(uint32_t i);
@@ -127,6 +130,21 @@ void ToLinear::Transformer::createExpressions() {
     }
 }
 
+void ToLinear::Transformer::linearizeExpressions() {
+    for (uint32_t i = 0; i < model.nbExpressions(); ++i) {
+        linearize(i);
+    }
+}
+
+void ToLinear::Transformer::createObjectives() {
+    for (const auto obj : model.objectives()) {
+        Element elt = getElement(obj.first);
+        bool maxObj = (obj.second == UMO_OBJ_MAXIMIZE) ^ (elt.coef < 0.0);
+        umo_objective_direction dir = maxObj ? UMO_OBJ_MAXIMIZE : UMO_OBJ_MINIMIZE;
+        linearModel.createObjective(ExpressionId(elt.var, false, false), dir);
+    }
+}
+
 void ToLinear::Transformer::linearize(uint32_t i) {
     if (model.isLeaf(i))
         return;
@@ -162,9 +180,8 @@ void ToLinear::Transformer::linearize(uint32_t i) {
 
 void ToLinear::Transformer::run() {
     createExpressions();
-    for (uint32_t i = 0; i < model.nbExpressions(); ++i) {
-        linearize(i);
-    }
+    createObjectives();
+    linearizeExpressions();
     model.apply(linearModel);
 }
 
@@ -213,7 +230,7 @@ void ToLinear::Transformer::makeConstraint(const vector<double> &coefs,
             if (linearModel.isConstant(elt.var)) {
                 // Constant in the linear model (happens for example when
                 // replacing a constraint)
-                offset += elt.constant + elt.coef * linearModel.value(elt.var);
+                offset += coef * (elt.constant + elt.coef * linearModel.value(elt.var));
             } else {
                 operands.push_back(linearModel.createConstant(coef * elt.coef));
                 operands.push_back(ExpressionId(elt.var, false, false));
@@ -222,8 +239,8 @@ void ToLinear::Transformer::makeConstraint(const vector<double> &coefs,
         }
     }
     // Lower/upper bound of the constraint
-    lb += offset;
-    ub += offset;
+    lb -= offset;
+    ub -= offset;
     if (operands.size() == 2) {
         // TODO: add some margin here
         if (lb > 0.0 || ub < 0.0) {
@@ -320,7 +337,7 @@ void ToLinear::Transformer::linearizeCompare(uint32_t i) {
         THROW_ERROR("Comparisons that are not constraints are not handled yet");
     if (model.isConstraintPos(i) && model.isConstraintNeg(i))
         THROW_ERROR("The variable is constrained both ways. Model is "
-                    "obviousliy inconsistent");
+                    "obviously inconsistent");
 
     ExpressionId op1 = expr.operands[0];
     ExpressionId op2 = expr.operands[1];
@@ -407,6 +424,8 @@ void ToLinear::Transformer::linearizeXor(uint32_t i) {
 }
 
 bool ToLinear::valid(const PresolvedModel &model) const {
+    if (model.nbObjectives() > 1)
+        return false;
     for (uint32_t i = 0; i < model.nbExpressions(); ++i) {
         const auto &expr = model.expression(i);
         switch (expr.op) {

@@ -14,10 +14,13 @@ namespace umoi {
 
 class ModelWriterLp {
   public:
+    static constexpr int32_t InvalidId = -1;
+
+  public:
     ModelWriterLp(const Model &m, ostream &s);
 
     void write();
-    static vector<uint32_t> getVarToId(const Model &m);
+    static vector<int32_t> getVarToId(const Model &m);
 
   protected:
     void initVarToId();
@@ -31,8 +34,10 @@ class ModelWriterLp {
   private:
     const Model &m_;
     ostream &s_;
-    vector<uint32_t> varToId_;
+    vector<int32_t> varToId_;
 };
+
+constexpr int32_t ModelWriterLp::InvalidId;
 
 ModelWriterLp::ModelWriterLp(const Model &m, ostream &s) : m_(m), s_(s) {}
 
@@ -114,16 +119,17 @@ void ModelWriterLp::write() {
     s_ << "End" << endl;
 }
 
-vector<uint32_t> ModelWriterLp::getVarToId(const Model &m) {
-    vector<uint32_t> varToId(m.nbExpressions(), -1);
-    uint32_t id = 0;
+vector<int32_t> ModelWriterLp::getVarToId(const Model &m) {
+    vector<int32_t> varToId(m.nbExpressions(), InvalidId);
+    int32_t id = 0;
     for (uint32_t i = 0; i < m.nbExpressions(); ++i) {
         const Model::ExpressionData &expr = m.expression(i);
-        if (expr.op == UMO_OP_INVALID)
-            continue;
-        if (expr.op == UMO_OP_CONSTANT)
-            continue;
-        varToId[i] = id++;
+        if (expr.op == UMO_OP_DEC_BOOL)
+            varToId[i] = id++;
+        if (expr.op == UMO_OP_DEC_INT)
+            varToId[i] = id++;
+        if (expr.op == UMO_OP_DEC_FLOAT)
+            varToId[i] = id++;
     }
     return varToId;
 }
@@ -131,7 +137,7 @@ vector<uint32_t> ModelWriterLp::getVarToId(const Model &m) {
 void ModelWriterLp::initVarToId() { varToId_ = getVarToId(m_); }
 
 string ModelWriterLp::varName(uint32_t i) const {
-    if (varToId_[i] == (uint32_t)-1) {
+    if (varToId_[i] == InvalidId) {
         THROW_ERROR("Expression " << i << " (operator " << m_.expression(i).op
                                   << ") hasn't been assigned a name");
     }
@@ -214,10 +220,33 @@ void Model::writeLp(ostream &os) const {
     ModelWriterLp(*this, os).write();
 }
 
-void Model::readLpSol(istream &os) {
+void Model::readLpSol(istream &is) {
     /*
      * Read the solution in LP solution format
      */
-    // TODO
+    vector<int32_t> varToId = ModelWriterLp::getVarToId(*this);
+    int32_t maxId = *max_element(varToId.begin(), varToId.end());
+    unordered_map<string, double> values;
+    // Read the status
+    string firstLine;
+    getline(is, firstLine);
+    // Read the variable values
+    while (is.good()) {
+        int32_t varId;
+        string varName;
+        double value;
+        double dualValue;
+        is >> varId >> varName >> value >> dualValue;
+        if (varId > maxId || varId < 0) THROW_ERROR("Out of bound variable index " << varId << " after LP solution for variable " << varName);
+        values[varName] = value;
+    }
+    for (uint32_t i = 0; i < nbExpressions(); ++i) {
+        uint32_t id = varToId.at(i);
+        if (id != ModelWriterLp::InvalidId) {
+            stringstream ss;
+            ss << "x" << id;
+            setFloatValue(ExpressionId::fromVar(i), values.at(ss.str()));
+        }
+    }
 }
 } // namespace umoi

@@ -262,6 +262,8 @@ void ToSat::Transformer::run() {
 }
 
 bool ToSat::valid(const PresolvedModel &model) const {
+    if (model.nbObjectives() != 0)
+        return false;
     for (uint32_t i = 0; i < model.nbExpressions(); ++i) {
         const auto &expr = model.expression(i);
         switch (expr.op) {

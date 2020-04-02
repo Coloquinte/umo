@@ -9,6 +9,7 @@
 
 #include "model/operator.hpp"
 #include "presolve/presolve.hpp"
+#include "model/utils.hpp"
 
 using namespace std;
 
@@ -128,7 +129,7 @@ void Model::setFloatValue(ExpressionId expr, double value) {
         throw runtime_error("Only decisions can be set");
     umo_type varType = expressions_[expr.var()].type;
     if (!isTypeCompatible(varType, value))
-        throw runtime_error("Setting a value of the wrong type");
+        THROW_ERROR("Cannot set an expression of type " << varType << " to " << value << " of type " << computeType(value));
     computed_ = false;
     statusComputed_ = false;
     values_[expr.var()] = value;

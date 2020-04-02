@@ -11,85 +11,176 @@
 
 using namespace umo;
 
+const double eps = 0.001;
+
 BOOST_AUTO_TEST_CASE(LinearizationFloatDec) {
     Model model;
-    model.floatVar(-3.0, 10.2);
-    model.floatVar(-50.9, 10.33);
-    model.floatVar(-4.4, -2.0);
-    model.floatVar();
+    FloatExpression x1 = model.floatVar(-3.0, 10.2);
+    FloatExpression x2 = model.floatVar(-50.9, 10.33);
+    FloatExpression x3 = model.floatVar(-4.4, -2.0);
+    FloatExpression x4 = model.floatVar(10.0, 21.2);
+    maximize(x1 + x2 + x3 + x4);
     model.solve();
+    BOOST_CHECK_CLOSE(x1.getValue(), 10.2, eps);
+    BOOST_CHECK_CLOSE(x2.getValue(), 10.33, eps);
+    BOOST_CHECK_CLOSE(x3.getValue(), -2.0, eps);
+    BOOST_CHECK_CLOSE(x4.getValue(), 21.2, eps);
 }
 
 BOOST_AUTO_TEST_CASE(LinearizationIntDec) {
     Model model;
-    model.intVar(0, 10);
-    model.intVar(-50, 10);
-    model.intVar(-4, -2);
-    model.intVar();
+    IntExpression x1 = model.intVar(0, 10);
+    IntExpression x2 = model.intVar(-50, 10);
+    IntExpression x3 = model.intVar(-4, -2);
+    IntExpression x4 = model.intVar(10, 21);
+    maximize(x1 + x2 + x3 + x4);
     model.solve();
+    BOOST_CHECK_EQUAL(x1.getValue(), 10);
+    BOOST_CHECK_EQUAL(x2.getValue(), 10);
+    BOOST_CHECK_EQUAL(x3.getValue(), -2);
+    BOOST_CHECK_EQUAL(x4.getValue(), 21);
 }
 
 BOOST_AUTO_TEST_CASE(LinearizationBoolDec) {
     Model model;
-    model.boolVar();
-    model.boolVar();
-    model.boolVar();
+    BoolExpression x1 = model.boolVar();
+    BoolExpression x2 = model.boolVar();
+    BoolExpression x3 = model.boolVar();
+    BoolExpression x4 = model.boolVar();
+    maximize(x1 + x2 + x3 + x4);
     model.solve();
+    BOOST_CHECK(x1.getValue());
+    BOOST_CHECK(x2.getValue());
+    BOOST_CHECK(x3.getValue());
+    BOOST_CHECK(x4.getValue());
 }
 
 BOOST_AUTO_TEST_CASE(LinearizationFloatCmp1) {
     Model model;
-    constraint(model.floatVar() > model.floatVar());
-    constraint(model.floatVar() > 2.0);
+    FloatExpression x = model.floatVar();
+    constraint(x > 2.0);
+    minimize(x);
     model.solve();
+    BOOST_CHECK_CLOSE(x.getValue(), 2.0, eps);
 }
 
 BOOST_AUTO_TEST_CASE(LinearizationFloatCmp2) {
     Model model;
-    constraint(model.floatVar() < model.floatVar());
-    constraint(model.floatVar() < 2.0);
+    FloatExpression x = model.floatVar();
+    constraint(x < 2.0);
+    maximize(x);
     model.solve();
+    BOOST_CHECK_CLOSE(x.getValue(), 2.0, eps);
 }
 
 BOOST_AUTO_TEST_CASE(LinearizationFloatCmp3) {
     Model model;
-    constraint(model.floatVar() >= model.floatVar());
-    constraint(model.floatVar() >= 2.0);
+    FloatExpression x = model.floatVar();
+    constraint(x >= 2.0);
+    minimize(x);
     model.solve();
+    BOOST_CHECK_CLOSE(x.getValue(), 2.0, eps);
 }
 
 BOOST_AUTO_TEST_CASE(LinearizationFloatCmp4) {
     Model model;
-    constraint(model.floatVar() <= model.floatVar());
-    constraint(model.floatVar() <= 2.0);
+    FloatExpression x = model.floatVar();
+    constraint(x <= 2.0);
+    maximize(x);
     model.solve();
+    BOOST_CHECK_CLOSE(x.getValue(), 2.0, eps);
 }
+
+BOOST_AUTO_TEST_CASE(LinearizationFloatCmp5) {
+    Model model;
+    FloatExpression x = model.floatVar();
+    FloatExpression y = model.floatVar(5.0, 10.0);
+    constraint(x >= y);
+    minimize(x);
+    model.solve();
+    BOOST_CHECK_CLOSE(x.getValue(), 5.0, eps);
+}
+
+BOOST_AUTO_TEST_CASE(LinearizationFloatCmp6) {
+    Model model;
+    FloatExpression x = model.floatVar();
+    FloatExpression y = model.floatVar(5.0, 10.0);
+    constraint(x <= y);
+    maximize(x);
+    model.solve();
+    BOOST_CHECK_CLOSE(x.getValue(), 10.0, eps);
+}
+
 
 BOOST_AUTO_TEST_CASE(LinearizationFloatEq1) {
     Model model;
-    constraint(model.floatVar() == model.floatVar());
-    constraint(model.floatVar() == 2.0);
+    FloatExpression x = model.floatVar();
+    constraint(x == 2.0);
+    maximize(x);
     model.solve();
+    BOOST_CHECK_CLOSE(x.getValue(), 2.0, eps);
 }
 
 BOOST_AUTO_TEST_CASE(LinearizationFloatEq2) {
     Model model;
-    constraint(!(model.floatVar() != model.floatVar()));
-    constraint(!(model.floatVar() != 2.0));
+    FloatExpression x = model.floatVar();
+    FloatExpression y = model.floatVar(0.0, 2.0);
+    constraint(x == y);
+    maximize(x);
     model.solve();
+    BOOST_CHECK_CLOSE(x.getValue(), 2.0, eps);
+}
+
+BOOST_AUTO_TEST_CASE(LinearizationFloatEq3) {
+    Model model;
+    FloatExpression x = model.floatVar();
+    constraint(!(x != 2.0));
+    maximize(x);
+    model.solve();
+    BOOST_CHECK_CLOSE(x.getValue(), 2.0, eps);
+}
+
+BOOST_AUTO_TEST_CASE(LinearizationFloatEq4) {
+    Model model;
+    FloatExpression x = model.floatVar();
+    FloatExpression y = model.floatVar(0.0, 2.0);
+    constraint(!(x != y));
+    maximize(x);
+    model.solve();
+    BOOST_CHECK_CLOSE(x.getValue(), 2.0, eps);
 }
 
 BOOST_AUTO_TEST_CASE(LinearizationFloatNeq1) {
     Model model;
-    constraint(model.floatVar() != model.floatVar());
-    constraint(model.floatVar() != 2.0);
+    FloatExpression x = model.floatVar(0.0, 5.0);
+    constraint(x != 2.0);
+    maximize(x);
     BOOST_CHECK_THROW(model.solve(), std::runtime_error);
 }
 
 BOOST_AUTO_TEST_CASE(LinearizationFloatNeq2) {
     Model model;
-    constraint(!(model.floatVar() == model.floatVar()));
-    constraint(!(model.floatVar() == 2.0));
+    FloatExpression x = model.floatVar();
+    FloatExpression y = model.floatVar(0.0, 2.0);
+    constraint(x != y);
+    maximize(x);
+    BOOST_CHECK_THROW(model.solve(), std::runtime_error);
+}
+
+BOOST_AUTO_TEST_CASE(LinearizationFloatNeq3) {
+    Model model;
+    FloatExpression x = model.floatVar(0.0, 5.0);
+    constraint(!(x == 2.0));
+    maximize(x);
+    BOOST_CHECK_THROW(model.solve(), std::runtime_error);
+}
+
+BOOST_AUTO_TEST_CASE(LinearizationFloatNeq4) {
+    Model model;
+    FloatExpression x = model.floatVar();
+    FloatExpression y = model.floatVar(0.0, 2.0);
+    constraint(!(x == y));
+    maximize(x);
     BOOST_CHECK_THROW(model.solve(), std::runtime_error);
 }
 
@@ -137,6 +228,7 @@ BOOST_AUTO_TEST_CASE(LinearizationAnd1) {
     maximize(dec1 && dec2);
     logical_and(vec);
     model.solve();
+    BOOST_CHECK(dec1.getValue() && dec2.getValue());
 }
 
 BOOST_AUTO_TEST_CASE(LinearizationOr1) {
@@ -148,6 +240,7 @@ BOOST_AUTO_TEST_CASE(LinearizationOr1) {
     maximize(dec1 || dec2);
     logical_or(vec);
     model.solve();
+    BOOST_CHECK(dec1.getValue() || dec2.getValue());
 }
 
 BOOST_AUTO_TEST_CASE(LinearizationXor1) {
@@ -174,3 +267,11 @@ BOOST_AUTO_TEST_CASE(LinearizationMin1) {
     BOOST_CHECK_THROW(model.solve(), std::runtime_error);
 }
 
+BOOST_AUTO_TEST_CASE(LinearizationMultiObjective) {
+    Model model;
+    FloatExpression dec1 = model.floatVar();
+    FloatExpression dec2 = model.floatVar();
+    maximize(dec1);
+    minimize(dec2);
+    BOOST_CHECK_THROW(model.solve(), std::runtime_error);
+}
