@@ -5,10 +5,19 @@
 #include <fstream>
 #include <sstream>
 
+#include "presolve/presolve.hpp"
+#include "presolve/to_sat.hpp"
+#include "presolve/to_linear.hpp"
+
 using namespace std;
 
 namespace umoi {
-void CbcSolver::run(Model &m) const {
+bool CbcSolver::valid(PresolvedModel &m) const {
+    return presolve::ToLinear().valid(m);
+}
+
+void CbcSolver::run(PresolvedModel &m) const {
+    presolve::ToLinear().run(m);
     string tmpName = temporaryFilename("umo-cbc-", "");
     string tmpModName = tmpName + "-mod.lp";
     string tmpSolName = tmpName + "-out.sol";
@@ -29,7 +38,12 @@ void CbcSolver::run(Model &m) const {
     remove(tmpSolName.c_str());
 }
 
-void MinisatSolver::run(Model &m) const {
+bool MinisatSolver::valid(PresolvedModel &m) const {
+    return presolve::ToSat().valid(m);
+}
+
+void MinisatSolver::run(PresolvedModel &m) const {
+    presolve::ToSat().run(m);
     string tmpName = temporaryFilename("umo-minisat-", "");
     string tmpModName = tmpName + "-mod.cnf";
     string tmpSolName = tmpName + "-out.sol";

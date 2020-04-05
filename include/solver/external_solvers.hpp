@@ -19,12 +19,14 @@
 namespace umoi {
 class CbcSolver : public Solver {
   public:
-    void run(Model &) const override;
+    bool valid(PresolvedModel &) const override;
+    void run(PresolvedModel &) const override;
 };
 
 class MinisatSolver : public Solver {
   public:
-    void run(Model &) const override;
+    bool valid(PresolvedModel &) const override;
+    void run(PresolvedModel &) const override;
 };
 } // namespace umoi
 

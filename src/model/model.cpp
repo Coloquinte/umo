@@ -10,6 +10,7 @@
 #include "model/operator.hpp"
 #include "presolve/presolve.hpp"
 #include "model/utils.hpp"
+#include "solver/external_solvers.hpp"
 
 using namespace std;
 
@@ -148,9 +149,27 @@ void Model::setStatus(umo_solution_status status) {
 
 void Model::solve() {
     check();
-    // TODO: separate solve and presolve
     PresolvedModel presolved = presolve::run(*this);
     presolved.check();
+    string solverParam = getStringParameter("solver");
+    if (solverParam == "auto") {
+        if (MinisatSolver().valid(presolved))
+            MinisatSolver().run(presolved);
+        else if (CbcSolver().valid(presolved))
+            CbcSolver().run(presolved);
+        else
+            throw std::runtime_error("The model cannot be converted to SAT or MIP");
+    }
+    else if (solverParam == "cbc") {
+        CbcSolver().run(presolved);
+    }
+    else if (solverParam == "minisat") {
+        MinisatSolver().run(presolved);
+    }
+    else {
+        THROW_ERROR("Solver " << solverParam << " is not a valid parameter");
+    }
+    presolved.push(*this);
 }
 
 double Model::getFloatParameter(const string &param) const {

@@ -12,6 +12,7 @@
 #include "model/expression_id.hpp"
 
 namespace umoi {
+class PresolvedModel;
 class Model {
   public:
     struct ExpressionData;
