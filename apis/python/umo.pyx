@@ -188,11 +188,19 @@ cdef class Model:
 
     @property
     def time_limit(self):
-        return self.get_param("time_limit")
+        return self.get_float_param("time_limit")
 
     @time_limit.setter
     def time_limit(self, value):
-        self.set_param("time_limit", value)
+        self.set_float_param("time_limit", value)
+
+    @property
+    def solver(self):
+        return self.get_string_param("solver")
+
+    @solver.setter
+    def solver(self, value):
+        self.set_string_param("solver", value)
 
     def solve(self):
         cdef const char *err = NULL
@@ -204,20 +212,37 @@ cdef class Model:
         umo_check(self.ptr, &err)
         unwrap_error(&err)
 
-    def get_param(self, param):
+    def get_float_param(self, param):
         cdef const char* err = NULL
         cparam = param.encode('UTF-8')
         cdef double val = umo_get_float_parameter(self.ptr, cparam, &err)
         unwrap_error(&err)
         return val
 
-    def set_param(self, param, value):
+    def set_float_param(self, param, value):
         if not is_float(value):
-            raise TypeError("set_param() argument must be a number")
+            raise TypeError("set_float_param() argument must be a number")
         cdef const char* err = NULL
         cparam = param.encode('UTF-8')
         umo_set_float_parameter(self.ptr, cparam, float(value), &err)
         unwrap_error(&err)
+
+    def get_string_param(self, param):
+        cdef const char* err = NULL
+        cparam = param.encode('UTF-8')
+        cdef const char* val = umo_get_string_parameter(self.ptr, cparam, &err)
+        unwrap_error(&err)
+        return (<bytes> val).decode('UTF-8')
+
+    def set_string_param(self, param, value):
+        if not isinstance(value, str):
+            raise TypeError("set_string_param() argument must be a string")
+        cdef const char* err = NULL
+        cparam = param.encode('UTF-8')
+        cvalue = value.encode('UTF-8')
+        umo_set_string_parameter(self.ptr, cparam, cvalue, &err)
+        unwrap_error(&err)
+
 
 cdef class Expression:
     cdef readonly object model
