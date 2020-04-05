@@ -109,6 +109,13 @@ cdef is_float(value):
     return isinstance(value, float) or value == float(value)
 
 
+cdef is_boolexpr(value):
+    if isinstance(value, Expression):
+        return isinstance(value, BoolExpression)
+    else:
+        return is_bool(value)
+
+
 cdef is_intexpr(value):
     if isinstance(value, Expression):
         return isinstance(value, IntExpression)
@@ -320,8 +327,16 @@ cdef class Expression:
         expr.v = self.v
         return expr
 
-    def _asrettype(self, o1, o2=None):
+    def _infer_int_float(self, o1, o2=None):
         if is_intexpr(o1) and (o2 is None or is_intexpr(o2)):
+            return self._asint()
+        else:
+            return self._asfloat()
+
+    def _infer_bool_int_float(self, o1, o2=None):
+        if is_boolexpr(o1) and (o2 is None or is_boolexpr(o2)):
+            return self._asbool()
+        elif is_intexpr(o1) and (o2 is None or is_intexpr(o2)):
             return self._asint()
         else:
             return self._asfloat()
@@ -358,13 +373,13 @@ cdef class FloatExpression(Expression):
         return Expression._binary_method(o1, o2, umo_op)._asbool()
 
     def __add__(o1, o2):
-        return Expression._binary_method(o1, o2, UMO_OP_SUM)._asrettype(o1, o2)
+        return Expression._binary_method(o1, o2, UMO_OP_SUM)._infer_int_float(o1, o2)
 
     def __sub__(o1, o2):
-        return Expression._binary_method(o1, o2, UMO_OP_MINUS_BINARY)._asrettype(o1, o2)
+        return Expression._binary_method(o1, o2, UMO_OP_MINUS_BINARY)._infer_int_float(o1, o2)
 
     def __mul__(o1, o2):
-        return Expression._binary_method(o1, o2, UMO_OP_PROD)._asrettype(o1, o2)
+        return Expression._binary_method(o1, o2, UMO_OP_PROD)._infer_bool_int_float(o1, o2)
 
     def __div__(o1, o2):
         return Expression._binary_method(o1, o2, UMO_OP_DIV)._asfloat()
@@ -373,13 +388,13 @@ cdef class FloatExpression(Expression):
         return Expression._binary_method(o1, o2, UMO_OP_DIV)._asfloat()
 
     def __neg__(self):
-        return Expression._unary_method(self, UMO_OP_MINUS_UNARY)._asrettype(self)
+        return Expression._unary_method(self, UMO_OP_MINUS_UNARY)._infer_int_float(self)
 
     def __pos__(self):
         return self
 
     def __abs__(self):
-        return Expression._unary_method(self, UMO_OP_ABS)._asrettype(self)
+        return Expression._unary_method(self, UMO_OP_ABS)._infer_int_float(self)
 
     def __round__(self):
         return Expression._unary_method(self, UMO_OP_ROUND)._asint()
@@ -476,7 +491,7 @@ def sqrt(expr):
 
 
 def square(expr):
-    return Expression._unary_method(expr, UMO_OP_SQUARE)._asrettype(expr)
+    return Expression._unary_method(expr, UMO_OP_SQUARE)._infer_int_float(expr)
 
 
 def round(expr):
