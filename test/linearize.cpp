@@ -184,51 +184,28 @@ BOOST_AUTO_TEST_CASE(LinearizationFloatNeq4) {
     BOOST_CHECK_THROW(model.solve(), std::runtime_error);
 }
 
-BOOST_AUTO_TEST_CASE(LinearizationSum1) {
-    Model model;
-    model.floatVar() + model.floatVar();
-    model.solve();
-}
-
-BOOST_AUTO_TEST_CASE(LinearizationMinus1) {
-    Model model;
-    model.floatVar() - model.floatVar();
-    model.solve();
-}
-
-BOOST_AUTO_TEST_CASE(LinearizationProd1) {
-    Model model;
-    5.0 * model.floatVar();
-    4.0 * -model.floatVar();
-    model.solve();
-}
-
-BOOST_AUTO_TEST_CASE(LinearizationProd2) {
-    Model model;
-    5 * model.intVar();
-    4 * -model.intVar();
-    model.solve();
-}
-
-BOOST_AUTO_TEST_CASE(LinearizationProd3) {
-    Model model;
-    5 * model.boolVar();
-    4 * -model.boolVar();
-    3 * !model.boolVar();
-    2 * -!model.boolVar();
-    model.solve();
-}
-
 BOOST_AUTO_TEST_CASE(LinearizationAnd1) {
     Model model;
     BoolExpression dec1 = model.boolVar();
     BoolExpression dec2 = model.boolVar();
     BoolExpression dec3 = model.boolVar();
     std::vector<BoolExpression> vec{dec1, dec2, dec3};
-    maximize(dec1 && dec2);
-    logical_and(vec);
+    BoolExpression obj = logical_and(vec);
+    maximize(obj);
     model.solve();
-    BOOST_CHECK(dec1.getValue() && dec2.getValue());
+    BOOST_CHECK(dec1.getValue() && dec2.getValue() && dec3.getValue());
+}
+
+BOOST_AUTO_TEST_CASE(LinearizationAnd2) {
+    Model model;
+    BoolExpression dec1 = model.boolVar();
+    BoolExpression dec2 = model.boolVar();
+    BoolExpression dec3 = model.boolVar();
+    std::vector<BoolExpression> vec{dec1, dec2, dec3};
+    BoolExpression obj = logical_and(vec);
+    minimize(obj);
+    model.solve();
+    BOOST_CHECK(!(dec1.getValue() && dec2.getValue() && dec3.getValue()));
 }
 
 BOOST_AUTO_TEST_CASE(LinearizationOr1) {
@@ -237,10 +214,22 @@ BOOST_AUTO_TEST_CASE(LinearizationOr1) {
     BoolExpression dec2 = model.boolVar();
     BoolExpression dec3 = model.boolVar();
     std::vector<BoolExpression> vec{dec1, dec2, dec3};
-    maximize(dec1 || dec2);
-    logical_or(vec);
+    BoolExpression obj = logical_or(vec);
+    maximize(obj);
     model.solve();
-    BOOST_CHECK(dec1.getValue() || dec2.getValue());
+    BOOST_CHECK(dec1.getValue() || dec2.getValue() || dec3.getValue());
+}
+
+BOOST_AUTO_TEST_CASE(LinearizationOr2) {
+    Model model;
+    BoolExpression dec1 = model.boolVar();
+    BoolExpression dec2 = model.boolVar();
+    BoolExpression dec3 = model.boolVar();
+    std::vector<BoolExpression> vec{dec1, dec2, dec3};
+    BoolExpression obj = logical_or(vec);
+    minimize(obj);
+    model.solve();
+    BOOST_CHECK(!(dec1.getValue() || dec2.getValue() || dec3.getValue()));
 }
 
 BOOST_AUTO_TEST_CASE(LinearizationXor1) {
