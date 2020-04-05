@@ -230,6 +230,17 @@ void Model::readLpSol(istream &is) {
     // Read the status
     string firstLine;
     getline(is, firstLine);
+    bool statusOptimal = false;
+    if (firstLine.find("Optimal") != string::npos) {
+        statusOptimal = true;
+    }
+    else if (firstLine.find("Infeasible") != string::npos) {
+        setStatus(UMO_STATUS_INFEASIBLE);
+        return;
+    }
+    else {
+        THROW_ERROR("Cannot parse status in line \"" << firstLine <<"\"");
+    }
     // Read the variable values
     while (is.good()) {
         int32_t varId;
@@ -247,6 +258,9 @@ void Model::readLpSol(istream &is) {
             ss << "x" << id;
             setFloatValue(ExpressionId::fromVar(i), values.at(ss.str()));
         }
+    }
+    if (statusOptimal) {
+        setStatus(UMO_STATUS_OPTIMAL);
     }
 }
 } // namespace umoi
