@@ -1,4 +1,8 @@
 
+"""
+UMO is an optimization modeler
+"""
+
 cdef extern from "api/umo.h":
     enum umo_operator:
         UMO_OP_INVALID,
@@ -131,6 +135,9 @@ class SolutionStatus:
 
 
 cdef class Model:
+    """
+    Representation of an optimization model
+    """
     cdef umo_model *ptr
 
     def __cinit__(self):
@@ -144,6 +151,9 @@ cdef class Model:
         unwrap_error(&err)
 
     def constant(self, value):
+        """
+        Create a constant expression
+        """
         if not is_float(value):
             raise TypeError("constant() argument must be a number")
         cdef const char *err = NULL
@@ -158,12 +168,18 @@ cdef class Model:
             return expr._asfloat()
 
     def bool_var(self):
+        """
+        Create a binary decision variable
+        """
         cdef const char *err = NULL
         cdef long long v = umo_create_expression(self.ptr, UMO_OP_DEC_BOOL, 0, NULL, &err)
         unwrap_error(&err)
         return Expression.create(self, v)._asbool()
 
     def int_var(self, lb, ub):
+        """
+        Create an integer decision variable
+        """
         if not is_int(lb) or not is_int(ub):
             raise TypeError("int_var() arguments must be integer numbers")
         cdef Expression clb = self.constant(lb)
@@ -171,6 +187,9 @@ cdef class Model:
         return Expression._binary_method_typed(clb, cub, UMO_OP_DEC_INT)._asint()
 
     def float_var(self, lb, ub):
+        """
+        Create a numeric decision variable
+        """
         if not is_float(lb) or not is_float(ub):
             raise TypeError("float_var() arguments must be numbers")
         cdef Expression clb = self.constant(lb)
@@ -179,6 +198,9 @@ cdef class Model:
 
     @property
     def status(self):
+        """
+        Retrieve the current solution's status
+        """
         cdef const char *err = NULL
         cdef umo_solution_status status = umo_get_solution_status(self.ptr, &err)
         unwrap_error(&err)
@@ -195,6 +217,9 @@ cdef class Model:
 
     @property
     def time_limit(self):
+        """
+        The time limit to solve the problem, in seconds
+        """
         return self.get_float_param("time_limit")
 
     @time_limit.setter
@@ -203,6 +228,9 @@ cdef class Model:
 
     @property
     def solver(self):
+        """
+        The solver to be used
+        """
         return self.get_string_param("solver")
 
     @solver.setter
@@ -210,11 +238,17 @@ cdef class Model:
         self.set_string_param("solver", value)
 
     def solve(self):
+        """
+        Solve the model
+        """
         cdef const char *err = NULL
         umo_solve(self.ptr, &err)
         unwrap_error(&err)
 
     def check(self):
+        """
+        Check the model
+        """
         cdef const char *err = NULL
         umo_check(self.ptr, &err)
         unwrap_error(&err)
@@ -252,6 +286,9 @@ cdef class Model:
 
 
 cdef class Expression:
+    """
+    An expression in an optimization model
+    """
     cdef readonly object model
     cdef long long v
 
@@ -267,6 +304,9 @@ cdef class Expression:
         return expr
 
     def __bool__(self):
+        """
+        Forbid implicit conversion to bool
+        """
         raise NotImplementedError("Expressions are not convertible to booleans; use Expression.value to query its value in a given solution.")
 
     @staticmethod
@@ -343,8 +383,14 @@ cdef class Expression:
 
 
 cdef class FloatExpression(Expression):
+    """
+    A numeric expression in an optimization model
+    """
     @property
     def value(self):
+        """
+        Value in the current solution
+        """
         cdef const char *err = NULL
         cdef double val = umo_get_float_value(self.get_ptr(), self.v, &err)
         unwrap_error(&err)
@@ -404,8 +450,15 @@ cdef class FloatExpression(Expression):
 
 
 cdef class IntExpression(FloatExpression):
+    """
+    An integer expression in an optimization model
+    """
+
     @property
     def value(self):
+        """
+        Value in the current solution
+        """
         cdef const char *err = NULL
         cdef double val = umo_get_float_value(self.get_ptr(), self.v, &err)
         unwrap_error(&err)
@@ -425,8 +478,15 @@ cdef class IntExpression(FloatExpression):
 
 
 cdef class BoolExpression(IntExpression):
+    """
+    A binary expression in an optimization model
+    """
+
     @property
     def value(self):
+        """
+        Value in the current solution
+        """
         cdef const char *err = NULL
         cdef double val = umo_get_float_value(self.get_ptr(), self.v, &err)
         unwrap_error(&err)
@@ -452,6 +512,9 @@ cdef class BoolExpression(IntExpression):
 
 
 def constraint(expr):
+    """
+    Constrain the binary expression to be true
+    """
     if not isinstance(expr, BoolExpression):
         raise RuntimeError("constraint() argument must be a BoolExpression")
     cdef BoolExpression o = <BoolExpression> expr
@@ -461,6 +524,9 @@ def constraint(expr):
 
 
 def minimize(expr):
+    """
+    Add an objective function to be minimized
+    """
     if not isinstance(expr, FloatExpression):
         raise RuntimeError("minimize() argument must be a FloatExpression")
     cdef FloatExpression o = <FloatExpression> expr
@@ -470,6 +536,9 @@ def minimize(expr):
 
 
 def maximize(expr):
+    """
+    Add an objective function to be maximized
+    """
     if not isinstance(expr, FloatExpression):
         raise RuntimeError("maximize() argument must be a FloatExpression")
     cdef FloatExpression o = <FloatExpression> expr

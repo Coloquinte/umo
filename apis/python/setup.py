@@ -14,5 +14,11 @@ setup (
     version = '0.0.1',
     description = 'Universal modeler',
     test_suite = "test.TestUmoApi",
-    ext_modules = [umo_module]
+    ext_modules = [umo_module],
+    classifiers=[
+        "Operating System :: POSIX :: Linux",
+        "License :: OSI Approved :: MIT License",
+        "Intended Audience :: Science/Research",
+        "Intended Audience :: Developers"
+    ]
 )

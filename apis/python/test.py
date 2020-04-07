@@ -454,6 +454,10 @@ class TestUmoApi(unittest.TestCase):
         m.solver = "cbc"
         self.assertEqual(m.solver, "cbc")
 
+    def test_forbid_implicit_bool(self):
+        m = umo.Model()
+        self.assertRaises(NotImplementedError, lambda: bool(m.bool_var()))
+
 
 if __name__ == '__main__':
     unittest.main()
