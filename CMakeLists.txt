@@ -30,6 +30,8 @@ SET(SOURCES
 add_library(umo STATIC ${SOURCES})
 set_property(TARGET umo PROPERTY POSITION_INDEPENDENT_CODE ON)
 
-enable_testing()
-add_subdirectory(test)
+if(CMAKE_PROJECT_NAME STREQUAL PROJECT_NAME AND BUILD_TESTING)
+    enable_testing()
+    add_subdirectory(test)
+endif()
 

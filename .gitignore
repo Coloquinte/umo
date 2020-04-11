@@ -1,1 +1,5 @@
 build/
+apis/python/build
+apis/python/dist
+apis/python/umo.cpp
+apis/python/__pycache__/

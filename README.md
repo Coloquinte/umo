@@ -1,15 +1,15 @@
 
-Umo is a modeling interface for mathematical programming solvers. It provides a simple interface to multiple solvers from multiple languages.
+Umo is a modeling interface for mathematical programming solvers. It provides a simple interface to various LP, MIP and SAT solvers from multiple languages.
 
 ## Using UMO
 
 UMO currently supports a few languages and solvers, with the aim to add many more.
 
-Supported languages:
+The following languages are supported:
 * C, C++
 * Python 
 
-Supported solvers:
+You can use UMO with the following solvers:
 * CBC
 * Minisat
 
