@@ -10,6 +10,6 @@
         std::stringstream ss;                                                  \
         ss << x;                                                               \
         throw std::runtime_error(ss.str());                                    \
-    } while (0);
+    } while (0)
 
 #endif

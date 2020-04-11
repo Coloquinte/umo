@@ -5,6 +5,7 @@
 #include <fstream>
 #include <sstream>
 
+#include "model/utils.hpp"
 #include "presolve/presolve.hpp"
 #include "presolve/to_sat.hpp"
 #include "presolve/to_linear.hpp"
@@ -30,7 +31,14 @@ void CbcSolver::run(PresolvedModel &m) const {
     command << "branch ";
     command << "solution " << tmpSolName;
     command << endl;
-    system(command.str().c_str());
+    int returnValue = system(command.str().c_str());
+    if (returnValue != 0) {
+        if (returnValue == 127) {
+            THROW_ERROR("cbc does not seem to be installed. The following command returned an error: " << command.str());
+        } else {
+            THROW_ERROR("The following command finished with error " << returnValue << ": " << command.str());
+        }
+    }
     ifstream solf(tmpSolName);
     m.readLpSol(solf);
     solf.close();
@@ -55,7 +63,11 @@ void MinisatSolver::run(PresolvedModel &m) const {
     command << "-verb=0 ";
     command << tmpModName << " " << tmpSolName;
     command << endl;
-    system(command.str().c_str());
+    int returnValue = system(command.str().c_str());
+    if (returnValue == 127) {
+        // No other checks: minisat returns non-zero values on success
+        THROW_ERROR("minisat does not seem to be installed. The following command returned an error: " << command.str());
+    }
     ifstream solf(tmpSolName);
     m.readCnfSol(solf);
     solf.close();

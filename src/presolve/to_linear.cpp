@@ -348,7 +348,7 @@ void ToLinear::Transformer::linearizeCompare(uint32_t i) {
             linearizeConstrainedEq(op1, op2);
             break;
         case UMO_OP_CMP_NEQ:
-            THROW_ERROR("Impossible to constrain not equal")
+            THROW_ERROR("Impossible to constrain not equal");
             break;
         case UMO_OP_CMP_LEQ:
             linearizeConstrainedLeq(op1, op2);
@@ -363,13 +363,13 @@ void ToLinear::Transformer::linearizeCompare(uint32_t i) {
             linearizeConstrainedLt(op2, op1);
             break;
         default:
-            THROW_ERROR("Operator is not handled")
+            THROW_ERROR("Operator is not handled");
             break;
         }
     } else {
         switch (expr.op) {
         case UMO_OP_CMP_EQ:
-            THROW_ERROR("Impossible to constrain not equal")
+            THROW_ERROR("Impossible to constrain not equal");
             break;
         case UMO_OP_CMP_NEQ:
             linearizeConstrainedEq(op1, op2);
@@ -387,7 +387,7 @@ void ToLinear::Transformer::linearizeCompare(uint32_t i) {
             linearizeConstrainedLeq(op1, op2);
             break;
         default:
-            THROW_ERROR("Operator is not handled")
+            THROW_ERROR("Operator is not handled");
             break;
         }
     }
