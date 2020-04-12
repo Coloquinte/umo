@@ -1,7 +1,6 @@
 
 #include "solver/solver.hpp"
 
-#include <filesystem>
 #include <iomanip>
 #include <random>
 #include <sstream>

@@ -50,7 +50,7 @@ Model::Model() {
 }
 
 ExpressionId Model::createConstant(double value) {
-    if (isnan(value)) {
+    if (std::isnan(value)) {
         throw runtime_error("Constants with Not-a-Number value are forbidden");
     }
     auto itp = constants_.emplace(value, nbExpressions());
