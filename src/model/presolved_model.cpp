@@ -3,6 +3,8 @@
 
 #include "model/operator.hpp"
 
+#include <stdexcept>
+
 using namespace std;
 
 namespace umoi {

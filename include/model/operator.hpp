@@ -3,6 +3,7 @@
 #define UMO_OPERATOR_HPP
 
 #include <iosfwd>
+#include <string>
 
 #include "api/umo_enums.h"
 

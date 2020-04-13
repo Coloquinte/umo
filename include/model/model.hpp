@@ -122,7 +122,7 @@ struct Model::ExpressionData {
     umo_operator op;
     umo_type type;
     std::vector<ExpressionId> operands;
-    ExpressionData(umo_operator op) : op(op) {}
+    ExpressionData(umo_operator op) : op(op), type(UMO_TYPE_INVALID) {}
     ExpressionData(umo_operator op, umo_type type) : op(op), type(type) {}
 };
 
