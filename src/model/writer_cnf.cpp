@@ -125,7 +125,7 @@ void Model::writeCnf(ostream &os) const {
     ModelWriterCnf(*this, os).write();
 }
 
-void Model::readCnfSol(istream &is) {
+void Model::readCnfSolMinisat(istream &is) {
     /*
      * Read the solution in Dimacs CNF solution format
      */
@@ -163,5 +163,6 @@ void Model::readCnfSol(istream &is) {
             }
         }
     }
+    setStatus(UMO_STATUS_OPTIMAL);
 }
 } // namespace umoi

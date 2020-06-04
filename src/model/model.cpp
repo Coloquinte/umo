@@ -163,11 +163,23 @@ void Model::solve() {
     else if (solverParam == "cbc") {
         CbcSolver().run(presolved);
     }
+    else if (solverParam == "cplex") {
+        CplexSolver().run(presolved);
+    }
+    else if (solverParam == "scip") {
+        ScipSolver().run(presolved);
+    }
     else if (solverParam == "minisat") {
         MinisatSolver().run(presolved);
     }
+    else if (solverParam == "gurobi") {
+        GurobiSolver().run(presolved);
+    }
+    else if (solverParam == "glpk") {
+        GlpkSolver().run(presolved);
+    }
     else {
-        THROW_ERROR("Solver " << solverParam << " is not a valid parameter");
+        THROW_ERROR("\"" << solverParam << "\" is not a known solver parameter");
     }
     presolved.push(*this);
 }

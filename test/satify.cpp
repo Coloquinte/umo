@@ -9,34 +9,42 @@
 #include <stdexcept>
 #include <vector>
 
+#define STRINGIFY(x) #x
+#define TOSTRING(x) STRINGIFY(x)
+
 using namespace umo;
 
+/*
 BOOST_AUTO_TEST_CASE(SatifyBoolDec) {
     Model model;
     model.boolVar();
     model.boolVar();
     model.boolVar();
     BOOST_CHECK(model.getStatus() == Status::Valid);
+    model.setSolver(TOSTRING(SOLVER_PARAM));
     model.solve();
-    BOOST_CHECK(model.getStatus() == Status::Valid);
+    BOOST_CHECK(model.getStatus() == Status::Optimal);
 }
+*/
 
 BOOST_AUTO_TEST_CASE(SatifyVarConstrainedPos) {
     Model model;
     BoolExpression x1 = model.boolVar();
     constraint(x1);
+    model.setSolver(TOSTRING(SOLVER_PARAM));
     model.solve();
     BOOST_CHECK(x1.getValue());
-    BOOST_CHECK(model.getStatus() == Status::Valid);
+    BOOST_CHECK(model.getStatus() == Status::Optimal);
 }
 
 BOOST_AUTO_TEST_CASE(SatifyVarConstrainedNeg) {
     Model model;
     BoolExpression x1 = model.boolVar();
     constraint(!x1);
+    model.setSolver(TOSTRING(SOLVER_PARAM));
     model.solve();
     BOOST_CHECK(!x1.getValue());
-    BOOST_CHECK(model.getStatus() == Status::Valid);
+    BOOST_CHECK(model.getStatus() == Status::Optimal);
 }
 
 BOOST_AUTO_TEST_CASE(SatifyConstrainedAnd) {
@@ -44,9 +52,10 @@ BOOST_AUTO_TEST_CASE(SatifyConstrainedAnd) {
     BoolExpression x1 = model.boolVar();
     BoolExpression x2 = model.boolVar();
     constraint(x1 && x2);
+    model.setSolver(TOSTRING(SOLVER_PARAM));
     model.solve();
     BOOST_CHECK(x1.getValue() && x2.getValue());
-    BOOST_CHECK(model.getStatus() == Status::Valid);
+    BOOST_CHECK(model.getStatus() == Status::Optimal);
 }
 
 BOOST_AUTO_TEST_CASE(SatifyConstrainedOr) {
@@ -54,9 +63,10 @@ BOOST_AUTO_TEST_CASE(SatifyConstrainedOr) {
     BoolExpression x1 = model.boolVar();
     BoolExpression x2 = model.boolVar();
     constraint(x1 || x2);
+    model.setSolver(TOSTRING(SOLVER_PARAM));
     model.solve();
     BOOST_CHECK(x1.getValue() || x2.getValue());
-    BOOST_CHECK(model.getStatus() == Status::Valid);
+    BOOST_CHECK(model.getStatus() == Status::Optimal);
 }
 
 BOOST_AUTO_TEST_CASE(SatifyConstrainedXor) {
@@ -64,6 +74,7 @@ BOOST_AUTO_TEST_CASE(SatifyConstrainedXor) {
     BoolExpression x1 = model.boolVar();
     BoolExpression x2 = model.boolVar();
     constraint(x1 ^ x2);
+    model.setSolver(TOSTRING(SOLVER_PARAM));
     BOOST_CHECK_THROW(model.solve(), std::runtime_error);
 }
 
@@ -72,9 +83,10 @@ BOOST_AUTO_TEST_CASE(SatifyConstrainedAndNot) {
     BoolExpression x1 = model.boolVar();
     BoolExpression x2 = model.boolVar();
     constraint(!x1 && !x2);
+    model.setSolver(TOSTRING(SOLVER_PARAM));
     model.solve();
     BOOST_CHECK(!x1.getValue() && !x2.getValue());
-    BOOST_CHECK(model.getStatus() == Status::Valid);
+    BOOST_CHECK(model.getStatus() == Status::Optimal);
 }
 
 BOOST_AUTO_TEST_CASE(SatifyConstrainedOrNot) {
@@ -82,9 +94,10 @@ BOOST_AUTO_TEST_CASE(SatifyConstrainedOrNot) {
     BoolExpression x1 = model.boolVar();
     BoolExpression x2 = model.boolVar();
     constraint(!x1 || !x2);
+    model.setSolver(TOSTRING(SOLVER_PARAM));
     model.solve();
     BOOST_CHECK(!x1.getValue() || !x2.getValue());
-    BOOST_CHECK(model.getStatus() == Status::Valid);
+    BOOST_CHECK(model.getStatus() == Status::Optimal);
 }
 
 BOOST_AUTO_TEST_CASE(SatifyConstrainedNand) {
@@ -92,9 +105,10 @@ BOOST_AUTO_TEST_CASE(SatifyConstrainedNand) {
     BoolExpression x1 = model.boolVar();
     BoolExpression x2 = model.boolVar();
     constraint(!(x1 && x2));
+    model.setSolver(TOSTRING(SOLVER_PARAM));
     model.solve();
     BOOST_CHECK(!(x1.getValue() && x2.getValue()));
-    BOOST_CHECK(model.getStatus() == Status::Valid);
+    BOOST_CHECK(model.getStatus() == Status::Optimal);
 }
 
 BOOST_AUTO_TEST_CASE(SatifyConstrainedNor) {
@@ -102,9 +116,10 @@ BOOST_AUTO_TEST_CASE(SatifyConstrainedNor) {
     BoolExpression x1 = model.boolVar();
     BoolExpression x2 = model.boolVar();
     constraint(!(x1 || x2));
+    model.setSolver(TOSTRING(SOLVER_PARAM));
     model.solve();
     BOOST_CHECK(!(x1.getValue() || x2.getValue()));
-    BOOST_CHECK(model.getStatus() == Status::Valid);
+    BOOST_CHECK(model.getStatus() == Status::Optimal);
 }
 
 BOOST_AUTO_TEST_CASE(SatifyConstrainedXnor) {
@@ -112,34 +127,39 @@ BOOST_AUTO_TEST_CASE(SatifyConstrainedXnor) {
     BoolExpression x1 = model.boolVar();
     BoolExpression x2 = model.boolVar();
     constraint(!(x1 ^ x2));
+    model.setSolver(TOSTRING(SOLVER_PARAM));
     BOOST_CHECK_THROW(model.solve(), std::runtime_error);
 }
 
 BOOST_AUTO_TEST_CASE(SatifyAnd) {
     Model model;
     model.boolVar() && model.boolVar();
+    model.setSolver(TOSTRING(SOLVER_PARAM));
     model.solve();
 }
 
 BOOST_AUTO_TEST_CASE(SatifyAndNot) {
     Model model;
     !model.boolVar() && !model.boolVar();
+    model.setSolver(TOSTRING(SOLVER_PARAM));
     model.solve();
-    BOOST_CHECK(model.getStatus() == Status::Valid);
+    BOOST_CHECK(model.getStatus() == Status::Optimal);
 }
 
 BOOST_AUTO_TEST_CASE(SatifyOr) {
     Model model;
     model.boolVar() || model.boolVar();
+    model.setSolver(TOSTRING(SOLVER_PARAM));
     model.solve();
-    BOOST_CHECK(model.getStatus() == Status::Valid);
+    BOOST_CHECK(model.getStatus() == Status::Optimal);
 }
 
 BOOST_AUTO_TEST_CASE(SatifyOrNot) {
     Model model;
     !model.boolVar() || !model.boolVar();
+    model.setSolver(TOSTRING(SOLVER_PARAM));
     model.solve();
-    BOOST_CHECK(model.getStatus() == Status::Valid);
+    BOOST_CHECK(model.getStatus() == Status::Optimal);
 }
 
 BOOST_AUTO_TEST_CASE(SatifyAndOr) {
@@ -149,9 +169,10 @@ BOOST_AUTO_TEST_CASE(SatifyAndOr) {
     BoolExpression x3 = model.boolVar();
     BoolExpression x4 = model.boolVar();
     constraint((x1 || x2) && (x3 || x4));
+    model.setSolver(TOSTRING(SOLVER_PARAM));
     model.solve();
     BOOST_CHECK((x1.getValue() || x2.getValue()) && (x3.getValue() || x4.getValue()));
-    BOOST_CHECK(model.getStatus() == Status::Valid);
+    BOOST_CHECK(model.getStatus() == Status::Optimal);
 }
 
 BOOST_AUTO_TEST_CASE(SatifyOrAnd) {
@@ -161,9 +182,10 @@ BOOST_AUTO_TEST_CASE(SatifyOrAnd) {
     BoolExpression x3 = model.boolVar();
     BoolExpression x4 = model.boolVar();
     constraint((x1 && x2) || (x3 && x4));
+    model.setSolver(TOSTRING(SOLVER_PARAM));
     model.solve();
     BOOST_CHECK((x1.getValue() && x2.getValue()) || (x3.getValue() && x4.getValue()));
-    BOOST_CHECK(model.getStatus() == Status::Valid);
+    BOOST_CHECK(model.getStatus() == Status::Optimal);
 }
 
 BOOST_AUTO_TEST_CASE(SatifyBigOr) {
@@ -174,8 +196,9 @@ BOOST_AUTO_TEST_CASE(SatifyBigOr) {
         vec.push_back(model.boolVar());
     }
     constraint(umo::logical_or(vec));
+    model.setSolver(TOSTRING(SOLVER_PARAM));
     model.solve();
-    BOOST_CHECK(model.getStatus() == Status::Valid);
+    BOOST_CHECK(model.getStatus() == Status::Optimal);
     int cnt = 0;
     for (BoolExpression x : vec) {
         cnt += x.getValue();
@@ -191,8 +214,9 @@ BOOST_AUTO_TEST_CASE(SatifyBigAnd) {
         vec.push_back(model.boolVar());
     }
     constraint(umo::logical_and(vec));
+    model.setSolver(TOSTRING(SOLVER_PARAM));
     model.solve();
-    BOOST_CHECK(model.getStatus() == Status::Valid);
+    BOOST_CHECK(model.getStatus() == Status::Optimal);
     int cnt = 0;
     for (BoolExpression x : vec) {
         cnt += x.getValue();
@@ -208,8 +232,9 @@ BOOST_AUTO_TEST_CASE(SatifyBigNor) {
         vec.push_back(model.boolVar());
     }
     constraint(!umo::logical_or(vec));
+    model.setSolver(TOSTRING(SOLVER_PARAM));
     model.solve();
-    BOOST_CHECK(model.getStatus() == Status::Valid);
+    BOOST_CHECK(model.getStatus() == Status::Optimal);
     int cnt = 0;
     for (BoolExpression x : vec) {
         cnt += x.getValue();
@@ -225,8 +250,9 @@ BOOST_AUTO_TEST_CASE(SatifyBigNand) {
         vec.push_back(model.boolVar());
     }
     constraint(!umo::logical_and(vec));
+    model.setSolver(TOSTRING(SOLVER_PARAM));
     model.solve();
-    BOOST_CHECK(model.getStatus() == Status::Valid);
+    BOOST_CHECK(model.getStatus() == Status::Optimal);
     int cnt = 0;
     for (BoolExpression x : vec) {
         cnt += x.getValue();
@@ -240,8 +266,8 @@ BOOST_AUTO_TEST_CASE(SatifyUnsat) {
     BoolExpression x2 = model.boolVar();
     constraint(x1 && x2);
     constraint(!(x1 && x2));
+    model.setSolver(TOSTRING(SOLVER_PARAM));
     model.solve();
     BOOST_CHECK_EQUAL(model.getStatus(), Status::Infeasible);
 }
-
 

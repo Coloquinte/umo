@@ -17,7 +17,7 @@ class FloatExpression;
 class IntExpression;
 class BoolExpression;
 
-enum class Status { Infeasible, Invalid, Valid, Optimal };
+enum class Status { Infeasible, Invalid, Valid, Optimal, Unbounded };
 
 class Model {
   public:

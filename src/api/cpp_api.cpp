@@ -213,6 +213,8 @@ Status Model::getStatus() {
         return Status::Valid;
     case UMO_STATUS_OPTIMAL:
         return Status::Optimal;
+    case UMO_STATUS_UNBOUNDED:
+        return Status::Unbounded;
     default:
         throw std::runtime_error("Unknown status returned");
     }

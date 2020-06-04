@@ -220,10 +220,7 @@ void Model::writeLp(ostream &os) const {
     ModelWriterLp(*this, os).write();
 }
 
-void Model::readLpSol(istream &is) {
-    /*
-     * Read the solution in LP solution format
-     */
+void Model::readLpSolCbc(istream &is) {
     vector<int32_t> varToId = ModelWriterLp::getVarToId(*this);
     int32_t maxId = *max_element(varToId.begin(), varToId.end());
     unordered_map<string, double> values;
@@ -248,6 +245,7 @@ void Model::readLpSol(istream &is) {
         double value;
         double dualValue;
         is >> varId >> varName >> value >> dualValue;
+        if (is.fail()) break;
         if (varId > maxId || varId < 0) THROW_ERROR("Out of bound variable index " << varId << " after LP solution for variable " << varName);
         values[varName] = value;
     }
@@ -256,11 +254,104 @@ void Model::readLpSol(istream &is) {
         if (id != ModelWriterLp::InvalidId) {
             stringstream ss;
             ss << "x" << id;
-            setFloatValue(ExpressionId::fromVar(i), values.at(ss.str()));
+            auto it = values.find(ss.str());
+            double val = it != values.end() ? it->second : 0.0;
+            setFloatValue(ExpressionId::fromVar(i), val);
         }
     }
     if (statusOptimal) {
         setStatus(UMO_STATUS_OPTIMAL);
     }
+}
+
+void Model::readLpSolScip(istream &is) {
+    vector<int32_t> varToId = ModelWriterLp::getVarToId(*this);
+    int32_t maxId = *max_element(varToId.begin(), varToId.end());
+    unordered_map<string, double> values;
+    // Read the status
+    string firstLine;
+    getline(is, firstLine);
+    bool statusOptimal = false;
+    statusOptimal = true;
+    if (firstLine.find("optimal") != string::npos) {
+        statusOptimal = true;
+    }
+    else if (firstLine.find("infeasible") != string::npos) {
+        setStatus(UMO_STATUS_INFEASIBLE);
+        return;
+    }
+    else {
+        // TODO
+        THROW_ERROR("Cannot parse status in line \"" << firstLine <<"\"");
+    }
+    string secondLine;
+    getline(is, secondLine);
+    // Read the variable values
+    while (is.good()) {
+        string line;
+        getline(is, line);
+        stringstream ss(line);
+        string varName;
+        double value;
+        ss >> varName >> value;
+        if (is.fail()) break;
+        values[varName] = value;
+    }
+    for (uint32_t i = 0; i < nbExpressions(); ++i) {
+        uint32_t id = varToId.at(i);
+        if (id != ModelWriterLp::InvalidId) {
+            stringstream ss;
+            ss << "x" << id;
+            auto it = values.find(ss.str());
+            double val = it != values.end() ? it->second : 0.0;
+            setFloatValue(ExpressionId::fromVar(i), val);
+        }
+    }
+    if (statusOptimal) {
+        setStatus(UMO_STATUS_OPTIMAL);
+    }
+}
+
+void Model::readLpSolGlpk(istream &is) {
+    THROW_ERROR("GLPK reader is not implemented yet");
+}
+
+void Model::readLpSolGurobi(istream &is) {
+    vector<int32_t> varToId = ModelWriterLp::getVarToId(*this);
+    int32_t maxId = *max_element(varToId.begin(), varToId.end());
+    unordered_map<string, double> values;
+    // WARNING: Gurobi does not give status information!!!!
+    string firstLine;
+    getline(is, firstLine);
+    string secondLine;
+    getline(is, secondLine);
+    // Read the variable values
+    while (is.good()) {
+        string line;
+        getline(is, line);
+        stringstream ss(line);
+        string varName;
+        double value;
+        ss >> varName >> value;
+        if (is.fail()) break;
+        values[varName] = value;
+    }
+    for (uint32_t i = 0; i < nbExpressions(); ++i) {
+        uint32_t id = varToId.at(i);
+        if (id != ModelWriterLp::InvalidId) {
+            stringstream ss;
+            ss << "x" << id;
+            auto it = values.find(ss.str());
+            double val = it != values.end() ? it->second : 0.0;
+            setFloatValue(ExpressionId::fromVar(i), val);
+        }
+    }
+    // WARNING: We assume optimality like Pulp, but it may not be the case
+    // TODO: At least check the current solution
+    setStatus(UMO_STATUS_OPTIMAL);
+}
+
+void Model::readLpSolCplex(istream &is) {
+    THROW_ERROR("Cplex reader is not implemented yet");
 }
 } // namespace umoi

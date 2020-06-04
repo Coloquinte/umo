@@ -22,7 +22,8 @@ enum umo_solution_status {
     UMO_STATUS_INFEASIBLE,
     UMO_STATUS_INVALID,
     UMO_STATUS_VALID,
-    UMO_STATUS_OPTIMAL
+    UMO_STATUS_OPTIMAL,
+    UMO_STATUS_UNBOUNDED,
 };
 
 enum umo_operator {

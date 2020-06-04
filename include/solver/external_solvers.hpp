@@ -23,6 +23,30 @@ class CbcSolver : public Solver {
     void run(PresolvedModel &) const override;
 };
 
+class CplexSolver : public Solver {
+  public:
+    bool valid(PresolvedModel &) const override;
+    void run(PresolvedModel &) const override;
+};
+
+class GlpkSolver : public Solver {
+  public:
+    bool valid(PresolvedModel &) const override;
+    void run(PresolvedModel &) const override;
+};
+
+class GurobiSolver : public Solver {
+  public:
+    bool valid(PresolvedModel &) const override;
+    void run(PresolvedModel &) const override;
+};
+
+class ScipSolver : public Solver {
+  public:
+    bool valid(PresolvedModel &) const override;
+    void run(PresolvedModel &) const override;
+};
+
 class MinisatSolver : public Solver {
   public:
     bool valid(PresolvedModel &) const override;
