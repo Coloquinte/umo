@@ -215,6 +215,8 @@ Status Model::getStatus() {
         return Status::Optimal;
     case UMO_STATUS_UNBOUNDED:
         return Status::Unbounded;
+    case UMO_STATUS_UNKNOWN:
+        return Status::Unknown;
     default:
         throw std::runtime_error("Unknown status returned");
     }
@@ -991,8 +993,14 @@ std::ostream &operator<<(std::ostream &os, const Status &status) {
     case Status::Optimal:
         os << "Optimal";
         break;
+    case Status::Unbounded:
+        os << "Unbounded";
+        break;
+    case Status::Unknown:
+        os << "Unknown";
+        break;
     default:
-        os << "UnknownStatus";
+        os << "UndefinedStatus";
         break;
     }
     return os;

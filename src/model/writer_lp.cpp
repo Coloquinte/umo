@@ -214,9 +214,6 @@ void ModelWriterLp::writeLpLinearExpression(uint32_t i) {
 }
 
 void Model::writeLp(ostream &os) const {
-    /*
-     * Write the model in LP format for compatibility with MILP solvers
-     */
     ModelWriterLp(*this, os).write();
 }
 
@@ -227,9 +224,12 @@ void Model::readLpSolCbc(istream &is) {
     // Read the status
     string firstLine;
     getline(is, firstLine);
-    bool statusOptimal = false;
+    umo_solution_status status = UMO_STATUS_UNKNOWN;
     if (firstLine.find("Optimal") != string::npos) {
-        statusOptimal = true;
+        status = UMO_STATUS_OPTIMAL;
+    }
+    else if (firstLine.find("Unbounded") != string::npos) {
+        status = UMO_STATUS_UNBOUNDED;
     }
     else if (firstLine.find("Infeasible") != string::npos) {
         setStatus(UMO_STATUS_INFEASIBLE);
@@ -259,8 +259,8 @@ void Model::readLpSolCbc(istream &is) {
             setFloatValue(ExpressionId::fromVar(i), val);
         }
     }
-    if (statusOptimal) {
-        setStatus(UMO_STATUS_OPTIMAL);
+    if (status != UMO_STATUS_UNKNOWN) {
+        setStatus(status);
     }
 }
 
@@ -271,10 +271,12 @@ void Model::readLpSolScip(istream &is) {
     // Read the status
     string firstLine;
     getline(is, firstLine);
-    bool statusOptimal = false;
-    statusOptimal = true;
+    umo_solution_status status = UMO_STATUS_UNKNOWN;
     if (firstLine.find("optimal") != string::npos) {
-        statusOptimal = true;
+        status = UMO_STATUS_OPTIMAL;
+    }
+    else if (firstLine.find("unbounded") != string::npos) {
+        status = UMO_STATUS_UNBOUNDED;
     }
     else if (firstLine.find("infeasible") != string::npos) {
         setStatus(UMO_STATUS_INFEASIBLE);
@@ -307,8 +309,8 @@ void Model::readLpSolScip(istream &is) {
             setFloatValue(ExpressionId::fromVar(i), val);
         }
     }
-    if (statusOptimal) {
-        setStatus(UMO_STATUS_OPTIMAL);
+    if (status != UMO_STATUS_UNKNOWN) {
+        setStatus(status);
     }
 }
 

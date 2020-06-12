@@ -321,3 +321,14 @@ BOOST_AUTO_TEST_CASE(LinearizationUnfeasible) {
     model.solve();
     BOOST_CHECK_EQUAL(model.getStatus(), Status::Infeasible);
 }
+
+BOOST_AUTO_TEST_CASE(LinearizationUnbounded) {
+    Model model;
+    FloatExpression dec1 = model.floatVar();
+    FloatExpression dec2 = model.floatVar();
+    constraint(dec1 <= dec2);
+    maximize(dec1);
+    model.setSolver(TOSTRING(SOLVER_PARAM));
+    model.solve();
+    BOOST_CHECK_EQUAL(model.getStatus(), Status::Unbounded);
+}

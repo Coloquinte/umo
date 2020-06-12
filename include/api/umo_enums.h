@@ -10,12 +10,12 @@ enum umo_type {
     UMO_TYPE_INVALID,
     UMO_TYPE_BOOL,
     UMO_TYPE_INT,
-    UMO_TYPE_FLOAT
+    UMO_TYPE_FLOAT,
 };
 
 enum umo_objective_direction {
     UMO_OBJ_MINIMIZE,
-    UMO_OBJ_MAXIMIZE
+    UMO_OBJ_MAXIMIZE,
 };
 
 enum umo_solution_status {
@@ -24,6 +24,7 @@ enum umo_solution_status {
     UMO_STATUS_VALID,
     UMO_STATUS_OPTIMAL,
     UMO_STATUS_UNBOUNDED,
+    UMO_STATUS_UNKNOWN,
 };
 
 enum umo_operator {
@@ -90,7 +91,7 @@ enum umo_operator {
 
 
     // End indicator
-    UMO_OP_END
+    UMO_OP_END,
 };
 
 typedef enum umo_type umo_type;

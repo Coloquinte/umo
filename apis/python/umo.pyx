@@ -63,7 +63,9 @@ cdef extern from "api/umo.h":
         UMO_STATUS_INFEASIBLE,
         UMO_STATUS_INVALID,
         UMO_STATUS_VALID,
-        UMO_STATUS_OPTIMAL
+        UMO_STATUS_OPTIMAL,
+        UMO_STATUS_UNBOUNDED,
+        UMO_STATUS_UNKNOWN
 
     enum umo_objective_direction:
         UMO_OBJ_MINIMIZE,
@@ -132,6 +134,8 @@ class SolutionStatus:
     VALID = 1
     INVALID = 2
     OPTIMAL = 3
+    UNBOUNDED = 4
+    UNKNOWN = 5
 
 
 cdef class Model:
@@ -212,6 +216,10 @@ cdef class Model:
             return SolutionStatus.VALID
         elif status == UMO_STATUS_OPTIMAL:
             return SolutionStatus.OPTIMAL
+        elif status == UMO_STATUS_UNBOUNDED:
+            return SolutionStatus.UNBOUNDED
+        elif status == UMO_STATUS_UNKNOWN:
+            return SolutionStatus.UNKNOWN
         else:
             raise RuntimeError("Unknown solution status")
 
