@@ -332,3 +332,55 @@ BOOST_AUTO_TEST_CASE(LinearizationUnbounded) {
     model.solve();
     BOOST_CHECK_EQUAL(model.getStatus(), Status::Unbounded);
 }
+
+BOOST_AUTO_TEST_CASE(LinearizationSimple1) {
+    Model model;
+    FloatExpression x1 = model.floatVar();
+    FloatExpression x2 = model.floatVar();
+    constraint(3 * x1 + x2 <= 4);
+    constraint(2 * x1 + 3 * x2 <= 5);
+    constraint(2 * x1 + 9 * x2 <= 8);
+    maximize(x1 + 2 * x2);
+    model.setSolver(TOSTRING(SOLVER_PARAM));
+    model.solve();
+    BOOST_CHECK_CLOSE(x1.getValue(), 1.12, eps);
+    BOOST_CHECK_CLOSE(x2.getValue(), 0.64, eps);
+    BOOST_CHECK_EQUAL(model.getStatus(), Status::Optimal);
+}
+
+BOOST_AUTO_TEST_CASE(LinearizationSimple2) {
+    Model model;
+    FloatExpression x1 = model.floatVar();
+    FloatExpression x2 = model.floatVar();
+    FloatExpression x3 = model.floatVar();
+    FloatExpression x4 = model.floatVar();
+    constraint(x1 <= 5);
+    constraint(x2 <= 3);
+    constraint(x3 <= 10);
+    constraint(x4 < 50);
+    constraint(x1 + 3 * x2 <= 3);
+    constraint(x1 + 2 * x2 <= 4);
+    constraint(x2 + x1 <= 3);
+    constraint(x3 + x4 <= 2);
+    constraint(x1 + x3 <= 5);
+    constraint(x1 + x4 + 3 * x2 <= 4);
+    maximize(x1 + x2 + 2 * x3 + x4);
+    model.setSolver(TOSTRING(SOLVER_PARAM));
+    model.solve();
+    BOOST_CHECK_CLOSE(x1.getValue(), -5, eps);
+    BOOST_CHECK_CLOSE(x2.getValue(), 2.6666666, eps);
+    BOOST_CHECK_CLOSE(x3.getValue(), 10, eps);
+    BOOST_CHECK_CLOSE(x4.getValue(), -8, eps);
+    BOOST_CHECK_EQUAL(model.getStatus(), Status::Optimal);
+}
+
+
+BOOST_AUTO_TEST_CASE(LinearizationWithTimeLimit) {
+    Model model;
+    FloatExpression dec1 = model.floatVar(0.0, 5.0);
+    maximize(dec1);
+    model.setTimeLimit(2.0);
+    model.setSolver(TOSTRING(SOLVER_PARAM));
+    model.solve();
+    BOOST_CHECK_EQUAL(model.getStatus(), Status::Optimal);
+}

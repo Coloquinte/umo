@@ -1,6 +1,7 @@
 
 #include "solver/external_solvers.hpp"
 
+#include <cmath>
 #include <cstdio>
 #include <fstream>
 #include <sstream>
@@ -27,6 +28,10 @@ void CbcSolver::run(PresolvedModel &m) const {
     modf.close();
     stringstream command;
     command << "cbc " << tmpModName << " ";
+    double time = m.getFloatParameter("time_limit");
+    if (std::isfinite(time)) {
+        command << "\"sec " << time << "\" ";
+    }
     command << "branch ";
     command << "solution " << tmpSolName;
     command << endl;
@@ -95,6 +100,10 @@ void GlpkSolver::run(PresolvedModel &m) const {
     command << "glpsol";
     command << " --cpxlp " << tmpModName;
     command << " -o " << tmpSolName;
+    double time = m.getFloatParameter("time_limit");
+    if (std::isfinite(time)) {
+        command << " --tmlim " << (long long) std::ceil(time);
+    }
     command << endl;
     int returnValue = system(command.str().c_str());
     if (returnValue != 0 && returnValue != 256) {
@@ -157,6 +166,10 @@ void ScipSolver::run(PresolvedModel &m) const {
     modf.close();
     stringstream command;
     command << "scip ";
+    double time = m.getFloatParameter("time_limit");
+    if (std::isfinite(time)) {
+        command << "-c \"set limits time " << time << "\" ";
+    }
     command << "-c \"read " << tmpModName << "\" ";
     command << "-c optimize ";
     command << "-c \"write solution " << tmpSolName << "\" ";
@@ -192,7 +205,11 @@ void MinisatSolver::run(PresolvedModel &m) const {
     stringstream command;
     command << "minisat ";
     command << "-verb=0 ";
-    command << tmpModName << " " << tmpSolName;
+    command << tmpModName << " " << tmpSolName << " ";
+    double time = m.getFloatParameter("time_limit");
+    if (std::isfinite(time)) {
+        command << "-cpu-lim " << (long long) std::ceil(time);
+    }
     command << endl;
     int returnValue = system(command.str().c_str());
     if (returnValue == 127) {

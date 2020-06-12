@@ -271,3 +271,14 @@ BOOST_AUTO_TEST_CASE(SatifyUnsat) {
     BOOST_CHECK_EQUAL(model.getStatus(), Status::Infeasible);
 }
 
+BOOST_AUTO_TEST_CASE(SatifyWithTimeLimit) {
+    Model model;
+    BoolExpression x1 = model.boolVar();
+    constraint(x1);
+    model.setTimeLimit(2.0);
+    model.setSolver(TOSTRING(SOLVER_PARAM));
+    model.solve();
+    BOOST_CHECK(x1.getValue());
+    BOOST_CHECK(model.getStatus() == Status::Optimal);
+}
+
