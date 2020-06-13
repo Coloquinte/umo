@@ -8,8 +8,8 @@
 #include <stdexcept>
 
 #include "model/operator.hpp"
-#include "presolve/presolve.hpp"
 #include "model/utils.hpp"
+#include "presolve/presolve.hpp"
 #include "solver/external_solvers.hpp"
 
 using namespace std;
@@ -130,7 +130,9 @@ void Model::setFloatValue(ExpressionId expr, double value) {
         throw runtime_error("Only decisions can be set");
     umo_type varType = expressions_[expr.var()].type;
     if (!isTypeCompatible(varType, value))
-        THROW_ERROR("Cannot set an expression of type " << varType << " to " << value << " of type " << computeType(value));
+        THROW_ERROR("Cannot set an expression of type " << varType << " to "
+                                                        << value << " of type "
+                                                        << computeType(value));
     computed_ = false;
     statusComputed_ = false;
     values_[expr.var()] = value;
@@ -158,28 +160,23 @@ void Model::solve() {
         else if (CbcSolver().valid(presolved))
             CbcSolver().run(presolved);
         else
-            throw std::runtime_error("The model cannot be converted to SAT or MIP");
-    }
-    else if (solverParam == "cbc") {
+            throw std::runtime_error(
+                "The model cannot be converted to SAT or MIP");
+    } else if (solverParam == "cbc") {
         CbcSolver().run(presolved);
-    }
-    else if (solverParam == "cplex") {
+    } else if (solverParam == "cplex") {
         CplexSolver().run(presolved);
-    }
-    else if (solverParam == "scip") {
+    } else if (solverParam == "scip") {
         ScipSolver().run(presolved);
-    }
-    else if (solverParam == "minisat") {
+    } else if (solverParam == "minisat") {
         MinisatSolver().run(presolved);
-    }
-    else if (solverParam == "gurobi") {
+    } else if (solverParam == "gurobi") {
         GurobiSolver().run(presolved);
-    }
-    else if (solverParam == "glpk") {
+    } else if (solverParam == "glpk") {
         GlpkSolver().run(presolved);
-    }
-    else {
-        THROW_ERROR("\"" << solverParam << "\" is not a known solver parameter");
+    } else {
+        THROW_ERROR("\"" << solverParam
+                         << "\" is not a known solver parameter");
     }
     presolved.push(*this);
 }

@@ -43,9 +43,15 @@ class Model {
     const std::string &getStringParameter(const std::string &param) const;
     void setStringParameter(const std::string &param, const std::string &value);
 
-    std::uint32_t nbExpressions() const { return (std::uint32_t) expressions_.size(); }
-    std::uint32_t nbConstraints() const { return (std::uint32_t) constraints_.size(); }
-    std::uint32_t nbObjectives() const { return (std::uint32_t) objectives_.size(); }
+    std::uint32_t nbExpressions() const {
+        return (std::uint32_t)expressions_.size();
+    }
+    std::uint32_t nbConstraints() const {
+        return (std::uint32_t)constraints_.size();
+    }
+    std::uint32_t nbObjectives() const {
+        return (std::uint32_t)objectives_.size();
+    }
 
     const std::vector<ExpressionData> &expressions() const {
         return expressions_;

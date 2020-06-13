@@ -8,8 +8,8 @@
 
 #include "model/utils.hpp"
 #include "presolve/presolve.hpp"
-#include "presolve/to_sat.hpp"
 #include "presolve/to_linear.hpp"
+#include "presolve/to_sat.hpp"
 
 using namespace std;
 
@@ -38,9 +38,12 @@ void CbcSolver::run(PresolvedModel &m) const {
     int returnValue = system(command.str().c_str());
     if (returnValue != 0) {
         if (returnValue == 127) {
-            THROW_ERROR("CBC does not seem to be installed. The following command returned an error: " << command.str());
+            THROW_ERROR("CBC does not seem to be installed. The following "
+                        "command returned an error: "
+                        << command.str());
         } else {
-            THROW_ERROR("The following command finished with error " << returnValue << ": " << command.str());
+            THROW_ERROR("The following command finished with error "
+                        << returnValue << ": " << command.str());
         }
     }
     ifstream solf(tmpSolName);
@@ -72,9 +75,12 @@ void CplexSolver::run(PresolvedModel &m) const {
     int returnValue = system(command.str().c_str());
     if (returnValue != 0) {
         if (returnValue == 127) {
-            THROW_ERROR("CPLEX does not seem to be installed. The following command returned an error: " << command.str());
+            THROW_ERROR("CPLEX does not seem to be installed. The following "
+                        "command returned an error: "
+                        << command.str());
         } else {
-            THROW_ERROR("The following command finished with error " << returnValue << ": " << command.str());
+            THROW_ERROR("The following command finished with error "
+                        << returnValue << ": " << command.str());
         }
     }
     ifstream solf(tmpSolName);
@@ -102,15 +108,18 @@ void GlpkSolver::run(PresolvedModel &m) const {
     command << " -o " << tmpSolName;
     double time = m.getFloatParameter("time_limit");
     if (std::isfinite(time)) {
-        command << " --tmlim " << (long long) std::ceil(time);
+        command << " --tmlim " << (long long)std::ceil(time);
     }
     command << endl;
     int returnValue = system(command.str().c_str());
     if (returnValue != 0 && returnValue != 256) {
         if (returnValue == 127) {
-            THROW_ERROR("GLPK does not seem to be installed. The following command returned an error: " << command.str());
+            THROW_ERROR("GLPK does not seem to be installed. The following "
+                        "command returned an error: "
+                        << command.str());
         } else {
-            THROW_ERROR("The following command finished with error " << returnValue << ": " << command.str());
+            THROW_ERROR("The following command finished with error "
+                        << returnValue << ": " << command.str());
         }
     }
     ifstream solf(tmpSolName);
@@ -140,9 +149,12 @@ void GurobiSolver::run(PresolvedModel &m) const {
     int returnValue = system(command.str().c_str());
     if (returnValue != 0) {
         if (returnValue == 127) {
-            THROW_ERROR("Gurobi does not seem to be installed. The following command returned an error: " << command.str());
+            THROW_ERROR("Gurobi does not seem to be installed. The following "
+                        "command returned an error: "
+                        << command.str());
         } else {
-            THROW_ERROR("The following command finished with error " << returnValue << ": " << command.str());
+            THROW_ERROR("The following command finished with error "
+                        << returnValue << ": " << command.str());
         }
     }
     ifstream solf(tmpSolName);
@@ -174,13 +186,16 @@ void ScipSolver::run(PresolvedModel &m) const {
     command << "-c optimize ";
     command << "-c \"write solution " << tmpSolName << "\" ";
     command << "-c quit ";
-    command <<  endl;
+    command << endl;
     int returnValue = system(command.str().c_str());
     if (returnValue != 0) {
         if (returnValue == 127) {
-            THROW_ERROR("SCIP does not seem to be installed. The following command returned an error: " << command.str());
+            THROW_ERROR("SCIP does not seem to be installed. The following "
+                        "command returned an error: "
+                        << command.str());
         } else {
-            THROW_ERROR("The following command finished with error " << returnValue << ": " << command.str());
+            THROW_ERROR("The following command finished with error "
+                        << returnValue << ": " << command.str());
         }
     }
     ifstream solf(tmpSolName);
@@ -208,13 +223,15 @@ void MinisatSolver::run(PresolvedModel &m) const {
     command << tmpModName << " " << tmpSolName << " ";
     double time = m.getFloatParameter("time_limit");
     if (std::isfinite(time)) {
-        command << "-cpu-lim " << (long long) std::ceil(time);
+        command << "-cpu-lim " << (long long)std::ceil(time);
     }
     command << endl;
     int returnValue = system(command.str().c_str());
     if (returnValue == 127) {
         // No other checks: minisat returns non-zero values on success
-        THROW_ERROR("Minisat does not seem to be installed. The following command returned an error: " << command.str());
+        THROW_ERROR("Minisat does not seem to be installed. The following "
+                    "command returned an error: "
+                    << command.str());
     }
     ifstream solf(tmpSolName);
     m.readCnfSolMinisat(solf);

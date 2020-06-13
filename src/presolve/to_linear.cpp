@@ -140,7 +140,8 @@ void ToLinear::Transformer::createObjectives() {
     for (const auto obj : model.objectives()) {
         Element elt = getElement(obj.first);
         bool maxObj = (obj.second == UMO_OBJ_MAXIMIZE) ^ (elt.coef < 0.0);
-        umo_objective_direction dir = maxObj ? UMO_OBJ_MAXIMIZE : UMO_OBJ_MINIMIZE;
+        umo_objective_direction dir =
+            maxObj ? UMO_OBJ_MAXIMIZE : UMO_OBJ_MINIMIZE;
         linearModel.createObjective(ExpressionId(elt.var, false, false), dir);
     }
 }
@@ -230,7 +231,8 @@ void ToLinear::Transformer::makeConstraint(const vector<double> &coefs,
             if (linearModel.isConstant(elt.var)) {
                 // Constant in the linear model (happens for example when
                 // replacing a constraint)
-                offset += coef * (elt.constant + elt.coef * linearModel.value(elt.var));
+                offset += coef * (elt.constant +
+                                  elt.coef * linearModel.value(elt.var));
             } else {
                 operands.push_back(linearModel.createConstant(coef * elt.coef));
                 operands.push_back(ExpressionId(elt.var, false, false));

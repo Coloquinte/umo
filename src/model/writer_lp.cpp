@@ -213,9 +213,7 @@ void ModelWriterLp::writeLpLinearExpression(uint32_t i) {
     }
 }
 
-void Model::writeLp(ostream &os) const {
-    ModelWriterLp(*this, os).write();
-}
+void Model::writeLp(ostream &os) const { ModelWriterLp(*this, os).write(); }
 
 namespace {
 umo_solution_status readStatusCbc(istream &is) {
@@ -223,18 +221,14 @@ umo_solution_status readStatusCbc(istream &is) {
     getline(is, firstLine);
     if (firstLine.find("Optimal") != string::npos) {
         return UMO_STATUS_OPTIMAL;
-    }
-    else if (firstLine.find("Unbounded") != string::npos) {
+    } else if (firstLine.find("Unbounded") != string::npos) {
         return UMO_STATUS_UNBOUNDED;
-    }
-    else if (firstLine.find("Integer") != string::npos) {
+    } else if (firstLine.find("Integer") != string::npos) {
         return UMO_STATUS_UNKNOWN;
-    }
-    else if (firstLine.find("Infeasible") != string::npos) {
+    } else if (firstLine.find("Infeasible") != string::npos) {
         return UMO_STATUS_INFEASIBLE;
-    }
-    else {
-        THROW_ERROR("Cannot parse status in line \"" << firstLine <<"\"");
+    } else {
+        THROW_ERROR("Cannot parse status in line \"" << firstLine << "\"");
     }
 }
 
@@ -243,27 +237,21 @@ umo_solution_status readStatusScip(istream &is) {
     getline(is, firstLine);
     if (firstLine.find("optimal") != string::npos) {
         return UMO_STATUS_OPTIMAL;
-    }
-    else if (firstLine.find("infeasible or unbounded") != string::npos) {
+    } else if (firstLine.find("infeasible or unbounded") != string::npos) {
         return UMO_STATUS_UNKNOWN;
-    }
-    else if (firstLine.find("limit reached") != string::npos) {
+    } else if (firstLine.find("limit reached") != string::npos) {
         return UMO_STATUS_UNKNOWN;
-    }
-    else if (firstLine.find("interrupt") != string::npos) {
+    } else if (firstLine.find("interrupt") != string::npos) {
         return UMO_STATUS_UNKNOWN;
-    }
-    else if (firstLine.find("unbounded") != string::npos) {
+    } else if (firstLine.find("unbounded") != string::npos) {
         return UMO_STATUS_UNBOUNDED;
-    }
-    else if (firstLine.find("infeasible") != string::npos) {
+    } else if (firstLine.find("infeasible") != string::npos) {
         return UMO_STATUS_INFEASIBLE;
-    }
-    else {
-        THROW_ERROR("Cannot parse status in line \"" << firstLine <<"\"");
+    } else {
+        THROW_ERROR("Cannot parse status in line \"" << firstLine << "\"");
     }
 }
-}
+} // namespace
 
 void Model::readLpSolCbc(istream &is) {
     vector<int32_t> varToId = ModelWriterLp::getVarToId(*this);
@@ -280,8 +268,12 @@ void Model::readLpSolCbc(istream &is) {
         double value;
         double dualValue;
         is >> varId >> varName >> value >> dualValue;
-        if (is.fail()) break;
-        if (varId > maxId || varId < 0) THROW_ERROR("Out of bound variable index " << varId << " after LP solution for variable " << varName);
+        if (is.fail())
+            break;
+        if (varId > maxId || varId < 0)
+            THROW_ERROR("Out of bound variable index "
+                        << varId << " after LP solution for variable "
+                        << varName);
         values[varName] = value;
     }
     for (uint32_t i = 0; i < nbExpressions(); ++i) {
@@ -315,7 +307,8 @@ void Model::readLpSolScip(istream &is) {
         string varName;
         double value;
         ss >> varName >> value;
-        if (is.fail()) break;
+        if (is.fail())
+            break;
         values[varName] = value;
     }
     for (uint32_t i = 0; i < nbExpressions(); ++i) {
@@ -354,7 +347,8 @@ void Model::readLpSolGurobi(istream &is) {
         string varName;
         double value;
         ss >> varName >> value;
-        if (is.fail()) break;
+        if (is.fail())
+            break;
         values[varName] = value;
     }
     for (uint32_t i = 0; i < nbExpressions(); ++i) {
