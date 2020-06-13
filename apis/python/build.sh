@@ -7,7 +7,7 @@ if [ -z ${PYBIN+"test"} ]
     exit
 fi
 
-$PYBIN/pip install cmake cython twine
+$PYBIN/pip install cmake cython twine wheel
 mkdir -p cpp_build
 cd cpp_build
 $PYBIN/cmake ../../../ -DCMAKE_BUILD_TYPE=Release
