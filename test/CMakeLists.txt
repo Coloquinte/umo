@@ -25,11 +25,13 @@ ENDFOREACH(TEST)
 SET(LP_SOLVERS
     scip
     cbc
+    gurobi
 )
 
 SET(SAT_SOLVERS
     scip
     cbc
+    gurobi
     minisat
 )
 

@@ -217,28 +217,63 @@ void Model::writeLp(ostream &os) const {
     ModelWriterLp(*this, os).write();
 }
 
-void Model::readLpSolCbc(istream &is) {
-    vector<int32_t> varToId = ModelWriterLp::getVarToId(*this);
-    int32_t maxId = *max_element(varToId.begin(), varToId.end());
-    unordered_map<string, double> values;
-    // Read the status
+namespace {
+umo_solution_status readStatusCbc(istream &is) {
     string firstLine;
     getline(is, firstLine);
-    umo_solution_status status = UMO_STATUS_UNKNOWN;
     if (firstLine.find("Optimal") != string::npos) {
-        status = UMO_STATUS_OPTIMAL;
+        return UMO_STATUS_OPTIMAL;
     }
     else if (firstLine.find("Unbounded") != string::npos) {
-        status = UMO_STATUS_UNBOUNDED;
+        return UMO_STATUS_UNBOUNDED;
+    }
+    else if (firstLine.find("Integer") != string::npos) {
+        return UMO_STATUS_UNKNOWN;
     }
     else if (firstLine.find("Infeasible") != string::npos) {
-        setStatus(UMO_STATUS_INFEASIBLE);
-        return;
+        return UMO_STATUS_INFEASIBLE;
     }
     else {
         THROW_ERROR("Cannot parse status in line \"" << firstLine <<"\"");
     }
-    // Read the variable values
+}
+
+umo_solution_status readStatusScip(istream &is) {
+    string firstLine;
+    getline(is, firstLine);
+    if (firstLine.find("optimal") != string::npos) {
+        return UMO_STATUS_OPTIMAL;
+    }
+    else if (firstLine.find("infeasible or unbounded") != string::npos) {
+        return UMO_STATUS_UNKNOWN;
+    }
+    else if (firstLine.find("limit reached") != string::npos) {
+        return UMO_STATUS_UNKNOWN;
+    }
+    else if (firstLine.find("interrupt") != string::npos) {
+        return UMO_STATUS_UNKNOWN;
+    }
+    else if (firstLine.find("unbounded") != string::npos) {
+        return UMO_STATUS_UNBOUNDED;
+    }
+    else if (firstLine.find("infeasible") != string::npos) {
+        return UMO_STATUS_INFEASIBLE;
+    }
+    else {
+        THROW_ERROR("Cannot parse status in line \"" << firstLine <<"\"");
+    }
+}
+}
+
+void Model::readLpSolCbc(istream &is) {
+    vector<int32_t> varToId = ModelWriterLp::getVarToId(*this);
+    int32_t maxId = *max_element(varToId.begin(), varToId.end());
+    umo_solution_status status = readStatusCbc(is);
+    if (status == UMO_STATUS_INFEASIBLE) {
+        setStatus(UMO_STATUS_INFEASIBLE);
+        return;
+    }
+    unordered_map<string, double> values;
     while (is.good()) {
         int32_t varId;
         string varName;
@@ -267,28 +302,12 @@ void Model::readLpSolCbc(istream &is) {
 void Model::readLpSolScip(istream &is) {
     vector<int32_t> varToId = ModelWriterLp::getVarToId(*this);
     int32_t maxId = *max_element(varToId.begin(), varToId.end());
-    unordered_map<string, double> values;
-    // Read the status
-    string firstLine;
-    getline(is, firstLine);
-    umo_solution_status status = UMO_STATUS_UNKNOWN;
-    if (firstLine.find("optimal") != string::npos) {
-        status = UMO_STATUS_OPTIMAL;
-    }
-    else if (firstLine.find("unbounded") != string::npos) {
-        status = UMO_STATUS_UNBOUNDED;
-    }
-    else if (firstLine.find("infeasible") != string::npos) {
+    umo_solution_status status = readStatusScip(is);
+    if (status == UMO_STATUS_INFEASIBLE) {
         setStatus(UMO_STATUS_INFEASIBLE);
         return;
     }
-    else {
-        // TODO
-        THROW_ERROR("Cannot parse status in line \"" << firstLine <<"\"");
-    }
-    string secondLine;
-    getline(is, secondLine);
-    // Read the variable values
+    unordered_map<string, double> values;
     while (is.good()) {
         string line;
         getline(is, line);
@@ -349,8 +368,9 @@ void Model::readLpSolGurobi(istream &is) {
         }
     }
     // WARNING: We assume optimality like Pulp, but it may not be the case
-    // TODO: At least check the current solution
-    setStatus(UMO_STATUS_OPTIMAL);
+    if (getStatus() == UMO_STATUS_VALID) {
+        setStatus(UMO_STATUS_OPTIMAL);
+    }
 }
 
 void Model::readLpSolCplex(istream &is) {
