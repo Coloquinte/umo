@@ -1,6 +1,8 @@
 
 FIND_PACKAGE(Boost REQUIRED COMPONENTS unit_test_framework)
 
+include_directories(${Boost_INCLUDE_DIRS})
+
 FIND_PROGRAM(cbc cbc)
 FIND_PROGRAM(cplex cplex)
 FIND_PROGRAM(scip scip)
