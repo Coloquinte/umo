@@ -25,6 +25,11 @@ class ModelWriterLp {
   protected:
     void initVarToId();
 
+    void writeObjective();
+    void writeConstraints();
+    void writeBounds();
+    void writeIntegers();
+
     string varName(uint32_t i) const;
     string exprName(ExpressionId id) const;
     void writeLpLinearExpression(uint32_t i);
@@ -35,16 +40,14 @@ class ModelWriterLp {
     const Model &m_;
     ostream &s_;
     vector<int32_t> varToId_;
+    vector<char> variableSeen_;
 };
 
 constexpr int32_t ModelWriterLp::InvalidId;
 
 ModelWriterLp::ModelWriterLp(const Model &m, ostream &s) : m_(m), s_(s) {}
 
-void ModelWriterLp::write() {
-    check();
-    initVarToId();
-    // Write the objectives
+void ModelWriterLp::writeObjective() {
     if (m_.nbObjectives() == 1) {
         ExpressionId obj = m_.objective(0).first;
         bool dir = (m_.objective(0).second == UMO_OBJ_MAXIMIZE);
@@ -58,8 +61,11 @@ void ModelWriterLp::write() {
         s_ << "Maximize" << endl;
         s_ << "\t0" << endl;
     }
-    // Write the constraints
+}
+
+void ModelWriterLp::writeConstraints() {
     s_ << "Subject To" << endl;
+    bool foundConstraint = false;
     for (uint32_t i = 0; i < m_.nbExpressions(); ++i) {
         const Model::ExpressionData &expr = m_.expression(i);
         if (expr.op != UMO_OP_LINEARCOMP)
@@ -84,18 +90,50 @@ void ModelWriterLp::write() {
                 s_ << " <= " << ub << endl;
             }
         }
+        foundConstraint = true;
     }
-    // Write the bounds
+    if (!foundConstraint || m_.nbObjectives() != 1) {
+        // GLPK crashes if the section is empty or if there is no objective
+        s_ << "\tdummy = 0" << endl;
+    }
+}
+
+void ModelWriterLp::writeBounds() {
     s_ << "Bounds" << endl;
     for (uint32_t i = 0; i < m_.nbExpressions(); ++i) {
         const Model::ExpressionData &expr = m_.expression(i);
+        if (expr.op == UMO_OP_DEC_BOOL && !variableSeen_[i]) {
+            // Scip crashes if a binary variable is not referenced before the Binary section
+            s_ << "\t0 <= " << varName(i) << " <= 1" << endl;
+        }
         if (expr.op == UMO_OP_DEC_INT || expr.op == UMO_OP_DEC_FLOAT) {
             double lb = m_.value(expr.operands[0].var());
             double ub = m_.value(expr.operands[1].var());
-            s_ << "\t" << lb << " <= " << varName(i) << " <= " << ub << endl;
+            s_ << "\t";
+            if (std::isfinite(lb)) {
+                s_ << lb;
+            }
+            else {
+                if (!(lb < 0)) {
+                    throw std::runtime_error("Infinite lower bound should be negative");
+                }
+                s_ << "-inf";
+            }
+            s_ << " <= " << varName(i) << " <= ";
+            if (std::isfinite(ub)) {
+                s_ << ub << endl;
+            }
+            else {
+                if (!(ub > 0)) {
+                    throw std::runtime_error("Infinite upper bound should be positive");
+                }
+                s_ << "+inf" << endl;
+            }
         }
     }
-    // Write the types
+}
+
+void ModelWriterLp::writeIntegers() {
     bool binaryFound = false;
     for (uint32_t i = 0; i < m_.nbExpressions(); ++i) {
         if (m_.expression(i).op == UMO_OP_DEC_BOOL) {
@@ -116,6 +154,15 @@ void ModelWriterLp::write() {
             s_ << "\t" << varName(i) << endl;
         }
     }
+}
+
+void ModelWriterLp::write() {
+    check();
+    initVarToId();
+    writeObjective();
+    writeConstraints();
+    writeBounds();
+    writeIntegers();
     s_ << "End" << endl;
 }
 
@@ -134,7 +181,10 @@ vector<int32_t> ModelWriterLp::getVarToId(const Model &m) {
     return varToId;
 }
 
-void ModelWriterLp::initVarToId() { varToId_ = getVarToId(m_); }
+void ModelWriterLp::initVarToId() {
+    varToId_ = getVarToId(m_);
+    variableSeen_ = vector<char>(m_.nbExpressions(), 0);
+}
 
 string ModelWriterLp::varName(uint32_t i) const {
     if (varToId_[i] == InvalidId) {
@@ -175,7 +225,7 @@ void ModelWriterLp::check() const {
             op == UMO_OP_DEC_FLOAT) {
             if (m_.isConstraint(i)) {
                 THROW_ERROR(
-                    "Variables cannot be constraints for the LP file writer");
+                    "Variables cannot be direct constraints for the LP file writer");
             }
             continue;
         }
@@ -204,6 +254,7 @@ void ModelWriterLp::writeLpLinearExpression(uint32_t i) {
     for (uint32_t j = 1; 2 * j + 1 < expr.operands.size(); ++j) {
         double val = m_.value(expr.operands[2 * j].var());
         ExpressionId id = expr.operands[2 * j + 1];
+        variableSeen_[id.var()] = true;
         if (j > 1) {
             s_ << (val >= 0.0 ? " + " : " - ");
         } else {
@@ -270,7 +321,7 @@ void Model::readLpSolCbc(istream &is) {
         is >> varId >> varName >> value >> dualValue;
         if (is.fail())
             break;
-        if (varId > maxId || varId < 0)
+        if (varId > maxId+1 /* +1 for dummy */ || varId < 0)
             THROW_ERROR("Out of bound variable index "
                         << varId << " after LP solution for variable "
                         << varName);

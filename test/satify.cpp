@@ -14,7 +14,6 @@
 
 using namespace umo;
 
-/*
 BOOST_AUTO_TEST_CASE(SatifyBoolDec) {
     Model model;
     model.boolVar();
@@ -25,7 +24,6 @@ BOOST_AUTO_TEST_CASE(SatifyBoolDec) {
     model.solve();
     BOOST_CHECK(model.getStatus() == Status::Optimal);
 }
-*/
 
 BOOST_AUTO_TEST_CASE(SatifyVarConstrainedPos) {
     Model model;

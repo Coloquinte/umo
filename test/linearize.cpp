@@ -374,7 +374,6 @@ BOOST_AUTO_TEST_CASE(LinearizationSimple2) {
     BOOST_CHECK_EQUAL(model.getStatus(), Status::Optimal);
 }
 
-
 BOOST_AUTO_TEST_CASE(LinearizationWithTimeLimit) {
     Model model;
     FloatExpression dec1 = model.floatVar(0.0, 5.0);
