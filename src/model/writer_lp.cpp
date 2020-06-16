@@ -59,13 +59,12 @@ void ModelWriterLp::writeObjective() {
         s_ << "\t" << varName(obj.var()) << endl;
     } else {
         s_ << "Maximize" << endl;
-        s_ << "\t0" << endl;
+        s_ << "\tdummy" << endl;
     }
 }
 
 void ModelWriterLp::writeConstraints() {
     s_ << "Subject To" << endl;
-    bool foundConstraint = false;
     for (uint32_t i = 0; i < m_.nbExpressions(); ++i) {
         const Model::ExpressionData &expr = m_.expression(i);
         if (expr.op != UMO_OP_LINEARCOMP)
@@ -90,12 +89,9 @@ void ModelWriterLp::writeConstraints() {
                 s_ << " <= " << ub << endl;
             }
         }
-        foundConstraint = true;
     }
-    if (!foundConstraint || m_.nbObjectives() != 1) {
-        // GLPK crashes if the section is empty or if there is no objective
-        s_ << "\tdummy = 0" << endl;
-    }
+    // GLPK crashes if the constraint section is empty or if there is no objective
+    s_ << "\tdummy = 0" << endl;
 }
 
 void ModelWriterLp::writeBounds() {
@@ -302,6 +298,34 @@ umo_solution_status readStatusScip(istream &is) {
         THROW_ERROR("Cannot parse status in line \"" << firstLine << "\"");
     }
 }
+
+umo_solution_status readStatusGlpk(istream &is) {
+    string line;
+    getline(is, line);
+    getline(is, line);
+    getline(is, line);
+    getline(is, line);
+    getline(is, line);
+    if (line.size() > 12) {
+        string statusLine = line.substr(12);
+        if (statusLine == "INTEGER OPTIMAL") {
+            return UMO_STATUS_OPTIMAL;
+        } else if (statusLine == "OPTIMAL") {
+            return UMO_STATUS_OPTIMAL;
+        } else if (statusLine == "INTEGER NON-OPTIMAL") {
+            return UMO_STATUS_UNKNOWN;
+        } else if (statusLine == "UNDEFINED") {
+            return UMO_STATUS_UNKNOWN;
+        } else if (statusLine == "UNBOUNDED") {
+            return UMO_STATUS_UNBOUNDED;
+        } else if (statusLine == "INFEASIBLE (FINAL)") {
+            return UMO_STATUS_INFEASIBLE;
+        } else if (statusLine == "INTEGER EMPTY") {
+            return UMO_STATUS_INFEASIBLE;
+        }
+    }
+    THROW_ERROR("Cannot parse status in line \"" << line << "\"");
+}
 } // namespace
 
 void Model::readLpSolCbc(istream &is) {
@@ -378,7 +402,51 @@ void Model::readLpSolScip(istream &is) {
 }
 
 void Model::readLpSolGlpk(istream &is) {
-    THROW_ERROR("GLPK reader is not implemented yet");
+    vector<int32_t> varToId = ModelWriterLp::getVarToId(*this);
+    int32_t maxId = *max_element(varToId.begin(), varToId.end());
+    umo_solution_status status = readStatusGlpk(is);
+    if (status == UMO_STATUS_INFEASIBLE) {
+        setStatus(UMO_STATUS_INFEASIBLE);
+        return;
+    }
+    unordered_map<string, double> values;
+    while (is.good()) {
+        string line;
+        getline(is, line);
+        if (line.find("Column name") != string::npos) {
+            getline(is, line);
+            break;
+        }
+    }
+    for (int i = 0; i <= maxId+1 /* +1 for dummy */; ++i) {
+        if (!is.good())
+            break;
+        string line;
+        getline(is, line);
+        stringstream ss(line);
+        int varId;
+        string varName;
+        string filler;
+        double value;
+        ss >> varId >> varName >> filler >> value;
+        if (is.fail())
+            break;
+        values[varName] = value;
+    }
+    for (uint32_t i = 0; i < nbExpressions(); ++i) {
+        uint32_t id = varToId.at(i);
+        if (id != ModelWriterLp::InvalidId) {
+            stringstream ss;
+            ss << "x" << id;
+            auto it = values.find(ss.str());
+            double val = it != values.end() ? it->second : 0.0;
+            setFloatValue(ExpressionId::fromVar(i), val);
+        }
+    }
+    if (status != UMO_STATUS_UNKNOWN) {
+        setStatus(status);
+    }
+    //THROW_ERROR("GLPK reader is not implemented yet");
 }
 
 void Model::readLpSolGurobi(istream &is) {

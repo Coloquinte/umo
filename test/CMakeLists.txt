@@ -28,12 +28,14 @@ SET(LP_SOLVERS
     scip
     cbc
     gurobi
+    glpk
 )
 
 SET(SAT_SOLVERS
     scip
     cbc
     gurobi
+    glpk
     minisat
 )
 
