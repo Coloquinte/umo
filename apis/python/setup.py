@@ -15,7 +15,7 @@ setuptools.setup (
     author = 'Gabriel Gouvine',
     author_email = 'gabriel.gouvine_umo@m4x.org',
     url = "https://github.com/Coloquinte/umo",
-    version = '0.0.1',
+    version = '0.0.2',
     description = 'Modeler for mathematical programming solvers',
     test_suite = "test.TestUmoApi",
     ext_modules = [umo_module],

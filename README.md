@@ -10,7 +10,10 @@ The following languages are supported:
 * Python 
 
 You can use UMO with the following solvers:
-* CBC
+* Cbc
+* Glpk
+* Scip
+* Gurobi
 * Minisat
 
 ### Python
