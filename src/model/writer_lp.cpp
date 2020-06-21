@@ -15,6 +15,7 @@ namespace umoi {
 class ModelWriterLp {
   public:
     static constexpr int32_t InvalidId = -1;
+    static constexpr size_t maxLineLength = 256;
 
   public:
     ModelWriterLp(const Model &m, ostream &s);
@@ -247,17 +248,24 @@ void ModelWriterLp::check() const {
 
 void ModelWriterLp::writeLpLinearExpression(uint32_t i) {
     const Model::ExpressionData &expr = m_.expression(i);
+    stringstream s;
     for (uint32_t j = 1; 2 * j + 1 < expr.operands.size(); ++j) {
         double val = m_.value(expr.operands[2 * j].var());
         ExpressionId id = expr.operands[2 * j + 1];
         variableSeen_[id.var()] = true;
         if (j > 1) {
-            s_ << (val >= 0.0 ? " + " : " - ");
+            s << (val >= 0.0 ? " + " : " - ");
         } else {
-            s_ << (val >= 0.0 ? " " : "- ");
+            s << (val >= 0.0 ? " " : "- ");
         }
-        s_ << abs(val) << " " << varName(id.var());
+        s << abs(val) << " " << varName(id.var());
+        if (s.str().size() > maxLineLength - 20) {
+            // Enforce a small-enough line length
+            s_ << s.str() << endl;
+            s.str("");
+        }
     }
+    s_ << s.str();
 }
 
 void Model::writeLp(ostream &os) const { ModelWriterLp(*this, os).write(); }
