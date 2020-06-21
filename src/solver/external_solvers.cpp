@@ -14,6 +14,33 @@
 using namespace std;
 
 namespace umoi {
+
+class ITmpFile : public ifstream {
+    // Use RAII to free temporary files when an exception is thrown
+  public:
+    ITmpFile(const std::string &filename) : ifstream(filename), filename_(filename) {}
+    ~ITmpFile() {
+        close();
+        remove(filename_.c_str());
+    }
+    
+  private:
+    std::string filename_;
+};
+
+class OTmpFile : public ofstream {
+    // Use RAII to free temporary files when an exception is thrown
+  public:
+    OTmpFile(const std::string &filename) : ofstream(filename), filename_(filename) {}
+    ~OTmpFile() {
+        close();
+        remove(filename_.c_str());
+    }
+    
+  private:
+    std::string filename_;
+};
+
 bool CbcSolver::valid(PresolvedModel &m) const {
     return presolve::ToLinear().valid(m);
 }
@@ -23,9 +50,8 @@ void CbcSolver::run(PresolvedModel &m) const {
     string tmpName = temporaryFilename("umo-cbc-", "");
     string tmpModName = tmpName + "-mod.lp";
     string tmpSolName = tmpName + "-out.sol";
-    ofstream modf(tmpModName);
+    OTmpFile modf(tmpModName);
     m.writeLp(modf);
-    modf.close();
     stringstream command;
     command << "cbc " << tmpModName << " ";
     double time = m.getFloatParameter("time_limit");
@@ -46,11 +72,8 @@ void CbcSolver::run(PresolvedModel &m) const {
                         << returnValue << ": " << command.str());
         }
     }
-    ifstream solf(tmpSolName);
+    ITmpFile solf(tmpSolName);
     m.readLpSolCbc(solf);
-    solf.close();
-    remove(tmpModName.c_str());
-    remove(tmpSolName.c_str());
 }
 
 bool CplexSolver::valid(PresolvedModel &m) const {
@@ -62,9 +85,8 @@ void CplexSolver::run(PresolvedModel &m) const {
     string tmpName = temporaryFilename("umo-cplex-", "");
     string tmpModName = tmpName + "-mod.lp";
     string tmpSolName = tmpName + "-out.sol";
-    ofstream modf(tmpModName);
+    OTmpFile modf(tmpModName);
     m.writeLp(modf);
-    modf.close();
     stringstream command;
     command << "cplex -c ";
     command << "\"read " << tmpModName << "\" ";
@@ -83,11 +105,8 @@ void CplexSolver::run(PresolvedModel &m) const {
                         << returnValue << ": " << command.str());
         }
     }
-    ifstream solf(tmpSolName);
+    ITmpFile solf(tmpSolName);
     m.readLpSolCplex(solf);
-    solf.close();
-    remove(tmpModName.c_str());
-    remove(tmpSolName.c_str());
 }
 
 bool GlpkSolver::valid(PresolvedModel &m) const {
@@ -99,9 +118,8 @@ void GlpkSolver::run(PresolvedModel &m) const {
     string tmpName = temporaryFilename("umo-glpk-", "");
     string tmpModName = tmpName + "-mod.lp";
     string tmpSolName = tmpName + "-out.sol";
-    ofstream modf(tmpModName);
+    OTmpFile modf(tmpModName);
     m.writeLp(modf);
-    modf.close();
     stringstream command;
     command << "glpsol";
     command << " --cpxlp " << tmpModName;
@@ -122,11 +140,8 @@ void GlpkSolver::run(PresolvedModel &m) const {
                         << returnValue << ": " << command.str());
         }
     }
-    ifstream solf(tmpSolName);
+    ITmpFile solf(tmpSolName);
     m.readLpSolGlpk(solf);
-    solf.close();
-    remove(tmpModName.c_str());
-    remove(tmpSolName.c_str());
 }
 
 bool GurobiSolver::valid(PresolvedModel &m) const {
@@ -138,9 +153,8 @@ void GurobiSolver::run(PresolvedModel &m) const {
     string tmpName = temporaryFilename("umo-gurobi-", "");
     string tmpModName = tmpName + "-mod.lp";
     string tmpSolName = tmpName + "-out.sol";
-    ofstream modf(tmpModName);
+    OTmpFile modf(tmpModName);
     m.writeLp(modf);
-    modf.close();
     stringstream command;
     command << "gurobi";
     command << " ResultFile=" << tmpSolName;
@@ -157,11 +171,8 @@ void GurobiSolver::run(PresolvedModel &m) const {
                         << returnValue << ": " << command.str());
         }
     }
-    ifstream solf(tmpSolName);
+    ITmpFile solf(tmpSolName);
     m.readLpSolGurobi(solf);
-    solf.close();
-    remove(tmpModName.c_str());
-    remove(tmpSolName.c_str());
 }
 
 bool ScipSolver::valid(PresolvedModel &m) const {
@@ -173,9 +184,8 @@ void ScipSolver::run(PresolvedModel &m) const {
     string tmpName = temporaryFilename("umo-scip-", "");
     string tmpModName = tmpName + "-mod.lp";
     string tmpSolName = tmpName + "-out.sol";
-    ofstream modf(tmpModName);
+    OTmpFile modf(tmpModName);
     m.writeLp(modf);
-    modf.close();
     stringstream command;
     command << "scip ";
     double time = m.getFloatParameter("time_limit");
@@ -198,11 +208,8 @@ void ScipSolver::run(PresolvedModel &m) const {
                         << returnValue << ": " << command.str());
         }
     }
-    ifstream solf(tmpSolName);
+    ITmpFile solf(tmpSolName);
     m.readLpSolScip(solf);
-    solf.close();
-    remove(tmpModName.c_str());
-    remove(tmpSolName.c_str());
 }
 
 bool MinisatSolver::valid(PresolvedModel &m) const {
@@ -214,9 +221,8 @@ void MinisatSolver::run(PresolvedModel &m) const {
     string tmpName = temporaryFilename("umo-minisat-", "");
     string tmpModName = tmpName + "-mod.cnf";
     string tmpSolName = tmpName + "-out.sol";
-    ofstream modf(tmpModName);
+    OTmpFile modf(tmpModName);
     m.writeCnf(modf);
-    modf.close();
     stringstream command;
     command << "minisat ";
     command << "-verb=0 ";
@@ -233,10 +239,7 @@ void MinisatSolver::run(PresolvedModel &m) const {
                     "command returned an error: "
                     << command.str());
     }
-    ifstream solf(tmpSolName);
+    ITmpFile solf(tmpSolName);
     m.readCnfSolMinisat(solf);
-    solf.close();
-    remove(tmpModName.c_str());
-    remove(tmpSolName.c_str());
 }
 } // namespace umoi
