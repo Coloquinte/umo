@@ -159,6 +159,8 @@ void Model::solve() {
             MinisatSolver().run(presolved);
         else if (CbcSolver().valid(presolved))
             CbcSolver().run(presolved);
+        else if (CouenneSolver().valid(presolved))
+            CouenneSolver().run(presolved);
         else
             throw std::runtime_error(
                 "The model cannot be converted to SAT or MIP");
@@ -174,6 +176,8 @@ void Model::solve() {
         GurobiSolver().run(presolved);
     } else if (solverParam == "glpk") {
         GlpkSolver().run(presolved);
+    } else if (solverParam == "couenne") {
+        CouenneSolver().run(presolved);
     } else {
         THROW_ERROR("\"" << solverParam
                          << "\" is not a known solver parameter");

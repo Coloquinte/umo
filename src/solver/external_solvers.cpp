@@ -242,4 +242,36 @@ void MinisatSolver::run(PresolvedModel &m) const {
     ITmpFile solf(tmpSolName);
     m.readCnfSolMinisat(solf);
 }
+
+bool CouenneSolver::valid(PresolvedModel &m) const {
+    return true;
+}
+
+void CouenneSolver::run(PresolvedModel &m) const {
+    string tmpName = temporaryFilename("umo-couenne-", "");
+    string tmpModName = tmpName + "-mod.nl";
+    string tmpSolName = tmpName + "-out.sol";
+    OTmpFile modf(tmpModName);
+    m.writeNl(modf);
+    stringstream command;
+    command << "couenne ";
+    command << "-o " << tmpSolName << " ";
+    // TODO: handle the options and time limit for Couenne; as Couenne makes use of a local couenne.opt file, this requires a temporary directory
+    command << tmpModName << " ";
+    command << endl;
+    int returnValue = system(command.str().c_str());
+    if (returnValue != 0) {
+        if (returnValue == 127) {
+            THROW_ERROR("Couenne does not seem to be installed. The following "
+                        "command returned an error: "
+                        << command.str());
+        } else {
+            THROW_ERROR("The following command finished with error "
+                        << returnValue << ": " << command.str());
+        }
+    }
+    ITmpFile solf(tmpSolName);
+    m.readNlSol(solf);
+}
+
 } // namespace umoi

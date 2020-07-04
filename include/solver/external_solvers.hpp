@@ -52,6 +52,12 @@ class MinisatSolver : public Solver {
     bool valid(PresolvedModel &) const override;
     void run(PresolvedModel &) const override;
 };
+
+class CouenneSolver : public Solver {
+  public:
+    bool valid(PresolvedModel &) const override;
+    void run(PresolvedModel &) const override;
+};
 } // namespace umoi
 
 #endif

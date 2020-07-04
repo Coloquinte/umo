@@ -84,12 +84,14 @@ class Model {
     void writeUmo(std::ostream &) const;
     void writeLp(std::ostream &) const;
     void writeCnf(std::ostream &) const;
+    void writeNl(std::ostream &) const;
     void readLpSolCbc(std::istream &);
     void readLpSolGlpk(std::istream &);
     void readLpSolGurobi(std::istream &);
     void readLpSolScip(std::istream &);
     void readLpSolCplex(std::istream &);
     void readCnfSolMinisat(std::istream &);
+    void readNlSol(std::istream &);
 
   protected:
     void checkTypes() const;
