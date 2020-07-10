@@ -25,7 +25,14 @@ FOREACH(TEST IN LISTS TESTS)
     add_test(${TEST} ${TEST}_test)
 ENDFOREACH(TEST)
 
-SET(LP_SOLVERS
+SET(MINLP_SOLVERS
+    scip
+    cbc
+    gurobi
+    glpk
+)
+
+SET(MILP_SOLVERS
     scip
     cbc
     gurobi
@@ -40,11 +47,11 @@ SET(SAT_SOLVERS
     minisat
 )
 
-FOREACH(SOLVER IN LISTS LP_SOLVERS)
+FOREACH(SOLVER IN LISTS MILP_SOLVERS)
     IF(${SOLVER})
-        set(TEST linearize_${SOLVER})
+        set(TEST solve_milp_${SOLVER})
         message("Solver ${SOLVER} found (${${SOLVER}})")
-        add_executable(${TEST}_test linearize.cpp)
+        add_executable(${TEST}_test solve_milp.cpp)
         target_compile_definitions(${TEST}_test PRIVATE "-DSOLVER_PARAM=${SOLVER}")
         target_link_libraries(${TEST}_test ${Boost_LIBRARIES} umo)
         add_test(${TEST} ${TEST}_test)
@@ -55,9 +62,9 @@ ENDFOREACH(SOLVER)
 
 FOREACH(SOLVER IN LISTS SAT_SOLVERS)
     IF(${SOLVER})
-        set(TEST satify_${SOLVER})
+        set(TEST solve_sat_${SOLVER})
         message("Solver ${SOLVER} found (${${SOLVER}})")
-        add_executable(${TEST}_test satify.cpp)
+        add_executable(${TEST}_test solve_sat.cpp)
         target_compile_definitions(${TEST}_test PRIVATE "-DSOLVER_PARAM=${SOLVER}")
         target_link_libraries(${TEST}_test ${Boost_LIBRARIES} umo)
         add_test(${TEST} ${TEST}_test)
