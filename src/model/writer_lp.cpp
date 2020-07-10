@@ -4,6 +4,7 @@
 #include "model/utils.hpp"
 
 #include <algorithm>
+#include <cassert>
 #include <cmath>
 #include <iostream>
 #include <sstream>
@@ -59,6 +60,7 @@ void ModelWriterLp::writeObjective() {
         s_ << (dir ? "Maximize" : "Minimize") << endl;
         s_ << "\t" << varName(obj.var()) << endl;
     } else {
+        assert (m_.nbObjectives() == 0);
         s_ << "Maximize" << endl;
         s_ << "\tdummy" << endl;
     }

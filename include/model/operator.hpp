@@ -47,6 +47,12 @@ class Operator {
     virtual bool isIdempotent() const { return false; }
     // Is a comparison
     virtual bool isComparison() const { return false; }
+    // Is always unary
+    virtual bool isUnary() const { return false; }
+    // Is always binary
+    virtual bool isBinary() const { return false; }
+    // Takes any number of operands
+    virtual bool isNary() const { return false; }
 
     // TODO:
     // Bound computation

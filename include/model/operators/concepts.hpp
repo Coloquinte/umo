@@ -20,16 +20,28 @@ class UnaryOp : virtual public Operator {
     bool validOperandCount(int nbOperands) const final override {
         return nbOperands == 1;
     }
+
+    bool isUnary() const final override {
+        return true;
+    }
 };
 
 class BinaryOp : virtual public Operator {
     bool validOperandCount(int nbOperands) const final override {
         return nbOperands == 2;
     }
+
+    bool isBinary() const final override {
+        return true;
+    }
 };
 
 class NaryOp : virtual public Operator {
     bool validOperandCount(int nbOperands) const final override {
+        return true;
+    }
+
+    bool isNary() const final override {
         return true;
     }
 };

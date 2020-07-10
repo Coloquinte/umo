@@ -425,6 +425,18 @@ void ToLinear::Transformer::linearizeXor(uint32_t i) {
     // TODO: Split the Xor into multiple intermediate xor, then linearize them
 }
 
+namespace {
+int countNonConstantOperands(const PresolvedModel &model, const Model::ExpressionData &expr) {
+    int nbNonConstant = 0;
+    for (ExpressionId id : expr.operands) {
+        if (!model.isConstant(id.var())) {
+            ++nbNonConstant;
+        }
+    }
+    return nbNonConstant;
+}
+}
+
 bool ToLinear::valid(const PresolvedModel &model) const {
     if (model.nbObjectives() > 1)
         return false;
@@ -441,7 +453,9 @@ bool ToLinear::valid(const PresolvedModel &model) const {
         case UMO_OP_SUM:
             continue;
         case UMO_OP_PROD:
-            // TODO: check constant prod
+            if (countNonConstantOperands(model, expr) >= 2) {
+                return false;
+            }
             continue;
         case UMO_OP_CMP_EQ:
         case UMO_OP_CMP_NEQ:

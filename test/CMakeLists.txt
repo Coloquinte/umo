@@ -9,6 +9,7 @@ FIND_PROGRAM(scip scip)
 FIND_PROGRAM(glpk glpsol)
 FIND_PROGRAM(gurobi gurobi)
 FIND_PROGRAM(minisat minisat)
+FIND_PROGRAM(couenne couenne)
 
 SET(TESTS
     c_api
