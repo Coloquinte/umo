@@ -23,7 +23,7 @@ BOOST_AUTO_TEST_CASE(Square1) {
     model.setSolver(TOSTRING(SOLVER_PARAM));
     model.solve();
     BOOST_CHECK_CLOSE(x.getValue(), 1, eps);
-    //BOOST_CHECK_EQUAL(model.getStatus(), Status::Optimal);
+    BOOST_CHECK_EQUAL(model.getStatus(), Status::Optimal);
 }
 
 BOOST_AUTO_TEST_CASE(Square2) {
@@ -33,7 +33,7 @@ BOOST_AUTO_TEST_CASE(Square2) {
     model.setSolver(TOSTRING(SOLVER_PARAM));
     model.solve();
     BOOST_CHECK_CLOSE(x.getValue(), 1, eps);
-    //BOOST_CHECK_EQUAL(model.getStatus(), Status::Optimal);
+    BOOST_CHECK_EQUAL(model.getStatus(), Status::Optimal);
 }
 
 BOOST_AUTO_TEST_CASE(Square3) {
@@ -43,7 +43,7 @@ BOOST_AUTO_TEST_CASE(Square3) {
     model.setSolver(TOSTRING(SOLVER_PARAM));
     model.solve();
     BOOST_CHECK_CLOSE(x.getValue(), -1, eps);
-    //BOOST_CHECK_EQUAL(model.getStatus(), Status::Optimal);
+    BOOST_CHECK_EQUAL(model.getStatus(), Status::Optimal);
 }
 
 BOOST_AUTO_TEST_CASE(Square4) {
@@ -53,7 +53,7 @@ BOOST_AUTO_TEST_CASE(Square4) {
     model.setSolver(TOSTRING(SOLVER_PARAM));
     model.solve();
     BOOST_CHECK_CLOSE(x.getValue(), -1, eps);
-    //BOOST_CHECK_EQUAL(model.getStatus(), Status::Optimal);
+    BOOST_CHECK_EQUAL(model.getStatus(), Status::Optimal);
 }
 
 BOOST_AUTO_TEST_CASE(LowerBound) {
@@ -63,7 +63,7 @@ BOOST_AUTO_TEST_CASE(LowerBound) {
     model.setSolver(TOSTRING(SOLVER_PARAM));
     model.solve();
     BOOST_CHECK_CLOSE(x.getValue(), 2.0, eps);
-    //BOOST_CHECK_EQUAL(model.getStatus(), Status::Optimal);
+    BOOST_CHECK_EQUAL(model.getStatus(), Status::Optimal);
 }
 
 BOOST_AUTO_TEST_CASE(UpperBound) {
@@ -73,7 +73,7 @@ BOOST_AUTO_TEST_CASE(UpperBound) {
     model.setSolver(TOSTRING(SOLVER_PARAM));
     model.solve();
     BOOST_CHECK_CLOSE(x.getValue(), -2.0, eps);
-    //BOOST_CHECK_EQUAL(model.getStatus(), Status::Optimal);
+    BOOST_CHECK_EQUAL(model.getStatus(), Status::Optimal);
 }
 
 BOOST_AUTO_TEST_CASE(Exp) {
@@ -83,7 +83,7 @@ BOOST_AUTO_TEST_CASE(Exp) {
     model.setSolver(TOSTRING(SOLVER_PARAM));
     model.solve();
     BOOST_CHECK_CLOSE(x.getValue(), 0, eps);
-    //BOOST_CHECK_EQUAL(model.getStatus(), Status::Optimal);
+    BOOST_CHECK_EQUAL(model.getStatus(), Status::Optimal);
 }
 
 BOOST_AUTO_TEST_CASE(Log) {
@@ -93,7 +93,7 @@ BOOST_AUTO_TEST_CASE(Log) {
     model.setSolver(TOSTRING(SOLVER_PARAM));
     model.solve();
     BOOST_CHECK_CLOSE(x.getValue(), 1, eps);
-    //BOOST_CHECK_EQUAL(model.getStatus(), Status::Optimal);
+    BOOST_CHECK_EQUAL(model.getStatus(), Status::Optimal);
 }
 
 BOOST_AUTO_TEST_CASE(Cos1) {
@@ -103,7 +103,7 @@ BOOST_AUTO_TEST_CASE(Cos1) {
     model.setSolver(TOSTRING(SOLVER_PARAM));
     model.solve();
     BOOST_CHECK_CLOSE(x.getValue(), 1, eps);
-    //BOOST_CHECK_EQUAL(model.getStatus(), Status::Optimal);
+    BOOST_CHECK_EQUAL(model.getStatus(), Status::Optimal);
 }
 
 BOOST_AUTO_TEST_CASE(Cos2) {
@@ -113,7 +113,7 @@ BOOST_AUTO_TEST_CASE(Cos2) {
     model.setSolver(TOSTRING(SOLVER_PARAM));
     model.solve();
     BOOST_CHECK_CLOSE(x.getValue(), 0, eps);
-    //BOOST_CHECK_EQUAL(model.getStatus(), Status::Optimal);
+    BOOST_CHECK_EQUAL(model.getStatus(), Status::Optimal);
 }
 
 BOOST_AUTO_TEST_CASE(Sin1) {
@@ -123,7 +123,7 @@ BOOST_AUTO_TEST_CASE(Sin1) {
     model.setSolver(TOSTRING(SOLVER_PARAM));
     model.solve();
     BOOST_CHECK_CLOSE(x.getValue(), 0, eps);
-    //BOOST_CHECK_EQUAL(model.getStatus(), Status::Optimal);
+    BOOST_CHECK_EQUAL(model.getStatus(), Status::Optimal);
 }
 
 BOOST_AUTO_TEST_CASE(Sin2) {
@@ -133,7 +133,7 @@ BOOST_AUTO_TEST_CASE(Sin2) {
     model.setSolver(TOSTRING(SOLVER_PARAM));
     model.solve();
     BOOST_CHECK_CLOSE(x.getValue(), 1, eps);
-    //BOOST_CHECK_EQUAL(model.getStatus(), Status::Optimal);
+    BOOST_CHECK_EQUAL(model.getStatus(), Status::Optimal);
 }
 
 BOOST_AUTO_TEST_CASE(Tan1) {
@@ -143,7 +143,7 @@ BOOST_AUTO_TEST_CASE(Tan1) {
     model.setSolver(TOSTRING(SOLVER_PARAM));
     model.solve();
     BOOST_CHECK_CLOSE(x.getValue(), 0, eps);
-    //BOOST_CHECK_EQUAL(model.getStatus(), Status::Optimal);
+    BOOST_CHECK_EQUAL(model.getStatus(), Status::Optimal);
 }
 
 BOOST_AUTO_TEST_CASE(Tan2) {
@@ -153,8 +153,5 @@ BOOST_AUTO_TEST_CASE(Tan2) {
     model.setSolver(TOSTRING(SOLVER_PARAM));
     model.solve();
     BOOST_CHECK_CLOSE(x.getValue(), 1, eps);
-    //BOOST_CHECK_EQUAL(model.getStatus(), Status::Optimal);
+    BOOST_CHECK_EQUAL(model.getStatus(), Status::Optimal);
 }
-
-
-

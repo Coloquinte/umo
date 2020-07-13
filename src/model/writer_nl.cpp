@@ -358,7 +358,7 @@ void Model::readNlSol(istream &is) {
         }
     }
     else {
-        THROW_ERROR("Option line not found by NL file reader");
+        THROW_ERROR("\"Options\" line not found by NL file reader");
     }
     std::vector<double> constraints;
     std::vector<double> variables;
@@ -379,12 +379,59 @@ void Model::readNlSol(istream &is) {
         variables.push_back(tmp);
     }
 
+    umo_solution_status status = UMO_STATUS_UNKNOWN;
+    getline(is, line);
+    if (line.size() >= 5 && line.substr(0, 5) == "objno") {
+        int objno0 = -1;
+        int objno1 = -1;
+        ss = stringstream(line.substr(5));
+        ss >> objno0 >> objno1;
+        if (objno1 < 0) {
+            // ???
+            status = UMO_STATUS_UNKNOWN;
+        }
+        else if (objno1 < 100) {
+            // Optimal
+            status = UMO_STATUS_OPTIMAL;
+        }
+        else if (objno1 < 200) {
+            // Optimal, but issues were detected
+            status = UMO_STATUS_OPTIMAL;
+        }
+        else if (objno1 < 300) {
+            // Infeasible
+            status = UMO_STATUS_INFEASIBLE;
+        }
+        else if (objno1 < 400) {
+            // Unbounded
+            status = UMO_STATUS_UNBOUNDED;
+        }
+        else if (objno1 < 500) {
+            // Stopped on limit
+            status = UMO_STATUS_UNKNOWN;
+        }
+        else if (objno1 < 600) {
+            // Stopped on error
+            status = UMO_STATUS_UNKNOWN;
+        }
+        else {
+            // ???
+            status = UMO_STATUS_UNKNOWN;
+        }
+    }
+    else {
+        THROW_ERROR("\"objno\" line not found by NL file reader");
+    }
+
     for (uint32_t i = 0; i < nbExpressions(); ++i) {
         uint32_t id = varToId.at(i);
         if (id != ModelWriterNl::InvalidId) {
             double val = variables.at(id);
             setFloatValue(ExpressionId::fromVar(i), val);
         }
+    }
+    if (status != UMO_STATUS_UNKNOWN) {
+        setStatus(status);
     }
 }
 } // namespace umoi
