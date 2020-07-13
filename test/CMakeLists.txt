@@ -26,10 +26,7 @@ FOREACH(TEST IN LISTS TESTS)
 ENDFOREACH(TEST)
 
 SET(MINLP_SOLVERS
-    scip
-    cbc
-    gurobi
-    glpk
+    couenne
 )
 
 SET(MILP_SOLVERS
@@ -46,6 +43,19 @@ SET(SAT_SOLVERS
     glpk
     minisat
 )
+
+FOREACH(SOLVER IN LISTS MINLP_SOLVERS)
+    IF(${SOLVER})
+        set(TEST solve_minlp_${SOLVER})
+        message("Solver ${SOLVER} found (${${SOLVER}})")
+        add_executable(${TEST}_test solve_minlp.cpp)
+        target_compile_definitions(${TEST}_test PRIVATE "-DSOLVER_PARAM=${SOLVER}")
+        target_link_libraries(${TEST}_test ${Boost_LIBRARIES} umo)
+        add_test(${TEST} ${TEST}_test)
+    ELSE()
+        message("Solver ${SOLVER} not found")
+    ENDIF()
+ENDFOREACH(SOLVER)
 
 FOREACH(SOLVER IN LISTS MILP_SOLVERS)
     IF(${SOLVER})

@@ -85,6 +85,7 @@ class ModelWriterNl {
     ModelWriterNl(const Model &m, ostream &s);
 
     void write();
+    static vector<int32_t> getVarToId(const Model &m);
 
     int countVariables() const;
     int countConstraints() const;
@@ -93,9 +94,9 @@ class ModelWriterNl {
     void writeHeader();
     void writeObjectives();
     void writeConstraints();
+    void writeBounds();
 
     // TODO: write linear constraint
-
     void writeExpressionGraph(ExpressionId id);
 
   private:
@@ -117,10 +118,7 @@ ModelWriterNl::ModelWriterNl(const Model &m, ostream &s) : m_(m), s_(s) {}
 int ModelWriterNl::countVariables() const {
     int cnt = 0;
     for (uint32_t i = 0; i < m_.nbExpressions(); ++i) {
-        const Model::ExpressionData &expr = m_.expression(i);
-        umo_operator op = expr.op;
-        if (op == UMO_OP_DEC_BOOL || op == UMO_OP_DEC_INT ||
-            op == UMO_OP_DEC_FLOAT) {
+        if (varToId_[i] != InvalidId) {
             ++cnt;
         }
     }
@@ -239,18 +237,23 @@ void ModelWriterNl::initUmoToNl() {
     umoToNlOp_[UMO_OP_OR] = 71;
 }
 
-void ModelWriterNl::initVarToId() {
-    varToId_.assign(m_.nbExpressions(), InvalidId);
+vector<int32_t> ModelWriterNl::getVarToId(const Model &m) {
+    vector<int32_t> varToId(m.nbExpressions(), InvalidId);
     int32_t id = 0;
-    for (uint32_t i = 0; i < m_.nbExpressions(); ++i) {
-        const Model::ExpressionData &expr = m_.expression(i);
+    for (uint32_t i = 0; i < m.nbExpressions(); ++i) {
+        const Model::ExpressionData &expr = m.expression(i);
         if (expr.op == UMO_OP_DEC_BOOL)
-            varToId_[i] = id++;
+            varToId[i] = id++;
         if (expr.op == UMO_OP_DEC_INT)
-            varToId_[i] = id++;
+            varToId[i] = id++;
         if (expr.op == UMO_OP_DEC_FLOAT)
-            varToId_[i] = id++;
+            varToId[i] = id++;
     }
+    return varToId;
+}
+
+void ModelWriterNl::initVarToId() {
+    varToId_ = getVarToId(m_);
 }
 
 void ModelWriterNl::writeHeader() {
@@ -290,12 +293,39 @@ void ModelWriterNl::writeObjectives() {
 void ModelWriterNl::writeConstraints() {
 }
 
+void ModelWriterNl::writeBounds() {
+    s_ << "b" << endl;
+    for (uint32_t i = 0; i < m_.nbExpressions(); ++i) {
+        if (varToId_[i] == InvalidId) {
+            continue;
+        }
+        const Model::ExpressionData &expr = m_.expression(i);
+        if (expr.op == UMO_OP_DEC_INT || expr.op == UMO_OP_DEC_FLOAT) {
+            double lb = m_.value(expr.operands[0].var());
+            double ub = m_.value(expr.operands[1].var());
+            if (std::isfinite(lb) && std::isfinite(ub)) {
+                s_ << "0 " << lb << " " << ub << endl;
+            }
+            else if (std::isfinite(lb)) {
+                s_ << "2 " << lb << endl;
+            }
+            else if (std::isfinite(ub)) {
+                s_ << "1 " << ub << endl;
+            }
+            else {
+                s_ << "3" << endl;
+            }
+        }
+    }
+}
+
 void ModelWriterNl::write() {
     initUmoToNl();
     initVarToId();
     writeHeader();
     writeObjectives();
     writeConstraints();
+    writeBounds();
 }
 
 void Model::writeNl(ostream &os) const {
@@ -303,5 +333,58 @@ void Model::writeNl(ostream &os) const {
 }
 
 void Model::readNlSol(istream &is) {
+    vector<int32_t> varToId = ModelWriterNl::getVarToId(*this);
+    string line;
+    stringstream ss;
+    getline(is, line);
+    getline(is, line);
+    getline(is, line);
+    getline(is, line);
+    std::vector<int> z;
+    int nopts = 0;
+    if (line.size() >= 7 && line.substr(0, 7) == "Options") {
+        getline(is, line);
+        ss = stringstream(line);
+        ss >> nopts;
+        if (nopts > 4) {
+            nopts -= 2;
+        }
+        for (int i = 0; i < nopts+4; ++i) {
+            getline(is, line);
+            ss = stringstream(line);
+            int tmp;
+            ss >> tmp;
+            z.push_back(tmp);
+        }
+    }
+    else {
+        THROW_ERROR("Option line not found by NL file reader");
+    }
+    std::vector<double> constraints;
+    std::vector<double> variables;
+    int nconstraints = z.at(nopts + 1);
+    int nvariables = z.at(nopts + 3);
+    for (int i = 0; i < nconstraints; ++i) {
+        getline(is, line);
+        ss = stringstream(line);
+        double tmp;
+        ss >> tmp;
+        constraints.push_back(tmp);
+    }
+    for (int i = 0; i < nvariables; ++i) {
+        getline(is, line);
+        ss = stringstream(line);
+        double tmp;
+        ss >> tmp;
+        variables.push_back(tmp);
+    }
+
+    for (uint32_t i = 0; i < nbExpressions(); ++i) {
+        uint32_t id = varToId.at(i);
+        if (id != ModelWriterNl::InvalidId) {
+            double val = variables.at(id);
+            setFloatValue(ExpressionId::fromVar(i), val);
+        }
+    }
 }
 } // namespace umoi
