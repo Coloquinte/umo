@@ -979,6 +979,10 @@ BoolExpression logical_xor(const std::vector<BoolExpression> &ops) {
     return naryOp(UMO_OP_XOR, ops);
 }
 
+double inf() {
+    return numeric_limits<double>::infinity();
+}
+
 std::ostream &operator<<(std::ostream &os, const Status &status) {
     switch (status) {
     case Status::Infeasible:

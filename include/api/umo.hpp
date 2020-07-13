@@ -269,6 +269,9 @@ BoolExpression logical_or(const std::vector<BoolExpression> &);
 BoolExpression logical_and(const std::vector<BoolExpression> &);
 BoolExpression logical_xor(const std::vector<BoolExpression> &);
 
+// Utils
+double inf();
+
 std::ostream &operator<<(std::ostream&, const Status&);
 
 } // namespace umo
