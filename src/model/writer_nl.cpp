@@ -39,6 +39,7 @@ class ModelWriterNl {
 
     // TODO: write linear constraint
     void writeExpressionGraph(ExpressionId id);
+    void writeLinearExpression(ExpressionId id);
     void writeBounds(double lb, double ub);
 
   private:
@@ -232,19 +233,49 @@ void ModelWriterNl::writeObjectives() {
     }
 }
 
+void ModelWriterNl::writeLinearExpression(ExpressionId id) {
+    umo_operator op = m_.getExpressionIdOp(id);
+    assert (op == UMO_OP_LINEARCOMP);
+    const Model::ExpressionData &expr = m_.expression(id.var());
+    s_ << (expr.operands.size() - 2) / 2 << endl;
+    for (uint32_t j = 1; 2 * j + 1 < expr.operands.size(); ++j) {
+        double val = m_.value(expr.operands[2 * j].var());
+        ExpressionId id = expr.operands[2 * j + 1];
+        uint32_t ind = varToId_.at(id.var());
+        if (ind == InvalidId) {
+            THROW_ERROR("Cannot export linear constraints on non-leaf expressions in NL file writer");
+        }
+        s_ << ind << " " << val << endl;
+    }
+}
+
 void ModelWriterNl::writeConstraints() {
     if (m_.constraints().empty()) return;
     vector<pair<double, double> > bounds;
     uint32_t i = 0;
     for (ExpressionId id : m_.constraints()) {
-        bounds.emplace_back(1.0, 1.0);
-        s_ << "C" << i << endl;
-        writeExpressionGraph(id);
+        umo_operator op = m_.getExpressionIdOp(id);
+        if (op == UMO_OP_LINEARCOMP) {
+            const Model::ExpressionData &expr = m_.expression(id.var());
+            double lb = m_.value(expr.operands[0].var());
+            double ub = m_.value(expr.operands[1].var());
+            bounds.emplace_back(lb, ub);
+            s_ << "C" << i << endl;
+            s_ << "n0" << endl;
+            s_ << "J" << i << " ";
+            writeLinearExpression(id);
+        }
+        else {
+            THROW_ERROR("Cannot export nonlinear constraints yet in NL file writer");
+            bounds.emplace_back(1.0, 1.0);
+            s_ << "C" << i << endl;
+            writeExpressionGraph(id);
+        }
         ++i;
     }
     s_ << "r" << endl;
-    for (ExpressionId id : m_.constraints()) {
-        s_ << "2 1" << endl;
+    for (pair<double, double> b : bounds) {
+        writeBounds(b.first, b.second);
     }
 }
 

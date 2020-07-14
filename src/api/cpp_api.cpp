@@ -1015,6 +1015,38 @@ double inf() {
     return numeric_limits<double>::infinity();
 }
 
+void linear_constraint(double lb, double ub, const std::vector<FloatExpression> &exprs, const std::vector<double> &coefs) {
+    if (exprs.empty()) {
+        throw std::runtime_error("At least one expression is required for a linear constraint");
+    }
+    umo_model *model = exprs.back().rawPtr();
+    if (!coefs.empty() && coefs.size() != exprs.size()) {
+        throw std::runtime_error("The number of expressions and coefficients for a linear constraint must match");
+    }
+    std::vector<long long> operands;
+    operands.reserve(2 * exprs.size() + 2);
+    operands.push_back(makeConstant(model, lb));
+    operands.push_back(makeConstant(model, ub));
+    for (size_t i = 0; i < exprs.size(); ++i) {
+        double coef = coefs.empty() ? 1.0 : coefs[i];
+        operands.push_back(makeConstant(model, coef));
+        operands.push_back(exprs[i].rawId());
+    }
+    long long v = makeNaryOp(model, UMO_OP_LINEARCOMP, operands.size(), operands.data());
+    BoolExpression expr(model, v);
+    constraint(expr);
+}
+
+void linear_constraint(double lb, UnboundedT, const std::vector<FloatExpression> &exprs, const std::vector<double> &coefs) {
+    double ub = std::numeric_limits<double>::infinity();
+    linear_constraint(lb, ub, exprs, coefs);
+}
+
+void linear_constraint(UnboundedT, double ub, const std::vector<FloatExpression> &exprs, const std::vector<double> &coefs) {
+    double lb = -std::numeric_limits<double>::infinity();
+    linear_constraint(lb, ub, exprs, coefs);
+}
+
 std::ostream &operator<<(std::ostream &os, const Status &status) {
     switch (status) {
     case Status::Infeasible:
