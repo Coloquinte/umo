@@ -33,6 +33,18 @@ BOOST_AUTO_TEST_CASE(UnboundedDecisions) {
     model.check();
 }
 
+BOOST_AUTO_TEST_CASE(HalfSpaceDecisions) {
+    Model model;
+    FloatExpression fdec1 = model.floatVar(umo::unbounded(), 0.0);
+    FloatExpression fdec2 = model.floatVar(0.0, umo::unbounded());
+    FloatExpression fdec3 = model.floatVar(umo::unbounded(), umo::unbounded());
+    FloatExpression idec1 = model.intVar(umo::unbounded(), 0);
+    FloatExpression idec2 = model.intVar(0, umo::unbounded());
+    FloatExpression idec3 = model.intVar(umo::unbounded(), umo::unbounded());
+    maximize(fdec1 * fdec2 * fdec3 * idec1 * idec2 * idec3);
+    model.check();
+}
+
 BOOST_AUTO_TEST_CASE(FloatOps) {
     Model model;
     FloatExpression fdec1 = model.floatVar(-10.0, 10.0);

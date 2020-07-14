@@ -19,6 +19,8 @@ class BoolExpression;
 
 enum class Status { Infeasible, Invalid, Valid, Optimal, Unbounded, Unknown };
 
+struct UnboundedT { /* Dummy type to pass around type-insensitive bound information */ };
+
 class Model {
   public:
     Model();
@@ -32,8 +34,16 @@ class Model {
 
     FloatExpression floatVar();
     FloatExpression floatVar(double lb, double ub);
+    FloatExpression floatVar(UnboundedT, double ub);
+    FloatExpression floatVar(double lb, UnboundedT);
+    FloatExpression floatVar(UnboundedT, UnboundedT);
+
     IntExpression intVar();
     IntExpression intVar(long long lb, long long ub);
+    IntExpression intVar(UnboundedT, long long ub);
+    IntExpression intVar(long long lb, UnboundedT);
+    IntExpression intVar(UnboundedT, UnboundedT);
+
     BoolExpression boolVar();
 
     Status getStatus();
@@ -271,6 +281,7 @@ BoolExpression logical_xor(const std::vector<BoolExpression> &);
 
 // Utils
 double inf();
+inline UnboundedT unbounded() { return UnboundedT(); }
 
 std::ostream &operator<<(std::ostream&, const Status&);
 

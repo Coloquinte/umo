@@ -163,7 +163,7 @@ FloatExpression Model::constant(double val) {
 }
 
 IntExpression Model::constant(long long val) {
-    long long v = makeConstant(ptr_, (double)val);
+    long long v = makeConstant(ptr_, (double) val);
     return IntExpression(ptr_, v);
 }
 
@@ -184,6 +184,22 @@ FloatExpression Model::floatVar(double lb, double ub) {
     return binaryOp<FloatExpression>(UMO_OP_DEC_FLOAT, lbe, ube);
 }
 
+FloatExpression Model::floatVar(UnboundedT, double ub) {
+    FloatExpression lbe = constant(-numeric_limits<double>::infinity());
+    FloatExpression ube = constant(ub);
+    return binaryOp<FloatExpression>(UMO_OP_DEC_FLOAT, lbe, ube);
+}
+
+FloatExpression Model::floatVar(double lb, UnboundedT) {
+    FloatExpression lbe = constant(lb);
+    FloatExpression ube = constant(numeric_limits<double>::infinity());
+    return binaryOp<FloatExpression>(UMO_OP_DEC_FLOAT, lbe, ube);
+}
+
+FloatExpression Model::floatVar(UnboundedT, UnboundedT) {
+    return floatVar();
+}
+
 IntExpression Model::intVar() {
     FloatExpression lbe = constant(-numeric_limits<double>::infinity());
     FloatExpression ube = constant(numeric_limits<double>::infinity());
@@ -194,6 +210,22 @@ IntExpression Model::intVar(long long lb, long long ub) {
     IntExpression lbe = constant(lb);
     IntExpression ube = constant(ub);
     return binaryOp<IntExpression>(UMO_OP_DEC_INT, lbe, ube);
+}
+
+IntExpression Model::intVar(UnboundedT, long long ub) {
+    FloatExpression lbe = constant(-numeric_limits<double>::infinity());
+    IntExpression ube = constant(ub);
+    return binaryOp<IntExpression>(UMO_OP_DEC_INT, lbe, ube);
+}
+
+IntExpression Model::intVar(long long lb, UnboundedT) {
+    IntExpression lbe = constant(lb);
+    FloatExpression ube = constant(numeric_limits<double>::infinity());
+    return binaryOp<IntExpression>(UMO_OP_DEC_INT, lbe, ube);
+}
+
+IntExpression Model::intVar(UnboundedT, UnboundedT) {
+    return intVar();
 }
 
 BoolExpression Model::boolVar() {
