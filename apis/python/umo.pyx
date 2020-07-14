@@ -104,15 +104,24 @@ cdef unwrap_error(const char **err):
 
 
 cdef is_bool(value):
-    return isinstance(value, bool) or value == bool(value)
+    try:
+        return isinstance(value, bool) or value == bool(value)
+    except:
+        return False
 
 
 cdef is_int(value):
-    return isinstance(value, int) or value == int(value)
+    try:
+        return isinstance(value, int) or value == int(value)
+    except:
+        return False
 
 
 cdef is_float(value):
-    return isinstance(value, float) or value == float(value)
+    try:
+        return isinstance(value, float) or value == float(value)
+    except:
+        return False
 
 
 cdef is_boolexpr(value):
@@ -136,6 +145,10 @@ class SolutionStatus:
     OPTIMAL = 3
     UNBOUNDED = 4
     UNKNOWN = 5
+
+
+cdef class UnboundedT:
+    DUMMY = 0
 
 
 cdef class Model:
@@ -180,22 +193,34 @@ cdef class Model:
         unwrap_error(&err)
         return Expression.create(self, v)._asbool()
 
-    def int_var(self, lb, ub):
+    def int_var(self, lb=UnboundedT.DUMMY, ub=UnboundedT.DUMMY):
         """
-        Create an integer decision variable
+        Create an integer decision variable, with optional lower and upper bound
         """
-        if not is_int(lb) or not is_int(ub):
-            raise TypeError("int_var() arguments must be integer numbers")
+        if isinstance(lb, UnboundedT):
+            lb = -float("inf")
+        if isinstance(ub, UnboundedT):
+            ub = float("inf")
+        if lb != -float("inf") and not is_int(lb):
+            raise TypeError("The first int_var() argument must be an integer or -inf")
+        if ub != float("inf") and not is_int(ub):
+            raise TypeError("The second int_var() argument must be an integer or +inf")
         cdef Expression clb = self.constant(lb)
         cdef Expression cub = self.constant(ub)
         return Expression._binary_method_typed(clb, cub, UMO_OP_DEC_INT)._asint()
 
-    def float_var(self, lb, ub):
+    def float_var(self, lb=UnboundedT.DUMMY, ub=UnboundedT.DUMMY):
         """
-        Create a numeric decision variable
+        Create a numeric decision variable, with optional lower and upper bound
         """
-        if not is_float(lb) or not is_float(ub):
-            raise TypeError("float_var() arguments must be numbers")
+        if isinstance(lb, UnboundedT):
+            lb = -float("inf")
+        if isinstance(ub, UnboundedT):
+            ub = float("inf")
+        if lb != -float("inf") and not is_float(lb):
+            raise TypeError("The first float_var() argument must be a number or -inf")
+        if ub != float("inf") and not is_float(ub):
+            raise TypeError("The second float_var() argument must be a number or +inf")
         cdef Expression clb = self.constant(lb)
         cdef Expression cub = self.constant(ub)
         return Expression._binary_method_typed(clb, cub, UMO_OP_DEC_FLOAT)._asfloat()
@@ -556,86 +581,117 @@ def maximize(expr):
 
 
 def exp(expr):
+    """Exponential function."""
     return Expression._unary_method(expr, UMO_OP_EXP)._asfloat()
 
 
 def log(expr):
+    """Logarithm function."""
     return Expression._unary_method(expr, UMO_OP_LOG)._asfloat()
 
 
 def sqrt(expr):
+    """Square root function."""
     return Expression._unary_method(expr, UMO_OP_SQRT)._asfloat()
 
 
 def square(expr):
+    """Square function."""
     return Expression._unary_method(expr, UMO_OP_SQUARE)._infer_int_float(expr)
 
 
 def round(expr):
+    """Round to nearest function."""
     return Expression._unary_method(expr, UMO_OP_ROUND)._asint()
 
 
 def floor(expr):
+    """Floor function."""
     return Expression._unary_method(expr, UMO_OP_FLOOR)._asint()
 
 
 def ceil(expr):
+    """Ceil function."""
     return Expression._unary_method(expr, UMO_OP_CEIL)._asint()
 
 
 def sign(expr):
+    """Sign function (-1/1)."""
     return Expression._unary_method(expr, UMO_OP_SIGN)._asint()
 
 
 def frac(expr):
+    """Fractional part function."""
     return Expression._unary_method(expr, UMO_OP_FRAC)._asfloat()
 
 
 def cos(expr):
+    """Cosine function."""
     return Expression._unary_method(expr, UMO_OP_COS)._asfloat()
 
 
 def sin(expr):
+    """Sine function."""
     return Expression._unary_method(expr, UMO_OP_SIN)._asfloat()
 
 
 def tan(expr):
+    """Tangent function."""
     return Expression._unary_method(expr, UMO_OP_TAN)._asfloat()
 
 
 def cosh(expr):
+    """Hyperbolic cosine function."""
     return Expression._unary_method(expr, UMO_OP_COSH)._asfloat()
 
 
 def sinh(expr):
+    """Hyperbolic sine function."""
     return Expression._unary_method(expr, UMO_OP_SINH)._asfloat()
 
 
 def tanh(expr):
+    """Hyperbolic tangent function."""
     return Expression._unary_method(expr, UMO_OP_TANH)._asfloat()
 
 
 def acos(expr):
+    """Inverse cosine function."""
     return Expression._unary_method(expr, UMO_OP_ACOS)._asfloat()
 
 
 def asin(expr):
+    """Inverse sine function."""
     return Expression._unary_method(expr, UMO_OP_ASIN)._asfloat()
 
 
 def atan(expr):
+    """Inverse tangent function."""
     return Expression._unary_method(expr, UMO_OP_ATAN)._asfloat()
 
 
 def acosh(expr):
+    """Inverse hyperbolic cosine function."""
     return Expression._unary_method(expr, UMO_OP_ACOSH)._asfloat()
 
 
 def asinh(expr):
+    """Inverse hyperbolic sine function."""
     return Expression._unary_method(expr, UMO_OP_ASINH)._asfloat()
 
 
 def atanh(expr):
+    """Inverse hyperbolic tangent function."""
     return Expression._unary_method(expr, UMO_OP_ATANH)._asfloat()
+
+
+def inf():
+    """Return the infinite value."""
+    return float("inf")
+
+
+def unbounded():
+    """Return a placeholder for variable bounds."""
+    return UnboundedT.DUMMY
 
 # TODO: n-ary operations, lpsum
