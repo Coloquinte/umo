@@ -15,65 +15,6 @@ namespace umoi {
 
 /*
  * See https://ampl.github.io/nlwrite.pdf for a description of the NL format
- * NL operators:
- *   Unary:
- *     13  floor
- *     14  ceil
- *     15  abs
- *     16  neg
- *     34  not
- *     37  tanh
- *     38  tan
- *     39  sqrt
- *     40  sinh
- *     41  sin
- *     42  log10
- *     43  log
- *     44  exp
- *     45  cosh
- *     46  cos
- *     47  atanh
- *     49  atan
- *     50  asinh
- *     51  asin
- *     52  acosh
- *     53  acos
- *   Binary:
- *     0   plus
- *     1   minus
- *     2   mult
- *     3   div
- *     4   rem
- *     5   pow
- *     6   less
- *     20  or
- *     21  and
- *     22  lt
- *     23  le
- *     24  eq
- *     28  ge
- *     29  gt
- *     30  ne
- *     48  atan
- *     255  intdiv
- *     56  precision
- *     57  round
- *     58  trunc
- *     73  iff
- *   Nary:
- *     11  min
- *     12  max
- *     54  sum
- *     59  count
- *     60  numberof
- *     61  numberofs
- *     70  and
- *     71  or
- *     74  alldiff
- *   Selection:
- *     35  if
- *     65  ifs
- *     72  implies
  */
 
 class ModelWriterNl {
@@ -98,6 +39,7 @@ class ModelWriterNl {
 
     // TODO: write linear constraint
     void writeExpressionGraph(ExpressionId id);
+    void writeBounds(double lb, double ub);
 
   private:
     void initUmoToNl();
@@ -291,6 +233,39 @@ void ModelWriterNl::writeObjectives() {
 }
 
 void ModelWriterNl::writeConstraints() {
+    if (m_.constraints().empty()) return;
+    vector<pair<double, double> > bounds;
+    uint32_t i = 0;
+    for (ExpressionId id : m_.constraints()) {
+        bounds.emplace_back(1.0, 1.0);
+        s_ << "C" << i << endl;
+        writeExpressionGraph(id);
+        ++i;
+    }
+    s_ << "r" << endl;
+    for (ExpressionId id : m_.constraints()) {
+        s_ << "2 1" << endl;
+    }
+}
+
+void ModelWriterNl::writeBounds(double lb, double ub) {
+    if (std::isfinite(lb) && std::isfinite(ub)) {
+        if (lb == ub) {
+            s_ << "4 " << lb << endl;
+        }
+        else {
+            s_ << "0 " << lb << " " << ub << endl;
+        }
+    }
+    else if (std::isfinite(lb)) {
+        s_ << "2 " << lb << endl;
+    }
+    else if (std::isfinite(ub)) {
+        s_ << "1 " << ub << endl;
+    }
+    else {
+        s_ << "3" << endl;
+    }
 }
 
 void ModelWriterNl::writeBounds() {
@@ -303,18 +278,7 @@ void ModelWriterNl::writeBounds() {
         if (expr.op == UMO_OP_DEC_INT || expr.op == UMO_OP_DEC_FLOAT) {
             double lb = m_.value(expr.operands[0].var());
             double ub = m_.value(expr.operands[1].var());
-            if (std::isfinite(lb) && std::isfinite(ub)) {
-                s_ << "0 " << lb << " " << ub << endl;
-            }
-            else if (std::isfinite(lb)) {
-                s_ << "2 " << lb << endl;
-            }
-            else if (std::isfinite(ub)) {
-                s_ << "1 " << ub << endl;
-            }
-            else {
-                s_ << "3" << endl;
-            }
+            writeBounds(lb, ub);
         }
     }
 }

@@ -463,7 +463,12 @@ bool ToLinear::valid(const PresolvedModel &model) const {
         case UMO_OP_CMP_GEQ:
         case UMO_OP_CMP_LT:
         case UMO_OP_CMP_GT:
-            // TODO: check constrained
+            if (!model.isConstraint(i)) {
+                return false;
+            }
+            if (model.isConstraintPos(i) && model.isConstraintNeg(i)) {
+                return false;
+            }
             continue;
         default:
             return false;

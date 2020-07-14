@@ -76,6 +76,16 @@ BOOST_AUTO_TEST_CASE(UpperBound) {
     BOOST_CHECK_EQUAL(model.getStatus(), Status::Optimal);
 }
 
+BOOST_AUTO_TEST_CASE(FixedVar) {
+    Model model;
+    FloatExpression x = model.floatVar(2.0, 2.0);
+    minimize(x*x);
+    model.setSolver(TOSTRING(SOLVER_PARAM));
+    model.solve();
+    BOOST_CHECK_CLOSE(x.getValue(), 2.0, eps);
+    BOOST_CHECK_EQUAL(model.getStatus(), Status::Optimal);
+}
+
 BOOST_AUTO_TEST_CASE(Exp) {
     Model model;
     FloatExpression x = model.floatVar();
@@ -155,3 +165,4 @@ BOOST_AUTO_TEST_CASE(Tan2) {
     BOOST_CHECK_CLOSE(x.getValue(), 1, eps);
     BOOST_CHECK_EQUAL(model.getStatus(), Status::Optimal);
 }
+
