@@ -289,6 +289,24 @@ inline UnboundedT unbounded() { return UnboundedT(); }
 
 std::ostream &operator<<(std::ostream&, const Status&);
 
+// Resolve ambiguities
+inline FloatExpression operator+(double a, const IntExpression &b) { return a + (FloatExpression) b; }
+inline FloatExpression operator+(const IntExpression &a, double b) { return (FloatExpression) a + b; }
+inline IntExpression operator+(int a, const IntExpression &b) { return (long long) a + b; }
+inline IntExpression operator+(const IntExpression &a, int b) { return a + (long long) b; }
+inline FloatExpression operator-(double a, const IntExpression &b) { return a - (FloatExpression) b; }
+inline FloatExpression operator-(const IntExpression &a, double b) { return (FloatExpression) a - b; }
+inline IntExpression operator-(int a, const IntExpression &b) { return (long long) a - b; }
+inline IntExpression operator-(const IntExpression &a, int b) { return a - (long long) b; }
+inline FloatExpression operator*(double a, const IntExpression &b) { return a * (FloatExpression) b; }
+inline FloatExpression operator*(const IntExpression &a, double b) { return (FloatExpression) a * b; }
+inline IntExpression operator*(int a, const IntExpression &b) { return (long long) a * b; }
+inline IntExpression operator*(const IntExpression &a, int b) { return a * (long long) b; }
+inline FloatExpression operator/(double a, const IntExpression &b) { return a * (FloatExpression) b; }
+inline FloatExpression operator/(const IntExpression &a, double b) { return (FloatExpression) a / b; }
+inline IntExpression operator/(int a, const IntExpression &b) { return (long long) a / b; }
+inline IntExpression operator/(const IntExpression &a, int b) { return a / (long long) b; }
+
 } // namespace umo
 
 #endif

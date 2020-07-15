@@ -45,6 +45,162 @@ BOOST_AUTO_TEST_CASE(HalfSpaceDecisions) {
     model.check();
 }
 
+BOOST_AUTO_TEST_CASE(DoublePromotions) {
+    Model model;
+    FloatExpression fdec = model.floatVar();
+    IntExpression idec = model.intVar();
+    BoolExpression bdec = model.boolVar();
+    1.5+fdec;
+    1.5-fdec;
+    1.5*fdec;
+    1.5/fdec;
+    fdec+1.5;
+    fdec-1.5;
+    fdec*1.5;
+    fdec/1.5;
+    1.5+idec;
+    1.5-idec;
+    1.5*idec;
+    1.5/idec;
+    idec+1.5;
+    idec-1.5;
+    idec*1.5;
+    idec/1.5;
+    1.5+bdec;
+    1.5-bdec;
+    1.5*bdec;
+    1.5/bdec;
+    bdec+1.5;
+    bdec-1.5;
+    bdec*1.5;
+    bdec/1.5;
+    fdec += 1.5;
+    fdec -= 1.5;
+    fdec *= 1.5;
+    fdec /= 1.5;
+    model.check();
+}
+
+BOOST_AUTO_TEST_CASE(FloatPromotions) {
+    Model model;
+    FloatExpression fdec = model.floatVar();
+    IntExpression idec = model.intVar();
+    BoolExpression bdec = model.boolVar();
+    1.5f+fdec;
+    1.5f-fdec;
+    1.5f*fdec;
+    1.5f/fdec;
+    fdec+1.5f;
+    fdec-1.5f;
+    fdec*1.5f;
+    fdec/1.5f;
+    1.5f+idec;
+    1.5f-idec;
+    1.5f*idec;
+    1.5f/idec;
+    idec+1.5f;
+    idec-1.5f;
+    idec*1.5f;
+    idec/1.5f;
+    1.5f+bdec;
+    1.5f-bdec;
+    1.5f*bdec;
+    1.5f/bdec;
+    bdec+1.5f;
+    bdec-1.5f;
+    bdec*1.5f;
+    bdec/1.5f;
+    fdec += 1.5f;
+    fdec -= 1.5f;
+    fdec *= 1.5f;
+    fdec /= 1.5f;
+    model.check();
+}
+
+BOOST_AUTO_TEST_CASE(IntPromotions) {
+    Model model;
+    FloatExpression fdec = model.floatVar();
+    IntExpression idec = model.intVar();
+    BoolExpression bdec = model.boolVar();
+    1+fdec;
+    1-fdec;
+    1*fdec;
+    1/fdec;
+    fdec+1;
+    fdec-1;
+    fdec*1;
+    fdec/1;
+    1+idec;
+    1-idec;
+    1*idec;
+    1/idec;
+    idec+1;
+    idec-1;
+    idec*1;
+    idec/1;
+    1+bdec;
+    1-bdec;
+    1*bdec;
+    1/bdec;
+    1%bdec;
+    bdec+1;
+    bdec-1;
+    bdec*1;
+    bdec/1;
+    bdec%1;
+    fdec += 1;
+    fdec -= 1;
+    fdec *= 1;
+    fdec /= 1;
+    idec += 1;
+    idec -= 1;
+    idec *= 1;
+    idec /= 1;
+    model.check();
+}
+
+BOOST_AUTO_TEST_CASE(LongLongPromotions) {
+    Model model;
+    FloatExpression fdec = model.floatVar();
+    IntExpression idec = model.intVar();
+    BoolExpression bdec = model.boolVar();
+    1ll+fdec;
+    1ll-fdec;
+    1ll*fdec;
+    1ll/fdec;
+    fdec+1ll;
+    fdec-1ll;
+    fdec*1ll;
+    fdec/1ll;
+    1ll+idec;
+    1ll-idec;
+    1ll*idec;
+    1ll/idec;
+    idec+1ll;
+    idec-1ll;
+    idec*1ll;
+    idec/1ll;
+    1ll+bdec;
+    1ll-bdec;
+    1ll*bdec;
+    1ll/bdec;
+    1ll%bdec;
+    bdec+1ll;
+    bdec-1ll;
+    bdec*1ll;
+    bdec/1ll;
+    bdec%1ll;
+    fdec += 1ll;
+    fdec -= 1ll;
+    fdec *= 1ll;
+    fdec /= 1ll;
+    idec += 1ll;
+    idec -= 1ll;
+    idec *= 1ll;
+    idec /= 1ll;
+    model.check();
+}
+
 BOOST_AUTO_TEST_CASE(FloatOps) {
     Model model;
     FloatExpression fdec1 = model.floatVar(-10.0, 10.0);
