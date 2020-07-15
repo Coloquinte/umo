@@ -29,6 +29,8 @@ class ModelWriterNl {
     static vector<int32_t> getVarToId(const Model &m);
 
     int countVariables() const;
+    int countBinaryVariables() const;
+    int countIntegerVariables() const;
     int countConstraints() const;
     int countObjectives() const;
 
@@ -61,7 +63,31 @@ ModelWriterNl::ModelWriterNl(const Model &m, ostream &s) : m_(m), s_(s) {}
 int ModelWriterNl::countVariables() const {
     int cnt = 0;
     for (uint32_t i = 0; i < m_.nbExpressions(); ++i) {
-        if (varToId_[i] != InvalidId) {
+        umo_operator op = m_.expression(i).op;
+        if (op == UMO_OP_DEC_BOOL || op == UMO_OP_DEC_INT ||
+            op == UMO_OP_DEC_FLOAT) {
+            ++cnt;
+        }
+    }
+    return cnt;
+}
+
+int ModelWriterNl::countBinaryVariables() const {
+    int cnt = 0;
+    for (uint32_t i = 0; i < m_.nbExpressions(); ++i) {
+        umo_operator op = m_.expression(i).op;
+        if (op == UMO_OP_DEC_BOOL) {
+            ++cnt;
+        }
+    }
+    return cnt;
+}
+
+int ModelWriterNl::countIntegerVariables() const {
+    int cnt = 0;
+    for (uint32_t i = 0; i < m_.nbExpressions(); ++i) {
+        umo_operator op = m_.expression(i).op;
+        if (op == UMO_OP_DEC_INT) {
             ++cnt;
         }
     }
@@ -187,8 +213,14 @@ vector<int32_t> ModelWriterNl::getVarToId(const Model &m) {
         const Model::ExpressionData &expr = m.expression(i);
         if (expr.op == UMO_OP_DEC_BOOL)
             varToId[i] = id++;
+    }
+    for (uint32_t i = 0; i < m.nbExpressions(); ++i) {
+        const Model::ExpressionData &expr = m.expression(i);
         if (expr.op == UMO_OP_DEC_INT)
             varToId[i] = id++;
+    }
+    for (uint32_t i = 0; i < m.nbExpressions(); ++i) {
+        const Model::ExpressionData &expr = m.expression(i);
         if (expr.op == UMO_OP_DEC_FLOAT)
             varToId[i] = id++;
     }
@@ -214,7 +246,9 @@ void ModelWriterNl::writeHeader() {
        << "# nonlinear vars in constraints, objectives, both" << endl;
     s_ << "0 1 0 1 "
        << "# linear network variables; functions; arith, flags" << endl;
-    s_ << "0 0 0 0 0 "
+    s_ << countBinaryVariables() << " "
+       << countIntegerVariables() << " "
+       << "0 0 0 "
        << "# discrete variables: binary, integer, nonlinear (b,c,o)" << endl;
     s_ << "0 0 "
        << "# nonzeros in Jacobian, gradients" << endl;
