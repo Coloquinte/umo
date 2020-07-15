@@ -29,8 +29,6 @@ class ModelWriterNl {
     static vector<int32_t> getVarToId(const Model &m);
 
     int countVariables() const;
-    int countBinaryVariables() const;
-    int countIntegerVariables() const;
     int countConstraints() const;
     int countObjectives() const;
 
@@ -47,12 +45,19 @@ class ModelWriterNl {
   private:
     void initUmoToNl();
     void initVarToId();
+    void initBoolVariables();
+    void initIntVariables();
+    void initFloatVariables();
 
   private:
     const Model &m_;
     ostream &s_;
     vector<int> umoToNlOp_;
     vector<int32_t> varToId_;
+
+    vector<uint32_t> boolVariables_;
+    vector<uint32_t> intVariables_;
+    vector<uint32_t> floatVariables_;
 };
 
 constexpr int ModelWriterNl::InvalidOp;
@@ -72,26 +77,34 @@ int ModelWriterNl::countVariables() const {
     return cnt;
 }
 
-int ModelWriterNl::countBinaryVariables() const {
-    int cnt = 0;
+void ModelWriterNl::initBoolVariables() {
+    boolVariables_.clear();
     for (uint32_t i = 0; i < m_.nbExpressions(); ++i) {
         umo_operator op = m_.expression(i).op;
         if (op == UMO_OP_DEC_BOOL) {
-            ++cnt;
+            boolVariables_.push_back(i);
         }
     }
-    return cnt;
 }
 
-int ModelWriterNl::countIntegerVariables() const {
-    int cnt = 0;
+void ModelWriterNl::initIntVariables() {
+    intVariables_.clear();
     for (uint32_t i = 0; i < m_.nbExpressions(); ++i) {
         umo_operator op = m_.expression(i).op;
         if (op == UMO_OP_DEC_INT) {
-            ++cnt;
+            intVariables_.push_back(i);
         }
     }
-    return cnt;
+}
+
+void ModelWriterNl::initFloatVariables() {
+    floatVariables_.clear();
+    for (uint32_t i = 0; i < m_.nbExpressions(); ++i) {
+        umo_operator op = m_.expression(i).op;
+        if (op == UMO_OP_DEC_FLOAT) {
+            floatVariables_.push_back(i);
+        }
+    }
 }
 
 int ModelWriterNl::countConstraints() const {
@@ -211,17 +224,17 @@ vector<int32_t> ModelWriterNl::getVarToId(const Model &m) {
     int32_t id = 0;
     for (uint32_t i = 0; i < m.nbExpressions(); ++i) {
         const Model::ExpressionData &expr = m.expression(i);
+        if (expr.op == UMO_OP_DEC_FLOAT)
+            varToId[i] = id++;
+    }
+    for (uint32_t i = 0; i < m.nbExpressions(); ++i) {
+        const Model::ExpressionData &expr = m.expression(i);
         if (expr.op == UMO_OP_DEC_BOOL)
             varToId[i] = id++;
     }
     for (uint32_t i = 0; i < m.nbExpressions(); ++i) {
         const Model::ExpressionData &expr = m.expression(i);
         if (expr.op == UMO_OP_DEC_INT)
-            varToId[i] = id++;
-    }
-    for (uint32_t i = 0; i < m.nbExpressions(); ++i) {
-        const Model::ExpressionData &expr = m.expression(i);
-        if (expr.op == UMO_OP_DEC_FLOAT)
             varToId[i] = id++;
     }
     return varToId;
@@ -246,8 +259,8 @@ void ModelWriterNl::writeHeader() {
        << "# nonlinear vars in constraints, objectives, both" << endl;
     s_ << "0 1 0 1 "
        << "# linear network variables; functions; arith, flags" << endl;
-    s_ << countBinaryVariables() << " "
-       << countIntegerVariables() << " "
+    s_ << boolVariables_.size() << " "
+       << intVariables_.size() << " "
        << "0 0 0 "
        << "# discrete variables: binary, integer, nonlinear (b,c,o)" << endl;
     s_ << "0 0 "
@@ -334,23 +347,35 @@ void ModelWriterNl::writeBounds(double lb, double ub) {
 }
 
 void ModelWriterNl::writeBounds() {
+    if (floatVariables_.empty() && intVariables_.empty()) {
+        return;
+    }
     s_ << "b" << endl;
-    for (uint32_t i = 0; i < m_.nbExpressions(); ++i) {
-        if (varToId_[i] == InvalidId) {
-            continue;
-        }
+    for (uint32_t i : floatVariables_) {
         const Model::ExpressionData &expr = m_.expression(i);
-        if (expr.op == UMO_OP_DEC_INT || expr.op == UMO_OP_DEC_FLOAT) {
-            double lb = m_.value(expr.operands[0].var());
-            double ub = m_.value(expr.operands[1].var());
-            writeBounds(lb, ub);
-        }
+        assert(expr.op == UMO_OP_DEC_FLOAT);
+        double lb = m_.value(expr.operands[0].var());
+        double ub = m_.value(expr.operands[1].var());
+        writeBounds(lb, ub);
+    }
+    for (uint32_t i : boolVariables_) {
+        writeBounds(0, 1);
+    }
+    for (uint32_t i : intVariables_) {
+        const Model::ExpressionData &expr = m_.expression(i);
+        assert(expr.op == UMO_OP_DEC_INT);
+        double lb = m_.value(expr.operands[0].var());
+        double ub = m_.value(expr.operands[1].var());
+        writeBounds(lb, ub);
     }
 }
 
 void ModelWriterNl::write() {
     initUmoToNl();
     initVarToId();
+    initBoolVariables();
+    initIntVariables();
+    initFloatVariables();
     writeHeader();
     writeObjectives();
     writeConstraints();
