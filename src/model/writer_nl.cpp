@@ -135,40 +135,36 @@ void ModelWriterNl::writeExpressionGraph(ExpressionId exprId) {
             if (umoToNlOp_.at(op) == InvalidOp) {
                 THROW_ERROR("Operator " << op << " has no NL counterpart");
             }
-            if (op == UMO_OP_MINUS_UNARY || op == UMO_OP_NOT) {
-                // TODO: get expression data for operators with compact representation (NOT/MINUS)
-                THROW_ERROR("NL writer does not handle operator " << op);
-            }
-            const Model::ExpressionData &expr = m_.expression(id.var());
+            vector<ExpressionId> operands = m_.getExpressionIdOperands(id);
             if (op == UMO_OP_SUM) {
-                if (expr.operands.size() < 2) {
+                if (operands.size() < 2) {
                     THROW_ERROR("NL writer only supports sums with two or more operands");
                 }
-                else if (expr.operands.size() == 2) {
+                else if (operands.size() == 2) {
                     // Binary case; NL file format is ****ed up
                     s_ << "o0" << endl;
                 }
                 else {
                     // Nary case
                     s_ << "o" << umoToNlOp_.at(op) << endl;
-                    s_ << expr.operands.size() << endl;
+                    s_ << operands.size() << endl;
                 }
             }
             else if (op == UMO_OP_PROD) {
-                if (expr.operands.size() != 2) {
+                if (operands.size() != 2) {
                     THROW_ERROR("NL writer only supports products with two operands");
                 }
                 s_ << "o" << umoToNlOp_.at(op) << endl;
             }
             else if (Operator::get(op).isNary()) {
                 s_ << "o" << umoToNlOp_.at(op) << endl;
-                s_ << expr.operands.size() << endl;
+                s_ << operands.size() << endl;
             }
             else {
                 s_ << "o" << umoToNlOp_.at(op) << endl;
             }
-            for (uint32_t j = 0; j < expr.operands.size(); ++j) {
-                ExpressionId opExpr = expr.operands[expr.operands.size() - 1 - j];
+            for (uint32_t j = 0; j < operands.size(); ++j) {
+                ExpressionId opExpr = operands[operands.size() - 1 - j];
                 toWrite.push_back(opExpr);
             }
         }

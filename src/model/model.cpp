@@ -234,6 +234,14 @@ double Model::getExpressionIdValue(ExpressionId expr) const {
     return val;
 }
 
+vector<ExpressionId> Model::getExpressionIdOperands(ExpressionId expr) const {
+    if (expr.isNot())
+        return {expr.getNot()};
+    if (expr.isMinus())
+        return {expr.getMinus()};
+    return expression(expr.var()).operands;
+}
+
 umo_type Model::checkAndInferType(const ExpressionData &expr) const {
     for (ExpressionId id : expr.operands) {
         checkExpressionId(id);

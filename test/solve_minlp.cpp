@@ -213,3 +213,59 @@ BOOST_AUTO_TEST_CASE(Bounds1) {
     BOOST_CHECK(b2.getValue());
     BOOST_CHECK_EQUAL(model.getStatus(), Status::Optimal);
 }
+
+BOOST_AUTO_TEST_CASE(Bounds2) {
+    Model model;
+    BoolExpression b1 = model.boolVar();
+    BoolExpression b2 = model.boolVar();
+    IntExpression i1 = model.intVar(-9, 9);
+    IntExpression i2 = model.intVar(-8, 8);
+    IntExpression i3 = model.intVar(-7, 7);
+    IntExpression i4 = model.intVar(-6, 6);
+    FloatExpression f1 = model.floatVar(-5, 5);
+    FloatExpression f2 = model.floatVar(-4, 4);
+    FloatExpression f3 = model.floatVar(-3, 3);
+    FloatExpression f4 = model.floatVar(-2, 2);
+    maximize(i1 + i2 - i3 - i4 + f1 + f2 - f3 - f4 + b1 - b2);
+    model.setSolver(TOSTRING(SOLVER_PARAM));
+    model.solve();
+    BOOST_CHECK_EQUAL(i1.getValue(), 9);
+    BOOST_CHECK_EQUAL(i2.getValue(), 8);
+    BOOST_CHECK_EQUAL(i3.getValue(), -7);
+    BOOST_CHECK_EQUAL(i4.getValue(), -6);
+    BOOST_CHECK_CLOSE(f1.getValue(), 5.0, eps);
+    BOOST_CHECK_CLOSE(f2.getValue(), 4.0, eps);
+    BOOST_CHECK_CLOSE(f3.getValue(), -3.0, eps);
+    BOOST_CHECK_CLOSE(f4.getValue(), -2.0, eps);
+    BOOST_CHECK(b1.getValue());
+    BOOST_CHECK(!b2.getValue());
+    BOOST_CHECK_EQUAL(model.getStatus(), Status::Optimal);
+}
+
+BOOST_AUTO_TEST_CASE(Bounds3) {
+    Model model;
+    BoolExpression b1 = model.boolVar();
+    BoolExpression b2 = model.boolVar();
+    IntExpression i1 = model.intVar(-9, 9);
+    IntExpression i2 = model.intVar(-8, 8);
+    IntExpression i3 = model.intVar(-7, 7);
+    IntExpression i4 = model.intVar(-6, 6);
+    FloatExpression f1 = model.floatVar(-5, 5);
+    FloatExpression f2 = model.floatVar(-4, 4);
+    FloatExpression f3 = model.floatVar(-3, 3);
+    FloatExpression f4 = model.floatVar(-2, 2);
+    minimize(i1 + i2 + i3 + i4 + f1 + f2 + f3 + f4 + b1 + b2);
+    model.setSolver(TOSTRING(SOLVER_PARAM));
+    model.solve();
+    BOOST_CHECK_EQUAL(i1.getValue(), -9);
+    BOOST_CHECK_EQUAL(i2.getValue(), -8);
+    BOOST_CHECK_EQUAL(i3.getValue(), -7);
+    BOOST_CHECK_EQUAL(i4.getValue(), -6);
+    BOOST_CHECK_CLOSE(f1.getValue(), -5.0, eps);
+    BOOST_CHECK_CLOSE(f2.getValue(), -4.0, eps);
+    BOOST_CHECK_CLOSE(f3.getValue(), -3.0, eps);
+    BOOST_CHECK_CLOSE(f4.getValue(), -2.0, eps);
+    BOOST_CHECK(!b1.getValue());
+    BOOST_CHECK(!b2.getValue());
+    BOOST_CHECK_EQUAL(model.getStatus(), Status::Optimal);
+}

@@ -80,6 +80,7 @@ class Model {
     umo_type getExpressionIdType(ExpressionId expr) const;
     umo_operator getExpressionIdOp(ExpressionId expr) const;
     double getExpressionIdValue(ExpressionId expr) const;
+    std::vector<ExpressionId> getExpressionIdOperands(ExpressionId expr) const;
 
     void writeUmo(std::ostream &) const;
     void writeLp(std::ostream &) const;
