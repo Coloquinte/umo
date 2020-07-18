@@ -387,3 +387,25 @@ BOOST_AUTO_TEST_CASE(LinearizationWithTimeLimit) {
     model.solve();
     BOOST_CHECK_EQUAL(model.getStatus(), Status::Optimal);
 }
+
+BOOST_AUTO_TEST_CASE(ExplicitConstraint1) {
+    Model model;
+    FloatExpression x1 = model.floatVar();
+    linearConstraint(umo::unbounded(), 5.0, {x1});
+    maximize(x1);
+    model.setSolver(TOSTRING(SOLVER_PARAM));
+    model.solve();
+    BOOST_CHECK_CLOSE(x1.getValue(), 5.0, eps);
+    BOOST_CHECK_EQUAL(model.getStatus(), Status::Optimal);
+}
+
+BOOST_AUTO_TEST_CASE(ExplicitConstraint2) {
+    Model model;
+    FloatExpression x1 = model.floatVar();
+    linearConstraint(umo::unbounded(), 10.0, {x1}, {2.0});
+    maximize(x1);
+    model.setSolver(TOSTRING(SOLVER_PARAM));
+    model.solve();
+    BOOST_CHECK_CLOSE(x1.getValue(), 5.0, eps);
+    BOOST_CHECK_EQUAL(model.getStatus(), Status::Optimal);
+}

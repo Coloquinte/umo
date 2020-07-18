@@ -1015,7 +1015,7 @@ double inf() {
     return numeric_limits<double>::infinity();
 }
 
-void linear_constraint(double lb, double ub, const std::vector<FloatExpression> &exprs, const std::vector<double> &coefs) {
+void linearConstraint(double lb, double ub, const std::vector<FloatExpression> &exprs, const std::vector<double> &coefs) {
     if (exprs.empty()) {
         throw std::runtime_error("At least one expression is required for a linear constraint");
     }
@@ -1037,14 +1037,14 @@ void linear_constraint(double lb, double ub, const std::vector<FloatExpression> 
     constraint(expr);
 }
 
-void linear_constraint(double lb, UnboundedT, const std::vector<FloatExpression> &exprs, const std::vector<double> &coefs) {
+void linearConstraint(double lb, UnboundedT, const std::vector<FloatExpression> &exprs, const std::vector<double> &coefs) {
     double ub = std::numeric_limits<double>::infinity();
-    linear_constraint(lb, ub, exprs, coefs);
+    linearConstraint(lb, ub, exprs, coefs);
 }
 
-void linear_constraint(UnboundedT, double ub, const std::vector<FloatExpression> &exprs, const std::vector<double> &coefs) {
+void linearConstraint(UnboundedT, double ub, const std::vector<FloatExpression> &exprs, const std::vector<double> &coefs) {
     double lb = -std::numeric_limits<double>::infinity();
-    linear_constraint(lb, ub, exprs, coefs);
+    linearConstraint(lb, ub, exprs, coefs);
 }
 
 std::ostream &operator<<(std::ostream &os, const Status &status) {

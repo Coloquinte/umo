@@ -28,6 +28,7 @@ class ToLinear::Transformer {
     void linearizeAnd(uint32_t i);
     void linearizeOr(uint32_t i);
     void linearizeXor(uint32_t i);
+    void copyExpression(uint32_t i);
 
     void linearizeConstrainedEq(ExpressionId op1, ExpressionId op2);
     void linearizeConstrainedLess(ExpressionId op1, ExpressionId op2,
@@ -38,6 +39,9 @@ class ToLinear::Transformer {
     // Helper function: get affine coefficients for a compressed (not/minus)
     // expression
     Element getElement(ExpressionId expr) const;
+    // Helper function: get ExpressionId for a compressed (not/minus) expression
+    ExpressionId getExpressionId(ExpressionId expr);
+
     // Helper function: direct expression of a constraint
     void makeConstraint(const vector<double> &coefs,
                         const vector<ExpressionId> &operands, double lb,
@@ -174,6 +178,10 @@ void ToLinear::Transformer::linearize(uint32_t i) {
     case UMO_OP_XOR:
         linearizeXor(i);
         break;
+    case UMO_OP_LINEARCOMP:
+        // Copy the expression as is
+        copyExpression(i);
+        break;
     default:
         THROW_ERROR("Operand type " << op << " not handled for linearization");
     }
@@ -203,6 +211,19 @@ ToLinear::Element ToLinear::Transformer::getElement(ExpressionId id) const {
         elt.coef = -elt.coef;
     }
     return elt;
+}
+
+ExpressionId ToLinear::Transformer::getExpressionId(ExpressionId id) {
+    if (model.isConstant(id.var())) {
+        return linearModel.createConstant(model.getExpressionIdValue(id));
+    }
+    ExpressionId pid = linearModel.mapping().at(id.var());
+    assert (!id.isNot() || !pid.isMinus() /*Inconsistent types (applying not to a general integer)*/);
+    if (id.isNot())
+        pid = pid.getNot();
+    if (id.isMinus())
+        pid = pid.getMinus();
+    return pid;
 }
 
 void ToLinear::Transformer::makeConstraint(const vector<double> &coefs,
@@ -334,13 +355,13 @@ void ToLinear::Transformer::linearizeProd(uint32_t i) {
 }
 
 void ToLinear::Transformer::linearizeCompare(uint32_t i) {
-    const auto &expr = model.expression(i);
     if (!model.isConstraint(i))
         THROW_ERROR("Comparisons that are not constraints are not handled yet");
     if (model.isConstraintPos(i) && model.isConstraintNeg(i))
         THROW_ERROR("The variable is constrained both ways. Model is "
                     "obviously inconsistent");
 
+    const auto &expr = model.expression(i);
     ExpressionId op1 = expr.operands[0];
     ExpressionId op2 = expr.operands[1];
 
@@ -425,6 +446,20 @@ void ToLinear::Transformer::linearizeXor(uint32_t i) {
     // TODO: Split the Xor into multiple intermediate xor, then linearize them
 }
 
+void ToLinear::Transformer::copyExpression(uint32_t i) {
+    const auto &expr = model.expression(i);
+    vector<ExpressionId> operands;
+    operands.reserve(expr.operands.size());
+    for (ExpressionId id : expr.operands) {
+        operands.push_back(getExpressionId(id));
+    }
+    ExpressionId linearized = linearModel.createExpression(expr.op, operands);
+    if (model.isConstraintPos(i))
+        linearModel.createConstraint(linearized);
+    if (model.isConstraintNeg(i))
+        linearModel.createConstraint(linearized.getNot());
+}
+
 namespace {
 int countNonConstantOperands(const PresolvedModel &model, const Model::ExpressionData &expr) {
     int nbNonConstant = 0;
@@ -467,6 +502,11 @@ bool ToLinear::valid(const PresolvedModel &model) const {
                 return false;
             }
             if (model.isConstraintPos(i) && model.isConstraintNeg(i)) {
+                return false;
+            }
+            continue;
+        case UMO_OP_LINEARCOMP:
+            if (!model.isConstraintPos(i) || model.isConstraintNeg(i)) {
                 return false;
             }
             continue;

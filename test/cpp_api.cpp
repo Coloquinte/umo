@@ -529,3 +529,15 @@ BOOST_AUTO_TEST_CASE(NaryBool) {
     model.check();
 }
 
+BOOST_AUTO_TEST_CASE(LinearConstraint) {
+    Model model;
+    FloatExpression fdec1 = model.floatVar();
+    FloatExpression fdec2 = model.floatVar();
+    FloatExpression idec1 = model.intVar();
+    linearConstraint(0.0, 1.0, {fdec1, idec1});
+    linearConstraint(umo::unbounded(), 1.0, {fdec2, idec1});
+    linearConstraint(-2.0, umo::unbounded(), {fdec1, fdec2}, {2.0, 4.0});
+    maximize(fdec1 + fdec2);
+    model.check();
+}
+

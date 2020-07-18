@@ -279,9 +279,9 @@ BoolExpression logical_or(const std::vector<BoolExpression> &);
 BoolExpression logical_and(const std::vector<BoolExpression> &);
 BoolExpression logical_xor(const std::vector<BoolExpression> &);
 
-void linear_constraint(double lb, double ub, const std::vector<FloatExpression> &expr, const std::vector<double> &coefs=std::vector<double>());
-void linear_constraint(double lb, UnboundedT, const std::vector<FloatExpression> &expr, const std::vector<double> &coefs=std::vector<double>());
-void linear_constraint(UnboundedT, double ub, const std::vector<FloatExpression> &expr, const std::vector<double> &coefs=std::vector<double>());
+void linearConstraint(double lb, double ub, const std::vector<FloatExpression> &expr, const std::vector<double> &coefs=std::vector<double>());
+void linearConstraint(double lb, UnboundedT, const std::vector<FloatExpression> &expr, const std::vector<double> &coefs=std::vector<double>());
+void linearConstraint(UnboundedT, double ub, const std::vector<FloatExpression> &expr, const std::vector<double> &coefs=std::vector<double>());
 
 // Utils
 double inf();
