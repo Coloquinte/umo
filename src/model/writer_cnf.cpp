@@ -48,7 +48,10 @@ void ModelWriterCnf::write() {
         const Model::ExpressionData &expr = m_.expression(i);
         if (expr.op == UMO_OP_OR) {
             for (ExpressionId id : expr.operands) {
-                s_ << (id.isNot() ? "-" : "") << varToId_[id.var()] << " ";
+                uint32_t cnfId = varToId_[id.var()];
+                if (cnfId == InvalidId)
+                    THROW_ERROR("Attempting to write a variable without id (constant?) in CNF file writer");
+                s_ << (id.isNot() ? "-" : "") << cnfId << " ";
             }
             s_ << "0" << endl;
         }

@@ -35,7 +35,9 @@ class ToSat::Transformer {
     void satifyGeneralized(uint32_t i, bool inInv, bool outInv);
 
     // Helper function: direct expression of a clause
+    void makeClauseNoRemap(const vector<ExpressionId> &operands);
     void makeClause(const vector<ExpressionId> &operands);
+    void makeXorClause(const vector<ExpressionId> &operands, bool inv);
     ExpressionId getMapping(ExpressionId id) const;
 
   private:
@@ -160,7 +162,9 @@ void ToSat::Transformer::satifyOr(uint32_t i) {
 }
 
 void ToSat::Transformer::satifyXor(uint32_t i) {
-    THROW_ERROR("Xor is not handled yet");
+    vector<ExpressionId> operands = model.expression(i).operands;
+    operands.push_back(ExpressionId::fromVar(i));
+    makeXorClause(operands, false);
 }
 
 void ToSat::Transformer::satifyConstrainedAnd(uint32_t i) {
@@ -172,7 +176,8 @@ void ToSat::Transformer::satifyConstrainedOr(uint32_t i) {
 }
 
 void ToSat::Transformer::satifyConstrainedXor(uint32_t i) {
-    THROW_ERROR("Xor is not handled yet");
+    const Model::ExpressionData &expr = model.expression(i);
+    makeXorClause(expr.operands, false);
 }
 
 void ToSat::Transformer::satifyConstrainedNAnd(uint32_t i) {
@@ -184,7 +189,8 @@ void ToSat::Transformer::satifyConstrainedNOr(uint32_t i) {
 }
 
 void ToSat::Transformer::satifyConstrainedNXor(uint32_t i) {
-    THROW_ERROR("Xor is not handled yet");
+    const Model::ExpressionData &expr = model.expression(i);
+    makeXorClause(expr.operands, true);
 }
 
 void ToSat::Transformer::satifyConstrainedGeneralized(uint32_t i, bool inInv,
@@ -241,10 +247,34 @@ void ToSat::Transformer::makeClause(const vector<ExpressionId> &operands) {
         }
     }
     if (!forceOne && !nonConstantOperands.empty()) {
-        ExpressionId expr =
-            satModel.createExpression(UMO_OP_OR, nonConstantOperands);
-        satModel.createConstraint(expr);
+        makeClauseNoRemap(nonConstantOperands);
     }
+}
+
+void ToSat::Transformer::makeClauseNoRemap(const vector<ExpressionId> &operands) {
+    ExpressionId expr = satModel.createExpression(UMO_OP_OR, operands);
+    satModel.createConstraint(expr);
+}
+
+void ToSat::Transformer::makeXorClause(const vector<ExpressionId> &operands, bool inv) {
+    if (operands.empty()) {
+        if (!inv) {
+            THROW_ERROR("Empty XOR clause is trivially infeasible");
+        }
+        return;
+    }
+    ExpressionId expr = getMapping(operands.front());
+    if (inv) expr = expr.getNot();
+    for (size_t i = 1; i < operands.size(); ++i) {
+        ExpressionId satOp = getMapping(operands[i]);
+        ExpressionId xorExpr = satModel.createExpression(UMO_OP_DEC_BOOL, {});
+        makeClauseNoRemap({satOp, expr, xorExpr.getNot()});
+        makeClauseNoRemap({satOp.getNot(), expr, xorExpr});
+        makeClauseNoRemap({satOp, expr.getNot(), xorExpr});
+        makeClauseNoRemap({satOp.getNot(), expr.getNot(), xorExpr.getNot()});
+        expr = xorExpr;
+    }
+    makeClauseNoRemap({expr});
 }
 
 ExpressionId ToSat::Transformer::getMapping(ExpressionId id) const {
@@ -272,6 +302,7 @@ bool ToSat::valid(const PresolvedModel &model) const {
         case UMO_OP_DEC_BOOL:
         case UMO_OP_AND:
         case UMO_OP_OR:
+        case UMO_OP_XOR:
             continue;
         default:
             return false;

@@ -67,15 +67,6 @@ BOOST_AUTO_TEST_CASE(SatifyConstrainedOr) {
     BOOST_CHECK(model.getStatus() == Status::Optimal);
 }
 
-BOOST_AUTO_TEST_CASE(SatifyConstrainedXor) {
-    Model model;
-    BoolExpression x1 = model.boolVar();
-    BoolExpression x2 = model.boolVar();
-    constraint(x1 ^ x2);
-    model.setSolver(TOSTRING(SOLVER_PARAM));
-    BOOST_CHECK_THROW(model.solve(), std::runtime_error);
-}
-
 BOOST_AUTO_TEST_CASE(SatifyConstrainedAndNot) {
     Model model;
     BoolExpression x1 = model.boolVar();
@@ -118,15 +109,6 @@ BOOST_AUTO_TEST_CASE(SatifyConstrainedNor) {
     model.solve();
     BOOST_CHECK(!(x1.getValue() || x2.getValue()));
     BOOST_CHECK(model.getStatus() == Status::Optimal);
-}
-
-BOOST_AUTO_TEST_CASE(SatifyConstrainedXnor) {
-    Model model;
-    BoolExpression x1 = model.boolVar();
-    BoolExpression x2 = model.boolVar();
-    constraint(!(x1 ^ x2));
-    model.setSolver(TOSTRING(SOLVER_PARAM));
-    BOOST_CHECK_THROW(model.solve(), std::runtime_error);
 }
 
 BOOST_AUTO_TEST_CASE(SatifyAnd) {
