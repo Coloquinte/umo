@@ -35,10 +35,9 @@ class ToSat::Transformer {
     void satifyGeneralized(uint32_t i, bool inInv, bool outInv);
 
     // Helper function: direct expression of a clause
-    void makeClauseNoRemap(const vector<ExpressionId> &operands);
-    void makeClause(const vector<ExpressionId> &operands);
+    void makeClause(const vector<ExpressionId> &operands, bool useOriginalId=true);
     void makeXorClause(const vector<ExpressionId> &operands, bool inv);
-    ExpressionId getMapping(ExpressionId id) const;
+    ExpressionId getMapping(ExpressionId id, bool useOriginalId=true);
 
   private:
     PresolvedModel &model;
@@ -235,25 +234,22 @@ void ToSat::Transformer::satifyGeneralized(uint32_t i, bool inInv,
     }
 }
 
-void ToSat::Transformer::makeClause(const vector<ExpressionId> &operands) {
+void ToSat::Transformer::makeClause(const vector<ExpressionId> &operands, bool useOriginalId) {
     bool forceOne = false;
     vector<ExpressionId> nonConstantOperands;
     nonConstantOperands.reserve(operands.size());
     for (ExpressionId id : operands) {
-        if (model.isConstant(id.var())) {
-            forceOne |= (model.getExpressionIdValue(id) != 0.0);
+        ExpressionId pid = getMapping(id, useOriginalId);
+        if (satModel.isConstant(pid.var())) {
+            forceOne |= (satModel.getExpressionIdValue(pid) != 0.0);
         } else {
-            nonConstantOperands.push_back(getMapping(id));
+            nonConstantOperands.push_back(pid);
         }
     }
     if (!forceOne && !nonConstantOperands.empty()) {
-        makeClauseNoRemap(nonConstantOperands);
+        ExpressionId expr = satModel.createExpression(UMO_OP_OR, nonConstantOperands);
+        satModel.createConstraint(expr);
     }
-}
-
-void ToSat::Transformer::makeClauseNoRemap(const vector<ExpressionId> &operands) {
-    ExpressionId expr = satModel.createExpression(UMO_OP_OR, operands);
-    satModel.createConstraint(expr);
 }
 
 void ToSat::Transformer::makeXorClause(const vector<ExpressionId> &operands, bool inv) {
@@ -268,19 +264,29 @@ void ToSat::Transformer::makeXorClause(const vector<ExpressionId> &operands, boo
     for (size_t i = 1; i < operands.size(); ++i) {
         ExpressionId satOp = getMapping(operands[i]);
         ExpressionId xorExpr = satModel.createExpression(UMO_OP_DEC_BOOL, {});
-        makeClauseNoRemap({satOp, expr, xorExpr.getNot()});
-        makeClauseNoRemap({satOp.getNot(), expr, xorExpr});
-        makeClauseNoRemap({satOp, expr.getNot(), xorExpr});
-        makeClauseNoRemap({satOp.getNot(), expr.getNot(), xorExpr.getNot()});
+        makeClause({satOp, expr, xorExpr.getNot()}, false);
+        makeClause({satOp.getNot(), expr, xorExpr}, false);
+        makeClause({satOp, expr.getNot(), xorExpr}, false);
+        makeClause({satOp.getNot(), expr.getNot(), xorExpr.getNot()}, false);
         expr = xorExpr;
     }
-    makeClauseNoRemap({expr});
+    makeClause({expr}, false);
 }
 
-ExpressionId ToSat::Transformer::getMapping(ExpressionId id) const {
-    ExpressionId pid = satModel.mapping().at(id.var());
-    assert(pid.isVar());
-    return id.isNot() ? pid.getNot() : pid;
+ExpressionId ToSat::Transformer::getMapping(ExpressionId id, bool useOriginalId) {
+    ExpressionId pid;
+    if (useOriginalId) {
+        if (model.isConstant(id.var())) {
+            return satModel.createConstant(model.getExpressionIdValue(id));
+        }
+        else {
+            pid = satModel.mapping().at(id.var());
+        }
+        return id.isNot() ? pid.getNot() : pid;
+    }
+    else {
+        return id;
+    }
 }
 
 void ToSat::Transformer::run() {

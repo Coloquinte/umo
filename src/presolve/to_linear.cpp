@@ -38,14 +38,14 @@ class ToLinear::Transformer {
 
     // Helper function: get affine coefficients for a compressed (not/minus)
     // expression
-    Element getElement(ExpressionId expr) const;
+    Element getElement(ExpressionId expr, bool useOriginalId=true) const;
     // Helper function: get ExpressionId for a compressed (not/minus) expression
     ExpressionId getExpressionId(ExpressionId expr);
 
     // Helper function: direct expression of a constraint
     void makeConstraint(const vector<double> &coefs,
                         const vector<ExpressionId> &operands, double lb,
-                        double ub);
+                        double ub, bool useOriginalId=true);
     // Helper function: constrain variable i to be within certain bounds of the
     // summed operands
     void constrainToSum(uint32_t i, const vector<ExpressionId> &operands,
@@ -194,8 +194,23 @@ void ToLinear::Transformer::run() {
     model.apply(linearModel);
 }
 
-ToLinear::Element ToLinear::Transformer::getElement(ExpressionId id) const {
-    ExpressionId pid = linearModel.mapping().at(id.var());
+ToLinear::Element ToLinear::Transformer::getElement(ExpressionId id, bool useOriginalId) const {
+    ExpressionId pid;
+    if (useOriginalId) {
+        if (model.isConstant(id.var())) {
+            Element elt;
+            elt.var = constantZero.var();
+            elt.constant = model.getExpressionIdValue(id);
+            elt.coef = 1.0;
+            return elt;
+        }
+        else {
+            pid = linearModel.mapping().at(id.var());
+        }
+    }
+    else {
+        pid = ExpressionId::fromVar(id.var());
+    }
     assert(pid.isVar());
     Element elt;
     elt.var = pid.var();
@@ -228,7 +243,7 @@ ExpressionId ToLinear::Transformer::getExpressionId(ExpressionId id) {
 
 void ToLinear::Transformer::makeConstraint(const vector<double> &coefs,
                                            const vector<ExpressionId> &ops,
-                                           double lb, double ub) {
+                                           double lb, double ub, bool useOriginalId) {
     if (lb > ub) {
         THROW_ERROR(
             "Lower bound ("
@@ -245,20 +260,16 @@ void ToLinear::Transformer::makeConstraint(const vector<double> &coefs,
     // Gather all operands; handle constants and compressed operands efficiently
     for (uint32_t i = 0; i < coefs.size(); ++i) {
         double coef = coefs[i];
-        if (model.isConstant(ops[i].var())) {
-            offset += coef * model.getExpressionIdValue(ops[i]);
+        Element elt = getElement(ops[i], useOriginalId);
+        if (linearModel.isConstant(elt.var)) {
+            // Constant in the linear model (happens for example when
+            // replacing a constraint)
+            offset += coef * (elt.constant +
+                              elt.coef * linearModel.value(elt.var));
         } else {
-            Element elt = getElement(ops[i]);
-            if (linearModel.isConstant(elt.var)) {
-                // Constant in the linear model (happens for example when
-                // replacing a constraint)
-                offset += coef * (elt.constant +
-                                  elt.coef * linearModel.value(elt.var));
-            } else {
-                operands.push_back(linearModel.createConstant(coef * elt.coef));
-                operands.push_back(ExpressionId(elt.var, false, false));
-                offset += coef * elt.constant;
-            }
+            operands.push_back(linearModel.createConstant(coef * elt.coef));
+            operands.push_back(ExpressionId(elt.var, false, false));
+            offset += coef * elt.constant;
         }
     }
     // Lower/upper bound of the constraint
