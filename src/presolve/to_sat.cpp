@@ -163,7 +163,7 @@ void ToSat::Transformer::satifyOr(uint32_t i) {
 void ToSat::Transformer::satifyXor(uint32_t i) {
     vector<ExpressionId> operands = model.expression(i).operands;
     operands.push_back(ExpressionId::fromVar(i));
-    makeXorClause(operands, false);
+    makeXorClause(operands, true);
 }
 
 void ToSat::Transformer::satifyConstrainedAnd(uint32_t i) {

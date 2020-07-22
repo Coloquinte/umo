@@ -46,6 +46,9 @@ class ToLinear::Transformer {
     void makeConstraint(const vector<double> &coefs,
                         const vector<ExpressionId> &operands, double lb,
                         double ub, bool useOriginalId=true);
+    void makeConstraint(const vector<double> &coefs,
+                        const vector<Element> &operands, double lb,
+                        double ub);
     // Helper function: constrain variable i to be within certain bounds of the
     // summed operands
     void constrainToSum(uint32_t i, const vector<ExpressionId> &operands,
@@ -242,8 +245,8 @@ ExpressionId ToLinear::Transformer::getExpressionId(ExpressionId id) {
 }
 
 void ToLinear::Transformer::makeConstraint(const vector<double> &coefs,
-                                           const vector<ExpressionId> &ops,
-                                           double lb, double ub, bool useOriginalId) {
+                                           const vector<Element> &ops,
+                                           double lb, double ub) {
     if (lb > ub) {
         THROW_ERROR(
             "Lower bound ("
@@ -260,7 +263,7 @@ void ToLinear::Transformer::makeConstraint(const vector<double> &coefs,
     // Gather all operands; handle constants and compressed operands efficiently
     for (uint32_t i = 0; i < coefs.size(); ++i) {
         double coef = coefs[i];
-        Element elt = getElement(ops[i], useOriginalId);
+        Element elt = ops[i];
         if (linearModel.isConstant(elt.var)) {
             // Constant in the linear model (happens for example when
             // replacing a constraint)
@@ -293,6 +296,17 @@ void ToLinear::Transformer::makeConstraint(const vector<double> &coefs,
     ExpressionId linearized =
         linearModel.createExpression(UMO_OP_LINEARCOMP, operands);
     linearModel.createConstraint(linearized);
+}
+
+void ToLinear::Transformer::makeConstraint(const vector<double> &coefs,
+                                           const vector<ExpressionId> &ops,
+                                           double lb, double ub, bool useOriginalId) {
+    vector<Element> elements;
+    elements.reserve(ops.size());
+    for (ExpressionId op : ops) {
+        elements.push_back(getElement(op, useOriginalId));
+    }
+    makeConstraint(coefs, elements, lb, ub);
 }
 
 void ToLinear::Transformer::constrainToSum(uint32_t i,
@@ -453,8 +467,20 @@ void ToLinear::Transformer::linearizeOr(uint32_t i) {
 void ToLinear::Transformer::linearizeXor(uint32_t i) {
     const auto &expr = model.expression(i);
     assert(expr.op == UMO_OP_XOR);
-    THROW_ERROR("Xor is not handled yet");
-    // TODO: Split the Xor into multiple intermediate xor, then linearize them
+    vector<ExpressionId> operands = expr.operands;
+    ExpressionId id = ExpressionId::fromVar(i).getNot();
+    Element elt = getElement(id, true);
+    for (ExpressionId op : operands) {
+        ExpressionId xorId = linearModel.createExpression(UMO_OP_DEC_BOOL, {});
+        Element elt1 = getElement(op, true);
+        Element elt2 = getElement(xorId, false);
+        makeConstraint({-1.0, 1.0, 1.0}, {elt1, elt2, elt}, 0.0, numeric_limits<double>::infinity());
+        makeConstraint({1.0, -1.0, 1.0}, {elt1, elt2, elt}, 0.0, numeric_limits<double>::infinity());
+        makeConstraint({1.0, 1.0, -1.0}, {elt1, elt2, elt}, 0.0, numeric_limits<double>::infinity());
+        makeConstraint({-1.0, -1.0, -1.0}, {elt1, elt2, elt}, -2.0, numeric_limits<double>::infinity());
+        elt = elt2;
+    }
+    makeConstraint({1.0}, {elt}, 1.0, numeric_limits<double>::infinity());
 }
 
 void ToLinear::Transformer::copyExpression(uint32_t i) {

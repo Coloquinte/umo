@@ -273,15 +273,6 @@ BOOST_AUTO_TEST_CASE(LinearizationOr2) {
     BOOST_CHECK_EQUAL(model.getStatus(), Status::Optimal);
 }
 
-BOOST_AUTO_TEST_CASE(LinearizationXor1) {
-    Model model;
-    BoolExpression dec1 = model.boolVar();
-    BoolExpression dec2 = model.boolVar();
-    maximize(dec1 ^ dec2);
-    model.setSolver(TOSTRING(SOLVER_PARAM));
-    BOOST_CHECK_THROW(model.solve(), std::runtime_error);
-}
-
 BOOST_AUTO_TEST_CASE(LinearizationMax1) {
     Model model;
     FloatExpression dec1 = model.floatVar();

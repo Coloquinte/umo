@@ -45,7 +45,7 @@ BOOST_AUTO_TEST_CASE(SatifyVarConstrainedNeg) {
     BOOST_CHECK(model.getStatus() == Status::Optimal);
 }
 
-BOOST_AUTO_TEST_CASE(SatifyConstrainedAnd) {
+BOOST_AUTO_TEST_CASE(SatifyConstrainedAnd1) {
     Model model;
     BoolExpression x1 = model.boolVar();
     BoolExpression x2 = model.boolVar();
@@ -56,7 +56,34 @@ BOOST_AUTO_TEST_CASE(SatifyConstrainedAnd) {
     BOOST_CHECK(model.getStatus() == Status::Optimal);
 }
 
-BOOST_AUTO_TEST_CASE(SatifyConstrainedOr) {
+BOOST_AUTO_TEST_CASE(SatifyConstrainedAnd2) {
+    Model model;
+    BoolExpression x1 = model.boolVar();
+    BoolExpression x2 = model.boolVar();
+    BoolExpression x3 = model.boolVar();
+    BoolExpression x4 = model.boolVar();
+    constraint(x1 && x2 && x3 && x4);
+    model.setSolver(TOSTRING(SOLVER_PARAM));
+    model.solve();
+    BOOST_CHECK(x1.getValue() && x2.getValue() && x3.getValue() && x4.getValue());
+    BOOST_CHECK(model.getStatus() == Status::Optimal);
+}
+
+BOOST_AUTO_TEST_CASE(SatifyConstrainedAnd3) {
+    Model model;
+    BoolExpression x1 = model.boolVar();
+    BoolExpression x2 = model.boolVar();
+    BoolExpression x3 = model.boolVar();
+    BoolExpression x4 = model.boolVar();
+    BoolExpression x5 = model.boolVar();
+    constraint(x1 && x2 && x3 && x4 && x5);
+    model.setSolver(TOSTRING(SOLVER_PARAM));
+    model.solve();
+    BOOST_CHECK(x1.getValue() && x2.getValue() && x3.getValue() && x4.getValue() && x5.getValue());
+    BOOST_CHECK(model.getStatus() == Status::Optimal);
+}
+
+BOOST_AUTO_TEST_CASE(SatifyConstrainedOr1) {
     Model model;
     BoolExpression x1 = model.boolVar();
     BoolExpression x2 = model.boolVar();
@@ -64,6 +91,105 @@ BOOST_AUTO_TEST_CASE(SatifyConstrainedOr) {
     model.setSolver(TOSTRING(SOLVER_PARAM));
     model.solve();
     BOOST_CHECK(x1.getValue() || x2.getValue());
+    BOOST_CHECK(model.getStatus() == Status::Optimal);
+}
+
+BOOST_AUTO_TEST_CASE(SatifyConstrainedOr2) {
+    Model model;
+    BoolExpression x1 = model.boolVar();
+    BoolExpression x2 = model.boolVar();
+    BoolExpression x3 = model.boolVar();
+    BoolExpression x4 = model.boolVar();
+    constraint(x1 || x2 || x3 || x4);
+    model.setSolver(TOSTRING(SOLVER_PARAM));
+    model.solve();
+    BOOST_CHECK(x1.getValue() || x2.getValue() || x3.getValue() || x4.getValue());
+    BOOST_CHECK(model.getStatus() == Status::Optimal);
+}
+
+BOOST_AUTO_TEST_CASE(SatifyConstrainedOr3) {
+    Model model;
+    BoolExpression x1 = model.boolVar();
+    BoolExpression x2 = model.boolVar();
+    BoolExpression x3 = model.boolVar();
+    BoolExpression x4 = model.boolVar();
+    BoolExpression x5 = model.boolVar();
+    constraint(x1 || x2 || x3 || x4 || x5);
+    model.setSolver(TOSTRING(SOLVER_PARAM));
+    model.solve();
+    BOOST_CHECK(x1.getValue() || x2.getValue() || x3.getValue() || x4.getValue() || x5.getValue());
+    BOOST_CHECK(model.getStatus() == Status::Optimal);
+}
+
+BOOST_AUTO_TEST_CASE(SatifyConstrainedXor1) {
+    Model model;
+    BoolExpression x1 = model.boolVar();
+    BoolExpression x2 = model.boolVar();
+    constraint(x1 ^ x2);
+    model.setSolver(TOSTRING(SOLVER_PARAM));
+    model.solve();
+    BOOST_CHECK(x1.getValue() ^ x2.getValue());
+    BOOST_CHECK(model.getStatus() == Status::Optimal);
+}
+
+BOOST_AUTO_TEST_CASE(SatifyConstrainedXor2) {
+    Model model;
+    BoolExpression x1 = model.boolVar();
+    BoolExpression x2 = model.boolVar();
+    constraint(!(x1 ^ x2));
+    model.setSolver(TOSTRING(SOLVER_PARAM));
+    model.solve();
+    BOOST_CHECK(!(x1.getValue() ^ x2.getValue()));
+    BOOST_CHECK(model.getStatus() == Status::Optimal);
+}
+
+BOOST_AUTO_TEST_CASE(SatifyConstrainedXor3) {
+    Model model;
+    BoolExpression x1 = model.boolVar();
+    constraint(model.logical_xor({x1}));
+    model.setSolver(TOSTRING(SOLVER_PARAM));
+    model.solve();
+    BOOST_CHECK(x1.getValue());
+    BOOST_CHECK(model.getStatus() == Status::Optimal);
+}
+
+BOOST_AUTO_TEST_CASE(SatifyConstrainedXor4) {
+    Model model;
+    BoolExpression x1 = model.boolVar();
+    BoolExpression x2 = model.boolVar();
+    BoolExpression x3 = model.boolVar();
+    BoolExpression x4 = model.boolVar();
+    constraint(model.logical_xor({x1, x2, x3, x4}));
+    model.setSolver(TOSTRING(SOLVER_PARAM));
+    model.solve();
+    BOOST_CHECK(x1.getValue() ^ x2.getValue() ^ x3.getValue() ^ x4.getValue());
+    BOOST_CHECK(model.getStatus() == Status::Optimal);
+}
+
+BOOST_AUTO_TEST_CASE(SatifyConstrainedXor5) {
+    Model model;
+    BoolExpression x1 = model.boolVar();
+    BoolExpression x2 = model.boolVar();
+    BoolExpression x3 = model.boolVar();
+    BoolExpression x4 = model.boolVar();
+    constraint(x1 ^ x2 ^ x3 ^ x4);
+    model.setSolver(TOSTRING(SOLVER_PARAM));
+    model.solve();
+    BOOST_CHECK(x1.getValue() ^ x2.getValue() ^ x3.getValue() ^ x4.getValue());
+    BOOST_CHECK(model.getStatus() == Status::Optimal);
+}
+
+BOOST_AUTO_TEST_CASE(SatifyConstrainedXor6) {
+    Model model;
+    BoolExpression x1 = model.boolVar();
+    BoolExpression x2 = model.boolVar();
+    BoolExpression x3 = model.boolVar();
+    BoolExpression x4 = model.boolVar();
+    BoolExpression x5 = model.boolVar();
+    constraint(x1 ^ x2 ^ x3 ^ x4 ^ x5);
+    model.setSolver(TOSTRING(SOLVER_PARAM));
+    model.solve();
+    BOOST_CHECK(x1.getValue() ^ x2.getValue() ^ x3.getValue() ^ x4.getValue() ^ x5.getValue());
     BOOST_CHECK(model.getStatus() == Status::Optimal);
 }
 
