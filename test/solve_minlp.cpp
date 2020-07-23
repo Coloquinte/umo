@@ -15,7 +15,6 @@
 using namespace umo;
 
 const double eps = 0.1;
-
 BOOST_AUTO_TEST_CASE(Square1) {
     Model model;
     FloatExpression x = model.floatVar();
@@ -176,6 +175,22 @@ BOOST_AUTO_TEST_CASE(Bool1) {
     BOOST_CHECK_EQUAL(model.getStatus(), Status::Optimal);
 }
 
+BOOST_AUTO_TEST_CASE(Bool2) {
+    Model model;
+    BoolExpression x1 = model.boolVar();
+    BoolExpression x2 = model.boolVar();
+    BoolExpression x3 = model.boolVar();
+    BoolExpression x4 = model.boolVar();
+    maximize(x1 - x2 + x3 - x4);
+    model.setSolver(TOSTRING(SOLVER_PARAM));
+    model.solve();
+    BOOST_CHECK(x1.getValue());
+    BOOST_CHECK(!x2.getValue());
+    BOOST_CHECK(x3.getValue());
+    BOOST_CHECK(!x4.getValue());
+    BOOST_CHECK_EQUAL(model.getStatus(), Status::Optimal);
+}
+
 BOOST_AUTO_TEST_CASE(Int1) {
     Model model;
     IntExpression x = model.intVar();
@@ -269,3 +284,76 @@ BOOST_AUTO_TEST_CASE(Bounds3) {
     BOOST_CHECK(!b2.getValue());
     BOOST_CHECK_EQUAL(model.getStatus(), Status::Optimal);
 }
+
+BOOST_AUTO_TEST_CASE(Mixed1) {
+    Model model;
+    BoolExpression x1 = model.boolVar();
+    IntExpression x2 = model.intVar(0, 10);
+    FloatExpression x3 = model.floatVar(0, 20);
+    maximize(x1 + x2 + x3);
+    model.setSolver(TOSTRING(SOLVER_PARAM));
+    model.solve();
+    BOOST_CHECK(x1.getValue());
+    BOOST_CHECK_EQUAL(x2.getValue(), 10);
+    BOOST_CHECK_CLOSE(x3.getValue(), 20, eps);
+    BOOST_CHECK_EQUAL(model.getStatus(), Status::Optimal);
+}
+
+BOOST_AUTO_TEST_CASE(Mixed2) {
+    Model model;
+    FloatExpression x1 = model.floatVar(0, 20);
+    IntExpression x2 = model.intVar(0, 10);
+    BoolExpression x3 = model.boolVar();
+    maximize(x1 + x2 + x3);
+    model.setSolver(TOSTRING(SOLVER_PARAM));
+    model.solve();
+    BOOST_CHECK_CLOSE(x1.getValue(), 20, eps);
+    BOOST_CHECK_EQUAL(x2.getValue(), 10);
+    BOOST_CHECK(x3.getValue());
+    BOOST_CHECK_EQUAL(model.getStatus(), Status::Optimal);
+}
+
+BOOST_AUTO_TEST_CASE(Mixed3) {
+    Model model;
+    FloatExpression x1 = model.floatVar(0, 20);
+    IntExpression x2 = model.intVar(0, 10);
+    BoolExpression x3 = model.boolVar();
+    FloatExpression x4 = model.floatVar(-5, 40);
+    IntExpression x5 = model.intVar(-10, 30);
+    BoolExpression x6 = model.boolVar();
+    maximize(x1 + x2 + x3 - x4 - x5 -x6);
+    model.setSolver(TOSTRING(SOLVER_PARAM));
+    model.solve();
+    BOOST_CHECK_CLOSE(x1.getValue(), 20, eps);
+    BOOST_CHECK_EQUAL(x2.getValue(), 10);
+    BOOST_CHECK(x3.getValue());
+    BOOST_CHECK_CLOSE(x4.getValue(), -5, eps);
+    BOOST_CHECK_EQUAL(x5.getValue(), -10);
+    BOOST_CHECK(!x6.getValue());
+    BOOST_CHECK_EQUAL(model.getStatus(), Status::Optimal);
+}
+
+BOOST_AUTO_TEST_CASE(Empty) {
+    Model model;
+    BoolExpression x1 = model.boolVar();
+    IntExpression x2 = model.intVar();
+    FloatExpression x3 = model.floatVar();
+    model.setSolver(TOSTRING(SOLVER_PARAM));
+    model.solve();
+    BOOST_CHECK_EQUAL(model.getStatus(), Status::Optimal);
+}
+
+/*
+BOOST_AUTO_TEST_CASE(Linear1) {
+    Model model;
+    FloatExpression x1 = model.floatVar(0.0, umo::unbounded());
+    FloatExpression x2 = model.floatVar(0.0, umo::unbounded());
+    maximize(x1);
+    linearConstraint(umo::unbounded(), 1.0, {x1, x2});
+    model.setSolver(TOSTRING(SOLVER_PARAM));
+    model.solve();
+    BOOST_CHECK_CLOSE(x1.getValue(), 1.0, eps);
+    BOOST_CHECK_CLOSE(x2.getValue(), 0.0, eps);
+    BOOST_CHECK_EQUAL(model.getStatus(), Status::Optimal);
+}
+*/

@@ -112,7 +112,8 @@ int ModelWriterNl::countConstraints() const {
 }
 
 int ModelWriterNl::countObjectives() const {
-    return m_.nbObjectives();
+    int ret = m_.nbObjectives();
+    return ret >= 1 ? ret : 1; // Dummy objective
 }
 
 void ModelWriterNl::writeExpressionGraph(ExpressionId exprId) {
@@ -274,6 +275,10 @@ void ModelWriterNl::writeObjectives() {
         s_ << "O" << i << " " << (maximize ? "1" : "0") << endl;
         writeExpressionGraph(obj);
     }
+    if (m_.nbObjectives() == 0) {
+        // Dummy objective
+        s_ << "O0 1\nn0" << endl;
+    }
 }
 
 void ModelWriterNl::writeLinearExpression(ExpressionId id) {
@@ -343,9 +348,6 @@ void ModelWriterNl::writeBounds(double lb, double ub) {
 }
 
 void ModelWriterNl::writeBounds() {
-    if (floatVariables_.empty() && intVariables_.empty()) {
-        return;
-    }
     s_ << "b" << endl;
     for (uint32_t i : floatVariables_) {
         const Model::ExpressionData &expr = m_.expression(i);
