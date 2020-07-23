@@ -15,6 +15,7 @@
 using namespace umo;
 
 const double eps = 0.1;
+
 BOOST_AUTO_TEST_CASE(Square1) {
     Model model;
     FloatExpression x = model.floatVar();
@@ -343,7 +344,6 @@ BOOST_AUTO_TEST_CASE(Empty) {
     BOOST_CHECK_EQUAL(model.getStatus(), Status::Optimal);
 }
 
-/*
 BOOST_AUTO_TEST_CASE(Linear1) {
     Model model;
     FloatExpression x1 = model.floatVar(0.0, umo::unbounded());
@@ -356,4 +356,58 @@ BOOST_AUTO_TEST_CASE(Linear1) {
     BOOST_CHECK_CLOSE(x2.getValue(), 0.0, eps);
     BOOST_CHECK_EQUAL(model.getStatus(), Status::Optimal);
 }
-*/
+
+BOOST_AUTO_TEST_CASE(Linear2) {
+    Model model;
+    FloatExpression x1 = model.floatVar(0.0, umo::unbounded());
+    FloatExpression x2 = model.floatVar(0.0, umo::unbounded());
+    maximize(x2);
+    linearConstraint(umo::unbounded(), 1.0, {x1, x2});
+    model.setSolver(TOSTRING(SOLVER_PARAM));
+    model.solve();
+    BOOST_CHECK_CLOSE(x1.getValue(), 0.0, eps);
+    BOOST_CHECK_CLOSE(x2.getValue(), 1.0, eps);
+    BOOST_CHECK_EQUAL(model.getStatus(), Status::Optimal);
+}
+
+BOOST_AUTO_TEST_CASE(Linear3) {
+    Model model;
+    FloatExpression x1 = model.floatVar(umo::unbounded(), 1.0);
+    FloatExpression x2 = model.floatVar(umo::unbounded(), 1.0);
+    maximize(x2);
+    linearConstraint(umo::unbounded(), 1.0, {x1, x2});
+    model.setSolver(TOSTRING(SOLVER_PARAM));
+    model.solve();
+    BOOST_CHECK_CLOSE(x1.getValue(), 0.0, eps);
+    BOOST_CHECK_CLOSE(x2.getValue(), 1.0, eps);
+    BOOST_CHECK_EQUAL(model.getStatus(), Status::Optimal);
+}
+
+BOOST_AUTO_TEST_CASE(Linear4) {
+    Model model;
+    FloatExpression x1 = model.floatVar(umo::unbounded(), 1.0);
+    FloatExpression x2 = model.floatVar(umo::unbounded(), 1.0);
+    maximize(x1 + x2);
+    linearConstraint(umo::unbounded(), 1.0, {x1, x2}, {1.0, 2.0});
+    linearConstraint(umo::unbounded(), 1.0, {x1, x2}, {2.0, 1.0});
+    model.setSolver(TOSTRING(SOLVER_PARAM));
+    model.solve();
+    BOOST_CHECK_CLOSE(x1.getValue(), 1.0/3.0, eps);
+    BOOST_CHECK_CLOSE(x2.getValue(), 1.0/3.0, eps);
+    BOOST_CHECK_EQUAL(model.getStatus(), Status::Optimal);
+}
+
+BOOST_AUTO_TEST_CASE(Linear5) {
+    Model model;
+    FloatExpression x1 = model.floatVar();
+    FloatExpression x2 = model.floatVar();
+    maximize(x2);
+    linearConstraint(umo::unbounded(), 1.0, {x1, x2});
+    linearConstraint(umo::unbounded(), 0.0, {x1}, {-1.0});
+    linearConstraint(umo::unbounded(), 0.0, {x2}, {-1.0});
+    model.setSolver(TOSTRING(SOLVER_PARAM));
+    model.solve();
+    BOOST_CHECK_CLOSE(x1.getValue(), 0.0, eps);
+    BOOST_CHECK_CLOSE(x2.getValue(), 1.0, eps);
+    BOOST_CHECK_EQUAL(model.getStatus(), Status::Optimal);
+}

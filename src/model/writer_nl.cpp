@@ -26,16 +26,21 @@ class ModelWriterNl {
     ModelWriterNl(const Model &m, ostream &s);
 
     void write();
-    static vector<int32_t> getVarToId(const Model &m);
+    static vector<int32_t> getUmoToNlId(const Model &m);
 
     int countVariables() const;
     int countConstraints() const;
     int countObjectives() const;
+    int countJacobianNonZeros() const;
+    int countGradientNonZeros() const;
 
-    void writeHeader();
-    void writeObjectives();
-    void writeConstraints();
-    void writeBounds();
+    void writeHeader(); // Header part
+    void writeObjectives(); // "O" lines
+    void writeNonLinearConstraints(); // "C" lines
+    void writeConstraintBounds(); // "r" lines
+    void writeVariableBounds(); // "b" lines
+    void writeJacobianSize(); // "k" lines
+    void writeLinearConstraints(); // "J" lines
 
     // TODO: write linear constraint
     void writeExpressionGraph(ExpressionId id);
@@ -44,10 +49,11 @@ class ModelWriterNl {
 
   private:
     void initUmoToNl();
-    void initVarToId();
+    void initUmoToNlId();
     void initBoolVariables();
     void initIntVariables();
     void initFloatVariables();
+    void initJacobianSize();
 
   private:
     const Model &m_;
@@ -58,6 +64,7 @@ class ModelWriterNl {
     vector<uint32_t> boolVariables_;
     vector<uint32_t> intVariables_;
     vector<uint32_t> floatVariables_;
+    vector<uint32_t> jacobianSize_;
 };
 
 constexpr int ModelWriterNl::InvalidOp;
@@ -66,15 +73,24 @@ constexpr int32_t ModelWriterNl::InvalidId;
 ModelWriterNl::ModelWriterNl(const Model &m, ostream &s) : m_(m), s_(s) {}
 
 int ModelWriterNl::countVariables() const {
-    int cnt = 0;
-    for (uint32_t i = 0; i < m_.nbExpressions(); ++i) {
-        umo_operator op = m_.expression(i).op;
-        if (op == UMO_OP_DEC_BOOL || op == UMO_OP_DEC_INT ||
-            op == UMO_OP_DEC_FLOAT) {
-            ++cnt;
-        }
-    }
-    return cnt;
+    return boolVariables_.size() + intVariables_.size() + floatVariables_.size();
+}
+
+int ModelWriterNl::countConstraints() const {
+    return m_.nbConstraints();
+}
+
+int ModelWriterNl::countObjectives() const {
+    int ret = m_.nbObjectives();
+    return ret >= 1 ? ret : 1; // Dummy objective
+}
+
+int ModelWriterNl::countJacobianNonZeros() const {
+    return jacobianSize_.back();
+}
+
+int ModelWriterNl::countGradientNonZeros() const {
+    return 0;
 }
 
 void ModelWriterNl::initBoolVariables() {
@@ -105,15 +121,6 @@ void ModelWriterNl::initFloatVariables() {
             floatVariables_.push_back(i);
         }
     }
-}
-
-int ModelWriterNl::countConstraints() const {
-    return m_.nbConstraints();
-}
-
-int ModelWriterNl::countObjectives() const {
-    int ret = m_.nbObjectives();
-    return ret >= 1 ? ret : 1; // Dummy objective
 }
 
 void ModelWriterNl::writeExpressionGraph(ExpressionId exprId) {
@@ -216,7 +223,7 @@ void ModelWriterNl::initUmoToNl() {
     umoToNlOp_[UMO_OP_OR] = 71;
 }
 
-vector<int32_t> ModelWriterNl::getVarToId(const Model &m) {
+vector<int32_t> ModelWriterNl::getUmoToNlId(const Model &m) {
     vector<int32_t> varToId(m.nbExpressions(), InvalidId);
     int32_t id = 0;
     for (uint32_t i = 0; i < m.nbExpressions(); ++i) {
@@ -237,8 +244,29 @@ vector<int32_t> ModelWriterNl::getVarToId(const Model &m) {
     return varToId;
 }
 
-void ModelWriterNl::initVarToId() {
-    varToId_ = getVarToId(m_);
+void ModelWriterNl::initUmoToNlId() {
+    varToId_ = getUmoToNlId(m_);
+}
+
+void ModelWriterNl::initJacobianSize() {
+    jacobianSize_.assign(countVariables(), 0);
+    for (ExpressionId id : m_.constraints()) {
+        umo_operator op = m_.getExpressionIdOp(id);
+        if (op != UMO_OP_LINEARCOMP) {
+            THROW_ERROR("Cannot export nonlinear constraints yet in NL file writer");
+        }
+        const Model::ExpressionData &expr = m_.expression(id.var());
+        for (uint32_t j = 1; 2 * j + 1 < expr.operands.size(); ++j) {
+            ExpressionId id = expr.operands[2 * j + 1];
+            uint32_t ind = varToId_.at(id.var());
+            ++jacobianSize_[ind];
+        }
+    }
+    int totSize = 0;
+    for (size_t i = 0; i < jacobianSize_.size(); ++i) {
+        totSize += jacobianSize_[i];
+        jacobianSize_[i] = totSize;
+    }
 }
 
 void ModelWriterNl::writeHeader() {
@@ -260,7 +288,8 @@ void ModelWriterNl::writeHeader() {
        << intVariables_.size() << " "
        << "0 0 0 "
        << "# discrete variables: binary, integer, nonlinear (b,c,o)" << endl;
-    s_ << "0 0 "
+    s_ << countJacobianNonZeros() << " "
+       << countGradientNonZeros() << " "
        << "# nonzeros in Jacobian, gradients" << endl;
     s_ << "0 0 "
        << "# max name lengths: constraints, variables" << endl;
@@ -297,33 +326,54 @@ void ModelWriterNl::writeLinearExpression(ExpressionId id) {
     }
 }
 
-void ModelWriterNl::writeConstraints() {
+void ModelWriterNl::writeNonLinearConstraints() {
     if (m_.constraints().empty()) return;
-    vector<pair<double, double> > bounds;
     uint32_t i = 0;
     for (ExpressionId id : m_.constraints()) {
         umo_operator op = m_.getExpressionIdOp(id);
-        if (op == UMO_OP_LINEARCOMP) {
-            const Model::ExpressionData &expr = m_.expression(id.var());
-            double lb = m_.value(expr.operands[0].var());
-            double ub = m_.value(expr.operands[1].var());
-            bounds.emplace_back(lb, ub);
-            s_ << "C" << i << endl;
-            s_ << "n0" << endl;
-            s_ << "J" << i << " ";
-            writeLinearExpression(id);
-        }
-        else {
+        if (op != UMO_OP_LINEARCOMP) {
             THROW_ERROR("Cannot export nonlinear constraints yet in NL file writer");
-            bounds.emplace_back(1.0, 1.0);
-            s_ << "C" << i << endl;
-            writeExpressionGraph(id);
         }
+        s_ << "C" << i << endl;
+        s_ << "n0" << endl;
         ++i;
     }
+}
+
+void ModelWriterNl::writeConstraintBounds() {
+    if (countConstraints() == 0) return;
     s_ << "r" << endl;
-    for (pair<double, double> b : bounds) {
-        writeBounds(b.first, b.second);
+    for (ExpressionId id : m_.constraints()) {
+        umo_operator op = m_.getExpressionIdOp(id);
+        if (op != UMO_OP_LINEARCOMP) {
+            THROW_ERROR("Cannot export nonlinear constraints yet in NL file writer");
+        }
+        const Model::ExpressionData &expr = m_.expression(id.var());
+        double lb = m_.value(expr.operands[0].var());
+        double ub = m_.value(expr.operands[1].var());
+        writeBounds(lb, ub);
+    }
+}
+
+void ModelWriterNl::writeLinearConstraints() {
+    if (countConstraints() == 0) return;
+    uint32_t i = 0;
+    for (ExpressionId id : m_.constraints()) {
+        umo_operator op = m_.getExpressionIdOp(id);
+        if (op != UMO_OP_LINEARCOMP) {
+            THROW_ERROR("Cannot export nonlinear constraints yet in NL file writer");
+        }
+        s_ << "J" << i << " ";
+        writeLinearExpression(id);
+        ++i;
+    }
+}
+
+void ModelWriterNl::writeJacobianSize() {
+    if (countJacobianNonZeros() == 0) return;
+    s_ << "k " << countVariables() - 1 << endl;
+    for (size_t i = 0; i+1 < jacobianSize_.size(); ++i) {
+        s_ << jacobianSize_[i] << endl;
     }
 }
 
@@ -347,7 +397,7 @@ void ModelWriterNl::writeBounds(double lb, double ub) {
     }
 }
 
-void ModelWriterNl::writeBounds() {
+void ModelWriterNl::writeVariableBounds() {
     s_ << "b" << endl;
     for (uint32_t i : floatVariables_) {
         const Model::ExpressionData &expr = m_.expression(i);
@@ -370,14 +420,18 @@ void ModelWriterNl::writeBounds() {
 
 void ModelWriterNl::write() {
     initUmoToNl();
-    initVarToId();
+    initUmoToNlId();
     initBoolVariables();
     initIntVariables();
     initFloatVariables();
-    writeHeader();
-    writeObjectives();
-    writeConstraints();
-    writeBounds();
+    initJacobianSize();
+    writeHeader(); // Header part
+    writeObjectives(); // "O" lines
+    writeNonLinearConstraints(); // "C" lines
+    writeConstraintBounds(); // "r" lines
+    writeVariableBounds(); // "b" lines
+    writeJacobianSize(); // "k" lines
+    writeLinearConstraints(); // "J" lines
 }
 
 void Model::writeNl(ostream &os) const {
@@ -385,7 +439,7 @@ void Model::writeNl(ostream &os) const {
 }
 
 void Model::readNlSol(istream &is) {
-    vector<int32_t> varToId = ModelWriterNl::getVarToId(*this);
+    vector<int32_t> varToId = ModelWriterNl::getUmoToNlId(*this);
     string line;
     stringstream ss;
     getline(is, line);
