@@ -250,8 +250,9 @@ bool CouenneSolver::valid(PresolvedModel &m) const {
 void CouenneSolver::run(PresolvedModel &m) const {
     presolve::ToLinear(true).run(m);
     string tmpName = temporaryFilename("umo-couenne-", "");
+    // There is a bug in Couenne: only the extension must differ
     string tmpModName = tmpName + "-mod.nl";
-    string tmpSolName = tmpName + "-out.sol";
+    string tmpSolName = tmpName + "-mod.sol";
     OTmpFile modf(tmpModName);
     m.writeNl(modf);
     stringstream command;

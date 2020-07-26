@@ -279,6 +279,11 @@ BOOST_AUTO_TEST_CASE(LinearizationMax1) {
     FloatExpression dec2 = model.floatVar();
     maximize(umo::max(dec1, dec2));
     model.setSolver(TOSTRING(SOLVER_PARAM));
+    if (TOSTRING(SOLVER_PARAM) == "couenne") {
+        // Couenne handles this
+        model.solve();
+        return;
+    }
     BOOST_CHECK_THROW(model.solve(), std::runtime_error);
 }
 
@@ -288,6 +293,11 @@ BOOST_AUTO_TEST_CASE(LinearizationMin1) {
     FloatExpression dec2 = model.floatVar();
     maximize(umo::min(dec1, dec2));
     model.setSolver(TOSTRING(SOLVER_PARAM));
+    if (TOSTRING(SOLVER_PARAM) == "couenne") {
+        // Couenne handles this
+        model.solve();
+        return;
+    }
     BOOST_CHECK_THROW(model.solve(), std::runtime_error);
 }
 
@@ -298,6 +308,11 @@ BOOST_AUTO_TEST_CASE(LinearizationMultiObjective) {
     maximize(dec1);
     minimize(dec2);
     model.setSolver(TOSTRING(SOLVER_PARAM));
+    if (TOSTRING(SOLVER_PARAM) == "couenne") {
+        // Couenne handles this
+        model.solve();
+        return;
+    }
     BOOST_CHECK_THROW(model.solve(), std::runtime_error);
 }
 
@@ -323,11 +338,13 @@ BOOST_AUTO_TEST_CASE(LinearizationUnbounded) {
     maximize(dec1);
     model.setSolver(TOSTRING(SOLVER_PARAM));
     model.solve();
+    // GLPK and Couenne screw up the return value here
     if (TOSTRING(SOLVER_PARAM) == "glpk")
-        return; // Yes GLPK screws up the return value here
+        return;
+    if (TOSTRING(SOLVER_PARAM) == "couenne")
+        return;
     BOOST_CHECK_EQUAL(model.getStatus(), Status::Unbounded);
 }
-
 BOOST_AUTO_TEST_CASE(LinearizationSimple1) {
     Model model;
     FloatExpression x1 = model.floatVar();

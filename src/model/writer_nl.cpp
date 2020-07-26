@@ -59,7 +59,7 @@ class ModelWriterNl {
     const Model &m_;
     ostream &s_;
     vector<int> umoToNlOp_;
-    vector<int32_t> varToId_;
+    vector<int32_t> umoToNlId_;
 
     vector<uint32_t> boolVariables_;
     vector<uint32_t> intVariables_;
@@ -132,13 +132,13 @@ void ModelWriterNl::writeExpressionGraph(ExpressionId exprId) {
         toWrite.pop_back();
         umo_operator op = m_.getExpressionIdOp(id);
         if (op == UMO_OP_CONSTANT) {
-            assert (varToId_[id.var()] == InvalidId);
+            assert (umoToNlId_[id.var()] == InvalidId);
             s_ << "n" << m_.value(id.var()) << endl;
         }
         else if (op == UMO_OP_DEC_BOOL || op == UMO_OP_DEC_INT ||
             op == UMO_OP_DEC_FLOAT) {
-            assert (varToId_[id.var()] != InvalidId);
-            s_ << "v" << varToId_[id.var()] << endl;
+            assert (umoToNlId_[id.var()] != InvalidId);
+            s_ << "v" << umoToNlId_[id.var()] << endl;
         }
         else {
             if (umoToNlOp_.at(op) == InvalidOp) {
@@ -225,28 +225,28 @@ void ModelWriterNl::initUmoToNl() {
 }
 
 vector<int32_t> ModelWriterNl::getUmoToNlId(const Model &m) {
-    vector<int32_t> varToId(m.nbExpressions(), InvalidId);
+    vector<int32_t> umoToNlId(m.nbExpressions(), InvalidId);
     int32_t id = 0;
     for (uint32_t i = 0; i < m.nbExpressions(); ++i) {
         const Model::ExpressionData &expr = m.expression(i);
         if (expr.op == UMO_OP_DEC_FLOAT)
-            varToId[i] = id++;
+            umoToNlId[i] = id++;
     }
     for (uint32_t i = 0; i < m.nbExpressions(); ++i) {
         const Model::ExpressionData &expr = m.expression(i);
         if (expr.op == UMO_OP_DEC_BOOL)
-            varToId[i] = id++;
+            umoToNlId[i] = id++;
     }
     for (uint32_t i = 0; i < m.nbExpressions(); ++i) {
         const Model::ExpressionData &expr = m.expression(i);
         if (expr.op == UMO_OP_DEC_INT)
-            varToId[i] = id++;
+            umoToNlId[i] = id++;
     }
-    return varToId;
+    return umoToNlId;
 }
 
 void ModelWriterNl::initUmoToNlId() {
-    varToId_ = getUmoToNlId(m_);
+    umoToNlId_ = getUmoToNlId(m_);
 }
 
 void ModelWriterNl::initJacobianSize() {
@@ -259,7 +259,7 @@ void ModelWriterNl::initJacobianSize() {
         const Model::ExpressionData &expr = m_.expression(id.var());
         for (uint32_t j = 1; 2 * j + 1 < expr.operands.size(); ++j) {
             ExpressionId id = expr.operands[2 * j + 1];
-            uint32_t ind = varToId_.at(id.var());
+            uint32_t ind = umoToNlId_.at(id.var());
             ++jacobianSize_[ind];
         }
     }
@@ -319,7 +319,7 @@ void ModelWriterNl::writeLinearExpression(ExpressionId id) {
     for (uint32_t j = 1; 2 * j + 1 < expr.operands.size(); ++j) {
         double val = m_.value(expr.operands[2 * j].var());
         ExpressionId id = expr.operands[2 * j + 1];
-        uint32_t ind = varToId_.at(id.var());
+        uint32_t ind = umoToNlId_.at(id.var());
         if (ind == InvalidId) {
             THROW_ERROR("Cannot export linear constraints on non-leaf expressions in NL file writer");
         }
@@ -439,13 +439,27 @@ void Model::writeNl(ostream &os) const {
     ModelWriterNl(*this, os).write();
 }
 
+namespace {
+string trim(string s) {
+    s.erase(s.begin(), std::find_if(s.begin(), s.end(),
+            std::not1(std::ptr_fun<int, int>(std::isspace))));
+    s.erase(std::find_if(s.rbegin(), s.rend(),
+            std::not1(std::ptr_fun<int, int>(std::isspace))).base(), s.end());
+    return s;
+}
+}
 void Model::readNlSol(istream &is) {
-    vector<int32_t> varToId = ModelWriterNl::getUmoToNlId(*this);
+    vector<int32_t> umoToNlId = ModelWriterNl::getUmoToNlId(*this);
     string line;
     stringstream ss;
     getline(is, line);
-    getline(is, line);
-    getline(is, line);
+    if (trim(line) == "") getline(is, line);
+    stringstream msg;
+    msg << line << endl;
+    while (is.good() && trim(line) != "") {
+        getline(is, line);
+        msg << line << endl;
+    }
     getline(is, line);
     std::vector<int> z;
     int nopts = 0;
@@ -531,8 +545,9 @@ void Model::readNlSol(istream &is) {
     }
 
     for (uint32_t i = 0; i < nbExpressions(); ++i) {
-        uint32_t id = varToId.at(i);
-        if (id != ModelWriterNl::InvalidId) {
+        uint32_t id = umoToNlId.at(i);
+        // If the expression is mapped and the variable was given a value
+        if (id != ModelWriterNl::InvalidId && id < variables.size()) {
             double val = variables.at(id);
             setFloatValue(ExpressionId::fromVar(i), val);
         }

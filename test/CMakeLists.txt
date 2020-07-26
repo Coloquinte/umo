@@ -34,6 +34,7 @@ SET(MILP_SOLVERS
     cbc
     gurobi
     glpk
+    couenne
 )
 
 SET(SAT_SOLVERS
@@ -41,6 +42,7 @@ SET(SAT_SOLVERS
     cbc
     gurobi
     glpk
+    couenne
     minisat
 )
 
