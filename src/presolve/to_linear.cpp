@@ -13,7 +13,7 @@ namespace presolve {
 
 class ToLinear::Transformer {
   public:
-    Transformer(PresolvedModel &);
+    Transformer(PresolvedModel &, bool keepNonlinearExpressions);
     void run();
 
     void createExpressions();
@@ -65,6 +65,7 @@ class ToLinear::Transformer {
     ExpressionId constantZero;
     ExpressionId constantPOne;
     ExpressionId constantMOne;
+    bool keepNonlinearExpressions_;
 
     const double strictEqualityMargin = 1.0e-6;
 };
@@ -75,7 +76,9 @@ struct ToLinear::Element {
     double constant;
 };
 
-ToLinear::Transformer::Transformer(PresolvedModel &model) : model(model) {
+ToLinear::Transformer::Transformer(PresolvedModel &model, bool keepNonlinearExpressions)
+: model(model)
+, keepNonlinearExpressions_(keepNonlinearExpressions) {
     constantMInf =
         linearModel.createConstant(-numeric_limits<double>::infinity());
     constantPInf =
@@ -186,7 +189,12 @@ void ToLinear::Transformer::linearize(uint32_t i) {
         copyExpression(i);
         break;
     default:
-        THROW_ERROR("Operand type " << op << " not handled for linearization");
+        if (keepNonlinearExpressions_) {
+            copyExpression(i);
+        }
+        else {
+            THROW_ERROR("Operand type " << op << " not handled for linearization");
+        }
     }
 }
 
@@ -554,8 +562,12 @@ bool ToLinear::valid(const PresolvedModel &model) const {
     return true;
 }
 
+ToLinear::ToLinear(bool keepNonlinearExpressions)
+: keepNonlinearExpressions_(keepNonlinearExpressions) {
+}
+
 void ToLinear::run(PresolvedModel &model) const {
-    Transformer tf(model);
+    Transformer tf(model, keepNonlinearExpressions_);
     tf.run();
 }
 } // namespace presolve

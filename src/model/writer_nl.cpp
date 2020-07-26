@@ -86,6 +86,7 @@ int ModelWriterNl::countObjectives() const {
 }
 
 int ModelWriterNl::countJacobianNonZeros() const {
+    if(jacobianSize_.empty()) return 0;
     return jacobianSize_.back();
 }
 

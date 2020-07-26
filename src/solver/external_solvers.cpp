@@ -248,6 +248,7 @@ bool CouenneSolver::valid(PresolvedModel &m) const {
 }
 
 void CouenneSolver::run(PresolvedModel &m) const {
+    presolve::ToLinear(true).run(m);
     string tmpName = temporaryFilename("umo-couenne-", "");
     string tmpModName = tmpName + "-mod.nl";
     string tmpSolName = tmpName + "-out.sol";

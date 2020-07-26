@@ -8,6 +8,7 @@ namespace umoi {
 namespace presolve {
 class ToLinear final : public PresolverPass {
   public:
+    ToLinear(bool keepNonlinearExpressions=false);
     std::string toString() const override { return "toLinear"; }
 
     bool valid(const PresolvedModel &model) const;
@@ -15,6 +16,9 @@ class ToLinear final : public PresolverPass {
 
     class Transformer;
     struct Element;
+
+  private:
+    bool keepNonlinearExpressions_;
 };
 } // namespace presolve
 } // namespace umoi
