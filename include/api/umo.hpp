@@ -230,9 +230,6 @@ IntExpression max(const IntExpression &, long long);
 
 FloatExpression exp(const FloatExpression &);
 FloatExpression log(const FloatExpression &);
-FloatExpression log(const FloatExpression &, const FloatExpression &);
-FloatExpression log(double, const FloatExpression &);
-FloatExpression log(const FloatExpression &, double);
 FloatExpression pow(const FloatExpression &, const FloatExpression &);
 FloatExpression pow(double, const FloatExpression &);
 FloatExpression pow(const FloatExpression &, double);

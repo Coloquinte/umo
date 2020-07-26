@@ -759,18 +759,6 @@ FloatExpression log(const FloatExpression &op1) {
     return unaryOp<FloatExpression, FloatExpression>(UMO_OP_LOG, op1);
 }
 
-FloatExpression log(const FloatExpression &op1, const FloatExpression &op2) {
-    return binaryOp<FloatExpression>(UMO_OP_LOGB, op1, op2);
-}
-
-FloatExpression log(double op1, const FloatExpression &op2) {
-    return binaryOp<FloatExpression>(UMO_OP_LOGB, op1, op2);
-}
-
-FloatExpression log(const FloatExpression &op1, double op2) {
-    return binaryOp<FloatExpression>(UMO_OP_LOGB, op1, op2);
-}
-
 FloatExpression pow(const FloatExpression &op1, const FloatExpression &op2) {
     return binaryOp<FloatExpression>(UMO_OP_POW, op1, op2);
 }

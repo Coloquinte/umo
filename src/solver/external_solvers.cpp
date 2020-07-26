@@ -6,7 +6,7 @@
 #include <fstream>
 #include <sstream>
 
-#include "model/utils.hpp"
+#include "utils/utils.hpp"
 #include "presolve/presolve.hpp"
 #include "presolve/to_linear.hpp"
 #include "presolve/to_sat.hpp"

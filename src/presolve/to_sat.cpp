@@ -1,7 +1,7 @@
 
 #include "presolve/to_sat.hpp"
 #include "model/operator.hpp"
-#include "model/utils.hpp"
+#include "utils/utils.hpp"
 
 #include <cassert>
 

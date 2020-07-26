@@ -8,7 +8,7 @@
 #include <stdexcept>
 
 #include "model/operator.hpp"
-#include "model/utils.hpp"
+#include "utils/utils.hpp"
 #include "presolve/presolve.hpp"
 #include "solver/external_solvers.hpp"
 
