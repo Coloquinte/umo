@@ -16,6 +16,7 @@ class ToLinear::Transformer {
     Transformer(PresolvedModel &, bool keepNonlinearExpressions);
     void run();
 
+
     void createExpressions();
     void createObjectives();
     void linearizeExpressions();
@@ -28,6 +29,7 @@ class ToLinear::Transformer {
     void linearizeAnd(uint32_t i);
     void linearizeOr(uint32_t i);
     void linearizeXor(uint32_t i);
+    bool mustCopy(uint32_t i) const;
     void copyExpression(uint32_t i);
 
     void linearizeConstrainedEq(ExpressionId op1, ExpressionId op2);
@@ -96,7 +98,9 @@ void ToLinear::Transformer::createExpressions() {
             continue;
         if (expr.op == UMO_OP_CONSTANT)
             continue;
-        if (model.isConstraint(i)) {
+        if (mustCopy(i)) {
+            copyExpression(i);
+        } else if (model.isConstraint(i)) {
             if (!model.isConstraintPos(i)) {
                 linearModel.mapping().emplace(i, constantZero);
             } else if (!model.isConstraintNeg(i)) {
@@ -165,7 +169,9 @@ void ToLinear::Transformer::linearize(uint32_t i) {
         linearizeSum(i);
         break;
     case UMO_OP_PROD:
-        linearizeProd(i);
+        if (!mustCopy(i)) {
+            linearizeProd(i);
+        }
         break;
     case UMO_OP_CMP_EQ:
     case UMO_OP_CMP_NEQ:
@@ -184,15 +190,8 @@ void ToLinear::Transformer::linearize(uint32_t i) {
     case UMO_OP_XOR:
         linearizeXor(i);
         break;
-    case UMO_OP_LINEARCOMP:
-        // Copy the expression as is
-        copyExpression(i);
-        break;
     default:
-        if (keepNonlinearExpressions_) {
-            copyExpression(i);
-        }
-        else {
+        if (!mustCopy(i)) {
             THROW_ERROR("Operand type " << op << " not handled for linearization");
         }
     }
@@ -503,6 +502,8 @@ void ToLinear::Transformer::copyExpression(uint32_t i) {
         linearModel.createConstraint(linearized);
     if (model.isConstraintNeg(i))
         linearModel.createConstraint(linearized.getNot());
+    assert (linearModel.mapping().count(i) == 0);
+    linearModel.mapping().emplace(i, linearized);
 }
 
 namespace {
@@ -515,6 +516,36 @@ int countNonConstantOperands(const PresolvedModel &model, const Model::Expressio
     }
     return nbNonConstant;
 }
+}
+
+bool ToLinear::Transformer::mustCopy(uint32_t i) const {
+    const auto &expr = model.expression(i);
+    if (expr.op == UMO_OP_LINEARCOMP) {
+        return model.isConstraintPos(i) && !model.isConstraintNeg(i);
+    }
+    switch (expr.op) {
+    case UMO_OP_INVALID:
+    case UMO_OP_CONSTANT:
+    case UMO_OP_DEC_BOOL:
+    case UMO_OP_DEC_INT:
+    case UMO_OP_DEC_FLOAT:
+    case UMO_OP_AND:
+    case UMO_OP_OR:
+    case UMO_OP_XOR:
+    case UMO_OP_SUM:
+        return false;
+    case UMO_OP_PROD:
+        return countNonConstantOperands(model, expr) >= 2;
+    case UMO_OP_CMP_EQ:
+    case UMO_OP_CMP_NEQ:
+    case UMO_OP_CMP_LEQ:
+    case UMO_OP_CMP_GEQ:
+    case UMO_OP_CMP_LT:
+    case UMO_OP_CMP_GT:
+        return !model.isConstraint(i);
+    default:
+        return true;
+    }
 }
 
 bool ToLinear::valid(const PresolvedModel &model) const {
@@ -530,6 +561,7 @@ bool ToLinear::valid(const PresolvedModel &model) const {
         case UMO_OP_DEC_FLOAT:
         case UMO_OP_AND:
         case UMO_OP_OR:
+        case UMO_OP_XOR:
         case UMO_OP_SUM:
             continue;
         case UMO_OP_PROD:

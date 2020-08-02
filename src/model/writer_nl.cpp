@@ -260,7 +260,9 @@ void ModelWriterNl::initJacobianSize() {
         for (uint32_t j = 1; 2 * j + 1 < expr.operands.size(); ++j) {
             ExpressionId id = expr.operands[2 * j + 1];
             uint32_t ind = umoToNlId_.at(id.var());
-            ++jacobianSize_[ind];
+            if (ind != InvalidId) {
+                ++jacobianSize_[ind];
+            }
         }
     }
     int totSize = 0;
