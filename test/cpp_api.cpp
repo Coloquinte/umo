@@ -541,3 +541,12 @@ BOOST_AUTO_TEST_CASE(LinearConstraint) {
     model.check();
 }
 
+BOOST_AUTO_TEST_CASE(TwoModels) {
+    Model model1;
+    Model model2;
+    FloatExpression fdec1 = model1.floatVar();
+    FloatExpression fdec2 = model2.floatVar();
+    BOOST_CHECK_THROW(fdec1 + fdec2, std::runtime_error);
+    BOOST_CHECK_THROW(umo::sum({fdec1, fdec2}), std::runtime_error);
+}
+

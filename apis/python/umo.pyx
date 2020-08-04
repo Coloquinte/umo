@@ -382,11 +382,14 @@ cdef class Expression:
         for arg in args:
             if not isinstance(arg, Expression):
                 raise TypeError("Arguments of N-ary operators must be expressions")
+            model = <Model> arg.model
+        for arg in args:
+            if model is not arg.model:
+                raise RuntimeError("All arguments must relate to the same model")
         try:
             operands = <long long *> malloc(len(args) * sizeof(long long))
             for i, arg in enumerate(args):
                 operands[i] = (<Expression> arg).v
-                model = <Model> arg.model
             umo_create_expression(model.ptr, op, len(args), operands, &err)
             unwrap_error(&err)
         finally:
@@ -402,6 +405,8 @@ cdef class Expression:
 
     @staticmethod
     cdef Expression _binary_method_typed(umo_operator op, Expression o1, Expression o2):
+        if o1.model is not o2.model:
+            raise RuntimeError("All arguments must relate to the same model")
         cdef long long operands[2]
         operands[0] = o1.v
         operands[1] = o2.v

@@ -23,6 +23,12 @@ using namespace std;
 
 namespace umo {
 
+void checkSameModel(const Expression &op1, const Expression &op2) {
+    if (op1.rawPtr() != op2.rawPtr()) {
+        throw std::runtime_error("All operands must relate to the same model");
+    }
+}
+
 long long makeConstant(umo_model *model, double val) {
     long long tmp;
     UNWRAP_EXCEPTIONS(tmp = umo_create_constant(model, val, &err););
@@ -76,6 +82,7 @@ ResultExpression unaryOp(umo_operator op, const OperandExpression &op1) {
 template <typename ResultExpression>
 ResultExpression binaryOp(umo_operator op, const FloatExpression &op1,
                           const FloatExpression &op2) {
+    checkSameModel(op1, op2);
     long long v = makeBinaryOp(op1.rawPtr(), op, op1.rawId(), op2.rawId());
     return ResultExpression(op1.rawPtr(), v);
 }
@@ -99,6 +106,7 @@ ResultExpression binaryOp(umo_operator op, const FloatExpression &op1,
 template <typename ResultExpression>
 ResultExpression binaryOp(umo_operator op, const IntExpression &op1,
                           const IntExpression &op2) {
+    checkSameModel(op1, op2);
     long long v = makeBinaryOp(op1.rawPtr(), op, op1.rawId(), op2.rawId());
     return ResultExpression(op1.rawPtr(), v);
 }
@@ -122,6 +130,7 @@ ResultExpression binaryOp(umo_operator op, const IntExpression &op1,
 template <typename ResultExpression>
 ResultExpression binaryOp(umo_operator op, const BoolExpression &op1,
                           const BoolExpression &op2) {
+    checkSameModel(op1, op2);
     long long v = makeBinaryOp(op1.rawPtr(), op, op1.rawId(), op2.rawId());
     return ResultExpression(op1.rawPtr(), v);
 }
@@ -861,7 +870,7 @@ ExpressionType naryOp(umo_operator op, const vector<ExpressionType> &operands) {
         // TODO: support constant expressions without an attached model
         throw std::runtime_error(
             "N-ary operations must receive at least one operand. To support "
-            "empty operations, use the corresponding Model method instead.");
+            "empty operations, use the corresponding Model method instead");
     }
     umo_model *model = operands[0].rawPtr();
     return naryOp(op, model, operands);
@@ -874,6 +883,11 @@ ExpressionType naryOp(umo_operator op, umo_model *model,
     ops.reserve(operands.size());
     for (ExpressionType expr : operands) {
         ops.push_back(expr.rawId());
+    }
+    for (ExpressionType e : operands) {
+        if (e.rawPtr() != model) {
+            throw std::runtime_error("All operands must relate to the same model");
+        }
     }
     long long v = makeNaryOp(model, op, ops.size(), ops.data());
     return ExpressionType(model, v);

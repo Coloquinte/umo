@@ -553,7 +553,28 @@ class TestUmoApi(unittest.TestCase):
     def test_forbid_implicit_bool(self):
         m = umo.Model()
         self.assertRaises(NotImplementedError, lambda: bool(m.bool_var()))
+        self.assertRaises(Exception, lambda: int(m.int_var()))
+        self.assertRaises(Exception, lambda: float(m.float_var()))
 
+    def test_numpy(self):
+        try:
+            import numpy as np
+        except:
+            return
+        m = umo.Model()
+        self.assertTrue(isinstance(m.constant(np.int32(6)), umo.IntExpression))
+        self.assertTrue(isinstance(m.constant(np.int8(6)), umo.IntExpression))
+        self.assertTrue(isinstance(m.constant(np.bool()), umo.BoolExpression))
+        self.assertTrue(isinstance(m.constant(np.float64(4.5)), umo.FloatExpression))
+        self.assertTrue(isinstance(m.constant(np.float32(4.5)), umo.FloatExpression))
+
+    def test_two_models(self):
+        m1 = umo.Model()
+        m2 = umo.Model()
+        f1 = m1.float_var()
+        f2 = m2.float_var()
+        self.assertRaises(Exception, lambda: f1 + f2)
+        self.assertRaises(Exception, lambda: umo.sum(f1, f2))
 
 if __name__ == '__main__':
     unittest.main()
