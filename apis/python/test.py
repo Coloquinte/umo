@@ -503,6 +503,26 @@ class TestUmoApi(unittest.TestCase):
         self.assertRaises(Exception, lambda: umo.logical_xor(dec3, dec2))
         self.assertRaises(Exception, lambda: umo.logical_xor())
 
+    def test_nary_list(self):
+        m = umo.Model()
+        dec1 = m.float_var(-10, 10)
+        dec2 = m.int_var(-10, 10)
+        dec3 = m.bool_var()
+        x = umo.sum([dec1, dec2, dec3])
+        self.assertTrue(isinstance(x, umo.FloatExpression))
+        x = umo.prod([dec1, dec2, dec3])
+        self.assertTrue(isinstance(x, umo.FloatExpression))
+        x = umo.min([dec1, dec2, dec3])
+        self.assertTrue(isinstance(x, umo.FloatExpression))
+        x = umo.max([dec1, dec2, dec3])
+        self.assertTrue(isinstance(x, umo.FloatExpression))
+        x = umo.logical_and([dec3, dec3, dec3])
+        self.assertTrue(isinstance(x, umo.BoolExpression))
+        x = umo.logical_or([dec3, dec3, dec3])
+        self.assertTrue(isinstance(x, umo.BoolExpression))
+        x = umo.logical_xor([dec3, dec3, dec3])
+        self.assertTrue(isinstance(x, umo.BoolExpression))
+
     def test_deletion(self):
         m = umo.Model()
         dec1 = m.bool_var()

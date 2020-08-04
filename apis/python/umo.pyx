@@ -369,13 +369,19 @@ cdef class Expression:
     def _nary_method(op, *args):
         if len(args) == 0:
             raise RuntimeError("There should be at least one argument")
+        if len(args) == 1 and not isinstance(args[0], Expression):
+            try:
+                iter(args[0])
+            except:
+                raise TypeError("Arguments of N-ary operators must be expressions")
+            args = args[0]
         cdef long long *operands = NULL
         cdef Model model = None
         cdef const char *err = NULL
         cdef long long v = -1
         for arg in args:
             if not isinstance(arg, Expression):
-                raise TypeError("Argument must be an expression")
+                raise TypeError("Arguments of N-ary operators must be expressions")
         try:
             operands = <long long *> malloc(len(args) * sizeof(long long))
             for i, arg in enumerate(args):
@@ -718,23 +724,30 @@ def unbounded():
     return UnboundedT.DUMMY
 
 def sum(*args):
+    """Sum"""
     return Expression._nary_method(UMO_OP_SUM, *args)._infer_int_float(*args)
 
 def prod(*args):
+    """Product"""
     return Expression._nary_method(UMO_OP_PROD, *args)._infer_bool_int_float(*args)
 
 def min(*args):
+    """Minimum"""
     return Expression._nary_method(UMO_OP_MIN, *args)._infer_bool_int_float(*args)
 
 def max(*args):
+    """Maximum"""
     return Expression._nary_method(UMO_OP_MAX, *args)._infer_bool_int_float(*args)
 
 def logical_and(*args):
+    """Logical And"""
     return Expression._nary_method(UMO_OP_AND, *args)._asbool()
 
 def logical_or(*args):
+    """Logical Or"""
     return Expression._nary_method(UMO_OP_OR, *args)._asbool()
 
 def logical_xor(*args):
+    """Exclusive Or"""
     return Expression._nary_method(UMO_OP_XOR, *args)._asbool()
 
