@@ -31,6 +31,7 @@ class ToLinear::Transformer {
     void linearizeXor(uint32_t i);
     bool mustCopy(uint32_t i) const;
     void copyExpression(uint32_t i);
+    void createDummy();
 
     void linearizeConstrainedEq(ExpressionId op1, ExpressionId op2);
     void linearizeConstrainedLess(ExpressionId op1, ExpressionId op2,
@@ -201,6 +202,7 @@ void ToLinear::Transformer::run() {
     createExpressions();
     createObjectives();
     linearizeExpressions();
+    createDummy();
     model.apply(linearModel);
 }
 
@@ -546,6 +548,11 @@ bool ToLinear::Transformer::mustCopy(uint32_t i) const {
     default:
         return true;
     }
+}
+
+void ToLinear::Transformer::createDummy() {
+    // Ensure that at least one decision exists to be compatible with more solvers
+    linearModel.createExpression(UMO_OP_DEC_FLOAT, {constantZero, constantPOne});
 }
 
 bool ToLinear::valid(const PresolvedModel &model) const {
