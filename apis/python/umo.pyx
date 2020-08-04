@@ -92,7 +92,7 @@ cdef extern from "api/umo.h":
 
 
 from cpython.object cimport Py_EQ, Py_NE, Py_LT, Py_GT, Py_LE, Py_GE
-from libc.stdlib cimport free
+from libc.stdlib cimport malloc, free
 
 
 cdef unwrap_error(const char **err):
@@ -364,6 +364,28 @@ cdef class Expression:
             expr2 = (<Expression> expr1).model.constant(expr2)
         assert isinstance(expr1, Expression) and isinstance(expr2, Expression)
         return Expression._binary_method_typed(<umo_operator> op, <Expression> expr1, <Expression> expr2)
+
+    @staticmethod
+    def _nary_method(op, *args):
+        if len(args) == 0:
+            raise RuntimeError("There should be at least one argument")
+        cdef long long *operands = NULL
+        cdef Model model = None
+        cdef const char *err = NULL
+        cdef long long v = -1
+        for arg in args:
+            if not isinstance(arg, Expression):
+                raise TypeError("Argument must be an expression")
+        try:
+            operands = <long long *> malloc(len(args) * sizeof(long long))
+            for i, arg in enumerate(args):
+                operands[i] = (<Expression> arg).v
+                model = <Model> arg.model
+            umo_create_expression(model.ptr, op, len(args), operands, &err)
+            unwrap_error(&err)
+        finally:
+            free(operands)
+        return Expression.create(model, v)
 
     @staticmethod
     cdef Expression _unary_method_typed(umo_operator op, Expression expr):
@@ -694,4 +716,25 @@ def inf():
 def unbounded():
     """Return a placeholder for variable bounds."""
     return UnboundedT.DUMMY
+
+def sum(*args):
+    return Expression._nary_method(UMO_OP_SUM, *args)._infer_int_float(*args)
+
+def prod(*args):
+    return Expression._nary_method(UMO_OP_PROD, *args)._infer_bool_int_float(*args)
+
+def min(*args):
+    return Expression._nary_method(UMO_OP_MIN, *args)._infer_bool_int_float(*args)
+
+def max(*args):
+    return Expression._nary_method(UMO_OP_MAX, *args)._infer_bool_int_float(*args)
+
+def logical_and(*args):
+    return Expression._nary_method(UMO_OP_AND, *args)._asbool()
+
+def logical_or(*args):
+    return Expression._nary_method(UMO_OP_OR, *args)._asbool()
+
+def logical_xor(*args):
+    return Expression._nary_method(UMO_OP_XOR, *args)._asbool()
 
