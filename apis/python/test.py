@@ -378,7 +378,7 @@ class TestUmoApi(unittest.TestCase):
         b10.value
         m.check()
 
-    def test_compount_float(self):
+    def test_compound_float(self):
         m = umo.Model()
         dec1 = m.float_var(-10.0, 10.0);
         dec2 = m.float_var(5.0, 10.0);
@@ -398,7 +398,7 @@ class TestUmoApi(unittest.TestCase):
         self.assertTrue(isinstance(dec2, umo.FloatExpression))
         m.check()
 
-    def test_compount_int(self):
+    def test_compound_int(self):
         m = umo.Model()
         dec1 = m.int_var(-10, 10);
         dec2 = m.int_var(5, 10);
@@ -416,7 +416,7 @@ class TestUmoApi(unittest.TestCase):
         self.assertTrue(isinstance(dec2, umo.IntExpression))
         m.check()
 
-    def test_compount_bool(self):
+    def test_compound_bool(self):
         m = umo.Model()
         dec1 = m.bool_var();
         dec2 = m.bool_var();

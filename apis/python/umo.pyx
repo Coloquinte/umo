@@ -207,7 +207,7 @@ cdef class Model:
             raise TypeError("The second int_var() argument must be an integer or +inf")
         cdef Expression clb = self.constant(lb)
         cdef Expression cub = self.constant(ub)
-        return Expression._binary_method_typed(clb, cub, UMO_OP_DEC_INT)._asint()
+        return Expression._binary_method_typed(UMO_OP_DEC_INT, clb, cub)._asint()
 
     def float_var(self, lb=UnboundedT.DUMMY, ub=UnboundedT.DUMMY):
         """
@@ -223,7 +223,7 @@ cdef class Model:
             raise TypeError("The second float_var() argument must be a number or +inf")
         cdef Expression clb = self.constant(lb)
         cdef Expression cub = self.constant(ub)
-        return Expression._binary_method_typed(clb, cub, UMO_OP_DEC_FLOAT)._asfloat()
+        return Expression._binary_method_typed(UMO_OP_DEC_FLOAT, clb, cub)._asfloat()
 
     @property
     def status(self):
@@ -343,13 +343,13 @@ cdef class Expression:
         raise NotImplementedError("Expressions are not convertible to booleans; use Expression.value to query its value in a given solution.")
 
     @staticmethod
-    cdef Expression _unary_method(expr, umo_operator op):
+    cdef Expression _unary_method(umo_operator op, expr):
         if not isinstance(expr, Expression):
             raise TypeError("Argument must be an expression")
-        return Expression._unary_method_typed(<Expression> expr, op)
+        return Expression._unary_method_typed(op, <Expression> expr)
 
     @staticmethod
-    def _binary_method(expr1, expr2, op):
+    cdef Expression _binary_method(umo_operator op, expr1, expr2):
         if not isinstance(expr1, Expression) and not isinstance(expr2, Expression):
             raise TypeError("One of the arguments must be an expression")
         if not isinstance(expr1, Expression):
@@ -363,17 +363,17 @@ cdef class Expression:
                 raise TypeError("Argument must be an expression or a number")
             expr2 = (<Expression> expr1).model.constant(expr2)
         assert isinstance(expr1, Expression) and isinstance(expr2, Expression)
-        return Expression._binary_method_typed(<Expression> expr1, <Expression> expr2, <umo_operator> op)
+        return Expression._binary_method_typed(<umo_operator> op, <Expression> expr1, <Expression> expr2)
 
     @staticmethod
-    cdef Expression _unary_method_typed(Expression expr, umo_operator op):
+    cdef Expression _unary_method_typed(umo_operator op, Expression expr):
         cdef const char *err = NULL
         cdef long long v = umo_create_expression(expr.get_ptr(), op, 1, &expr.v, &err)
         unwrap_error(&err)
         return Expression.create(expr.model, v)
 
     @staticmethod
-    cdef Expression _binary_method_typed(Expression o1, Expression o2, umo_operator op):
+    cdef Expression _binary_method_typed(umo_operator op, Expression o1, Expression o2):
         cdef long long operands[2]
         operands[0] = o1.v
         operands[1] = o2.v
@@ -400,19 +400,20 @@ cdef class Expression:
         expr.v = self.v
         return expr
 
-    def _infer_int_float(self, o1, o2=None):
-        if is_intexpr(o1) and (o2 is None or is_intexpr(o2)):
-            return self._asint()
-        else:
-            return self._asfloat()
+    def _infer_int_float(self, *args):
+        for arg in args:
+            if not is_intexpr(arg):
+                return self._asfloat()
+        return self._asint()
 
-    def _infer_bool_int_float(self, o1, o2=None):
-        if is_boolexpr(o1) and (o2 is None or is_boolexpr(o2)):
-            return self._asbool()
-        elif is_intexpr(o1) and (o2 is None or is_intexpr(o2)):
-            return self._asint()
-        else:
-            return self._asfloat()
+    def _infer_bool_int_float(self, *args):
+        for arg in args:
+            if not is_intexpr(arg):
+                return self._asfloat()
+        for arg in args:
+            if not is_boolexpr(arg):
+                return self._asint()
+        return self._asbool()
 
 
 cdef class FloatExpression(Expression):
@@ -449,37 +450,37 @@ cdef class FloatExpression(Expression):
             umo_op = UMO_OP_CMP_EQ
         elif op == Py_NE:
             umo_op = UMO_OP_CMP_NEQ
-        return Expression._binary_method(o1, o2, umo_op)._asbool()
+        return Expression._binary_method(umo_op, o1, o2)._asbool()
 
     def __add__(o1, o2):
-        return Expression._binary_method(o1, o2, UMO_OP_SUM)._infer_int_float(o1, o2)
+        return Expression._binary_method(UMO_OP_SUM, o1, o2)._infer_int_float(o1, o2)
 
     def __sub__(o1, o2):
-        return Expression._binary_method(o1, o2, UMO_OP_MINUS_BINARY)._infer_int_float(o1, o2)
+        return Expression._binary_method(UMO_OP_MINUS_BINARY, o1, o2)._infer_int_float(o1, o2)
 
     def __mul__(o1, o2):
-        return Expression._binary_method(o1, o2, UMO_OP_PROD)._infer_bool_int_float(o1, o2)
+        return Expression._binary_method(UMO_OP_PROD, o1, o2)._infer_bool_int_float(o1, o2)
 
     def __div__(o1, o2):
-        return Expression._binary_method(o1, o2, UMO_OP_DIV)._asfloat()
+        return Expression._binary_method(UMO_OP_DIV, o1, o2)._asfloat()
 
     def __truediv__(o1, o2):
-        return Expression._binary_method(o1, o2, UMO_OP_DIV)._asfloat()
+        return Expression._binary_method(UMO_OP_DIV, o1, o2)._asfloat()
 
     def __neg__(self):
-        return Expression._unary_method(self, UMO_OP_MINUS_UNARY)._infer_int_float(self)
+        return Expression._unary_method(UMO_OP_MINUS_UNARY, self)._infer_int_float(self)
 
     def __pos__(self):
         return self
 
     def __abs__(self):
-        return Expression._unary_method(self, UMO_OP_ABS)._infer_int_float(self)
+        return Expression._unary_method(UMO_OP_ABS, self)._infer_int_float(self)
 
     def __round__(self):
-        return Expression._unary_method(self, UMO_OP_ROUND)._asint()
+        return Expression._unary_method(UMO_OP_ROUND, self)._asint()
 
     def __pow__(o1, o2, o3):
-        return Expression._binary_method(o1, o2, UMO_OP_POW)._asfloat()
+        return Expression._binary_method(UMO_OP_POW, o1, o2)._asfloat()
 
 
 cdef class IntExpression(FloatExpression):
@@ -504,10 +505,10 @@ cdef class IntExpression(FloatExpression):
         unwrap_error(&err)
 
     def __floordiv__(o1, o2):
-        return Expression._binary_method(o1, o2, UMO_OP_IDIV)._asint()
+        return Expression._binary_method(UMO_OP_IDIV, o1, o2)._asint()
 
     def __mod__(o1, o2):
-        return Expression._binary_method(o1, o2, UMO_OP_MOD)._asint()
+        return Expression._binary_method(UMO_OP_MOD, o1, o2)._asint()
 
 
 cdef class BoolExpression(IntExpression):
@@ -532,16 +533,16 @@ cdef class BoolExpression(IntExpression):
         unwrap_error(&err)
 
     def __and__(o1, o2):
-        return Expression._binary_method(o1, o2, UMO_OP_AND)._asbool()
+        return Expression._binary_method(UMO_OP_AND, o1, o2)._asbool()
 
     def __or__(o1, o2):
-        return Expression._binary_method(o1, o2, UMO_OP_OR)._asbool()
+        return Expression._binary_method(UMO_OP_OR, o1, o2)._asbool()
 
     def __xor__(o1, o2):
-        return Expression._binary_method(o1, o2, UMO_OP_XOR)._asbool()
+        return Expression._binary_method(UMO_OP_XOR, o1, o2)._asbool()
 
     def __invert__(self):
-        return Expression._unary_method(self, UMO_OP_NOT)._asbool()
+        return Expression._unary_method(UMO_OP_NOT, self)._asbool()
 
 
 def constraint(expr):
@@ -582,107 +583,107 @@ def maximize(expr):
 
 def exp(expr):
     """Exponential function."""
-    return Expression._unary_method(expr, UMO_OP_EXP)._asfloat()
+    return Expression._unary_method(UMO_OP_EXP, expr)._asfloat()
 
 
 def log(expr):
     """Logarithm function."""
-    return Expression._unary_method(expr, UMO_OP_LOG)._asfloat()
+    return Expression._unary_method(UMO_OP_LOG, expr)._asfloat()
 
 
 def sqrt(expr):
     """Square root function."""
-    return Expression._unary_method(expr, UMO_OP_SQRT)._asfloat()
+    return Expression._unary_method(UMO_OP_SQRT, expr)._asfloat()
 
 
 def square(expr):
     """Square function."""
-    return Expression._unary_method(expr, UMO_OP_SQUARE)._infer_int_float(expr)
+    return Expression._unary_method(UMO_OP_SQUARE, expr)._infer_int_float(expr)
 
 
 def round(expr):
     """Round to nearest function."""
-    return Expression._unary_method(expr, UMO_OP_ROUND)._asint()
+    return Expression._unary_method(UMO_OP_ROUND, expr)._asint()
 
 
 def floor(expr):
     """Floor function."""
-    return Expression._unary_method(expr, UMO_OP_FLOOR)._asint()
+    return Expression._unary_method(UMO_OP_FLOOR, expr)._asint()
 
 
 def ceil(expr):
     """Ceil function."""
-    return Expression._unary_method(expr, UMO_OP_CEIL)._asint()
+    return Expression._unary_method(UMO_OP_CEIL, expr)._asint()
 
 
 def sign(expr):
     """Sign function (-1/1)."""
-    return Expression._unary_method(expr, UMO_OP_SIGN)._asint()
+    return Expression._unary_method(UMO_OP_SIGN, expr)._asint()
 
 
 def frac(expr):
     """Fractional part function."""
-    return Expression._unary_method(expr, UMO_OP_FRAC)._asfloat()
+    return Expression._unary_method(UMO_OP_FRAC, expr)._asfloat()
 
 
 def cos(expr):
     """Cosine function."""
-    return Expression._unary_method(expr, UMO_OP_COS)._asfloat()
+    return Expression._unary_method(UMO_OP_COS, expr)._asfloat()
 
 
 def sin(expr):
     """Sine function."""
-    return Expression._unary_method(expr, UMO_OP_SIN)._asfloat()
+    return Expression._unary_method(UMO_OP_SIN, expr)._asfloat()
 
 
 def tan(expr):
     """Tangent function."""
-    return Expression._unary_method(expr, UMO_OP_TAN)._asfloat()
+    return Expression._unary_method(UMO_OP_TAN, expr)._asfloat()
 
 
 def cosh(expr):
     """Hyperbolic cosine function."""
-    return Expression._unary_method(expr, UMO_OP_COSH)._asfloat()
+    return Expression._unary_method(UMO_OP_COSH, expr)._asfloat()
 
 
 def sinh(expr):
     """Hyperbolic sine function."""
-    return Expression._unary_method(expr, UMO_OP_SINH)._asfloat()
+    return Expression._unary_method(UMO_OP_SINH, expr)._asfloat()
 
 
 def tanh(expr):
     """Hyperbolic tangent function."""
-    return Expression._unary_method(expr, UMO_OP_TANH)._asfloat()
+    return Expression._unary_method(UMO_OP_TANH, expr)._asfloat()
 
 
 def acos(expr):
     """Inverse cosine function."""
-    return Expression._unary_method(expr, UMO_OP_ACOS)._asfloat()
+    return Expression._unary_method(UMO_OP_ACOS, expr)._asfloat()
 
 
 def asin(expr):
     """Inverse sine function."""
-    return Expression._unary_method(expr, UMO_OP_ASIN)._asfloat()
+    return Expression._unary_method(UMO_OP_ASIN, expr)._asfloat()
 
 
 def atan(expr):
     """Inverse tangent function."""
-    return Expression._unary_method(expr, UMO_OP_ATAN)._asfloat()
+    return Expression._unary_method(UMO_OP_ATAN, expr)._asfloat()
 
 
 def acosh(expr):
     """Inverse hyperbolic cosine function."""
-    return Expression._unary_method(expr, UMO_OP_ACOSH)._asfloat()
+    return Expression._unary_method(UMO_OP_ACOSH, expr)._asfloat()
 
 
 def asinh(expr):
     """Inverse hyperbolic sine function."""
-    return Expression._unary_method(expr, UMO_OP_ASINH)._asfloat()
+    return Expression._unary_method(UMO_OP_ASINH, expr)._asfloat()
 
 
 def atanh(expr):
     """Inverse hyperbolic tangent function."""
-    return Expression._unary_method(expr, UMO_OP_ATANH)._asfloat()
+    return Expression._unary_method(UMO_OP_ATANH, expr)._asfloat()
 
 
 def inf():
@@ -694,4 +695,3 @@ def unbounded():
     """Return a placeholder for variable bounds."""
     return UnboundedT.DUMMY
 
-# TODO: n-ary operations, lpsum
