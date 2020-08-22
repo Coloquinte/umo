@@ -61,7 +61,10 @@ class Operator {
     // Convexity information (relies on bounds)
 };
 
-std::ostream &operator<<(std::ostream &os, umo_operator op);
+std::ostream &operator<<(std::ostream &os, umo_operator);
+std::ostream &operator<<(std::ostream &os, umo_type);
+std::ostream &operator<<(std::ostream &os, umo_objective_direction);
+std::ostream &operator<<(std::ostream &os, umo_solution_status);
 
 } // namespace umoi
 

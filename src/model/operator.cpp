@@ -21,6 +21,64 @@ std::ostream &operator<<(std::ostream &os, umo_operator op) {
     return os << Operator::get(op).toString();
 }
 
+std::ostream &operator<<(std::ostream &os, umo_type type) {
+    switch (type) {
+    case UMO_TYPE_INVALID:
+        os << "invalid";
+        break;
+    case UMO_TYPE_BOOL:
+        os << "bool";
+        break;
+    case UMO_TYPE_INT:
+        os << "int";
+        break;
+    case UMO_TYPE_FLOAT:
+        os << "float";
+        break;
+    default:
+        os << "unknown_type";
+        break;
+    }
+}
+
+std::ostream &operator<<(std::ostream &os, umo_objective_direction dir) {
+    switch (dir) {
+    case UMO_OBJ_MINIMIZE:
+        os << "minimize";
+        break;
+    case UMO_OBJ_MAXIMIZE:
+        os << "maximize";
+        break;
+    default:
+        os << "unknown_direction";
+        break;
+    }
+}
+
+std::ostream &operator<<(std::ostream &os, umo_solution_status status) {
+    switch (status) {
+    case UMO_STATUS_INFEASIBLE:
+        os << "infeasible";
+        break;
+    case UMO_STATUS_INVALID:
+        os << "invalid";
+        break;
+    case UMO_STATUS_VALID:
+        os << "valid";
+        break;
+    case UMO_STATUS_OPTIMAL:
+        os << "optimal";
+        break;
+    case UMO_STATUS_UNBOUNDED:
+        os << "unbounded";
+        break;
+    default:
+        os << "unknown_status";
+        break;
+    }
+}
+
+
 const Operator &Operator::get(umo_operator op) {
     if (op >= UMO_OP_END)
         throw std::runtime_error("Operator identifier is out of range");
